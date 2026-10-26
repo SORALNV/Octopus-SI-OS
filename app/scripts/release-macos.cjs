@@ -25,7 +25,9 @@ function main(argv) {
   const installer = path.join(options.output, "install.sh");
   fs.copyFileSync(path.join(releaseSources, "install.sh"), installer);
   fs.chmodSync(installer, 0o755);
-  const assets = [image, installer];
+  const prompt = path.join(options.output, "install-prompt-ja.md");
+  fs.copyFileSync(path.join(releaseSources, "install-prompt-ja.md"), prompt);
+  const assets = [image, installer, prompt];
   writeChecksums(options.output, assets);
   const notes = renderNotes(options.output, version, architecture);
   for (const asset of assets) console.log(`${path.basename(asset)}\t${fs.statSync(asset).size}`);

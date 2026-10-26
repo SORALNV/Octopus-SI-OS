@@ -201,7 +201,9 @@ staged-file inventory. It does not establish asset provenance or runtime accepta
 A release is the packaged app as a disk image,
 `Octopus-<version>-macos-<arch>.dmg`, with `install.sh` and `checksums.txt`.
 The version is `version` in `app/package.json`; the packager writes it into
-the bundle, and the release tag is `v<version>`.
+the bundle, and the upstream release tag is `v<version>`. This fork's Japanese
+preview uses a separate `ja-v<version>-preview.<number>` tag and locally
+verified assets; see [Japanese fork](japanese-fork.md#ビルド済みアプリ).
 
 After `npm --prefix app run package:mac`, build the release assets locally with:
 

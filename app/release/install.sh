@@ -1,8 +1,9 @@
 #!/bin/sh
 set -eu
 
-REPOSITORY="${OCTOPUS_REPOSITORY:-miuuyy/Octopus-SI-OS}"
-VERSION="${OCTOPUS_VERSION:-}"
+REPOSITORY="${OCTOPUS_REPOSITORY:-SORALNV/Octopus-SI-OS}"
+VERSION="${OCTOPUS_VERSION:-0.1.0}"
+RELEASE_TAG="${OCTOPUS_RELEASE_TAG:-ja-v0.1.0-preview.1}"
 INSTALL_DIR="${OCTOPUS_APPLICATIONS_DIR:-}"
 
 fail() {
@@ -25,19 +26,14 @@ Install them with:  xcode-select --install
 Then run this installer again."
 
 printf '%s\n' "$REPOSITORY" | grep -Eq '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$' || fail "Invalid GitHub repository: $REPOSITORY"
-if [ -z "$VERSION" ]; then
-  LATEST="$(curl -fsSLI --retry 3 --connect-timeout 15 --max-time 60 -o /dev/null -w '%{url_effective}' \
-    "https://github.com/$REPOSITORY/releases/latest")" || fail "Could not reach the releases of $REPOSITORY."
-  VERSION="${LATEST##*/tag/}"
-  [ "$VERSION" != "$LATEST" ] || fail "Could not resolve the latest Octopus release of $REPOSITORY."
-fi
 VERSION="${VERSION#v}"
 case "$VERSION" in
   ''|*[!0-9.]*) fail "Invalid Octopus release version: $VERSION" ;;
 esac
 
+printf '%s\n' "$RELEASE_TAG" | grep -Eq '^[A-Za-z0-9][A-Za-z0-9._-]*$' || fail "Invalid release tag: $RELEASE_TAG"
 ASSET="Octopus-$VERSION-macos-$ARCH.dmg"
-BASE_URL="${OCTOPUS_RELEASE_BASE_URL:-https://github.com/$REPOSITORY/releases/download/v$VERSION}"
+BASE_URL="${OCTOPUS_RELEASE_BASE_URL:-https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG}"
 TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/octopus-install.XXXXXX")"
 MOUNT_DIR="$TEMP_DIR/volume"
 MOUNTED=""
@@ -53,7 +49,7 @@ trap 'exit 1' HUP INT TERM
 curl -fsSL --retry 3 --connect-timeout 15 --max-time 60 "$BASE_URL/checksums.txt" -o "$TEMP_DIR/checksums.txt" \
   || fail "Could not download the checksums of Octopus $VERSION."
 EXPECTED="$(awk -v asset="$ASSET" '$2 == asset { print $1 }' "$TEMP_DIR/checksums.txt")"
-[ -n "$EXPECTED" ] || fail "Release $VERSION has no $ASSET. See https://github.com/$REPOSITORY/releases/tag/v$VERSION"
+[ -n "$EXPECTED" ] || fail "Release $RELEASE_TAG has no $ASSET. See https://github.com/$REPOSITORY/releases/tag/$RELEASE_TAG"
 printf 'Downloading %s\n' "$ASSET"
 curl -fL --retry 3 --connect-timeout 15 --max-time 3600 "$BASE_URL/$ASSET" -o "$TEMP_DIR/$ASSET" \
   || fail "Could not download $ASSET."
@@ -82,13 +78,23 @@ fi
 STAGE_APP="$INSTALL_DIR/.Octopus.app.installing.$$"
 printf 'Copying Octopus.app to %s\n' "$INSTALL_DIR"
 ditto "$SOURCE_APP" "$STAGE_APP"
+codesign --verify --deep --strict "$STAGE_APP" || fail "The copied app failed code signature verification."
+APP_VERSION="$(plutil -extract CFBundleShortVersionString raw -o - "$STAGE_APP/Contents/Info.plist")"
+APP_ID="$(plutil -extract CFBundleIdentifier raw -o - "$STAGE_APP/Contents/Info.plist")"
+[ "$APP_VERSION" = "$VERSION" ] && [ "$APP_ID" = "com.octopus.desktop" ] || fail "Unexpected Octopus bundle identity or version."
+printf '%s\n' "This Japanese preview is ad-hoc signed, not notarized. Removing quarantine from the verified app copy only."
+if xattr "$STAGE_APP" | grep -qx com.apple.quarantine; then
+  xattr -dr com.apple.quarantine "$STAGE_APP" || fail "Could not remove app quarantine."
+fi
+codesign --verify --deep --strict "$STAGE_APP" || fail "The app failed verification after preparing the copy."
 if [ -e "$TARGET_APP" ]; then
-  PREVIOUS_APP="$TEMP_DIR/Octopus.previous.app"
+  PREVIOUS_APP="$INSTALL_DIR/Octopus.previous.$(date +%Y%m%d-%H%M%S).$$.app"
   mv "$TARGET_APP" "$PREVIOUS_APP"
   if ! mv "$STAGE_APP" "$TARGET_APP"; then
     mv "$PREVIOUS_APP" "$TARGET_APP"
     fail "Could not replace $TARGET_APP; the previous version was kept."
   fi
+  printf 'Previous app kept at %s\n' "$PREVIOUS_APP"
 else
   mv "$STAGE_APP" "$TARGET_APP"
 fi
