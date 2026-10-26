@@ -319,7 +319,7 @@ async function readRunRecords(runRecordsRoot, warnings = []) {
       const checkpointId = stringValue(checkpoint?.id) || `${stringValue(record.id)}:cp:${index + 1}`;
       return {
         checkpoint_id: checkpointId,
-        label: `Checkpoint ${index + 1}`,
+        label: `チェックポイント ${index + 1}`,
         status: active.has(stringValue(checkpoint?.id)) ? "projected" : "made",
         interface: inboundInterface,
         interface_artifact_names: interfaceBindingArtifactNames(checkpoint?.interface_binding),

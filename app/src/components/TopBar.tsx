@@ -92,7 +92,7 @@ export function TopBar({
             <div className="toolbar-menu topbar-filter-menu">
               <OcButton
                 buttonRef={filterAnchorRef}
-                aria-label={`Filters ${filterSummary}`}
+                aria-label={`絞り込み ${filterSummary}`}
                 className="topbar-filter-button"
                 leadingIcon="filter"
                 meta={filterSummary}
@@ -100,10 +100,10 @@ export function TopBar({
                 selected={openMenu === "filters"}
                 onClick={() => setOpenMenu((current) => current === "filters" ? null : "filters")}
               >
-                Filters
+                絞り込み
               </OcButton>
-              <OcDropdown aria-label="Status filters" anchorRef={filterAnchorRef} open={openMenu === "filters" && Boolean(dashboardFilters)} onOpenChange={(open) => setOpenMenu(open ? "filters" : null)} style={{ width: 196 }}>
-                <OcMenuSectionLabel>Status</OcMenuSectionLabel>
+              <OcDropdown aria-label="状態で絞り込み" anchorRef={filterAnchorRef} open={openMenu === "filters" && Boolean(dashboardFilters)} onOpenChange={(open) => setOpenMenu(open ? "filters" : null)} style={{ width: 196 }}>
+                <OcMenuSectionLabel>状態</OcMenuSectionLabel>
                 {dashboardFilters && statusKeys.map((key) => (
                   <OcMenuItem
                     aria-checked={dashboardFilters.statuses[key]}
@@ -118,16 +118,16 @@ export function TopBar({
             </div>
             <OcSegmented
               className="topology-mode-toggle"
-              label="Topology view mode"
+              label="構成図の表示モード"
               value={dashboardTopologyMode}
               options={dashboardScope === "System"
                 ? [
-                  { value: "drilldown", label: "Drilldown" },
-                  { value: "zones", label: "Zones" },
+                  { value: "drilldown", label: "詳細表示" },
+                  { value: "zones", label: "領域" },
                 ]
                 : [
-                  { value: "drilldown", label: "Instances" },
-                  { value: "zones", label: "Families" },
+                  { value: "drilldown", label: "インスタンス" },
+                  { value: "zones", label: "グループ" },
                 ]}
               onChange={(next) => onDashboardTopologyModeChange?.(next)}
             />
@@ -138,16 +138,16 @@ export function TopBar({
         <div className="topbar-actions">
           <OcSegmented
             className="topbar-scope-toggle"
-            label="Scope"
+            label="範囲"
             value={dashboardScope}
             options={[
-              { value: "System", label: "System" },
-              { value: "World", label: "World" },
+              { value: "System", label: "システム" },
+              { value: "World", label: "外部" },
             ]}
             onChange={(next) => onDashboardScopeChange?.(next)}
           />
           {showFullscreen ? (
-            <OcIconButton aria-pressed={!inspectorOpen} className="topbar-fullscreen-button" glyph={inspectorOpen ? "expand" : "restore"} label={inspectorOpen ? "Hide inspector" : "Show inspector"} onClick={onFullscreen} variant="ghost" />
+            <OcIconButton aria-pressed={!inspectorOpen} className="topbar-fullscreen-button" glyph={inspectorOpen ? "expand" : "restore"} label={inspectorOpen ? "インスペクターを隠す" : "インスペクターを表示"} onClick={onFullscreen} variant="ghost" />
           ) : null}
         </div>
       ) : null}
@@ -182,7 +182,7 @@ function SurfaceSearchBox({
     <OcSearchField
       className="surface-search-field"
       inputRef={inputRef}
-      label={`Search ${title}`}
+      label={`検索 ${title}`}
       onChange={onQueryChange}
       placeholder={placeholder}
       trailing={shortcut ? <span className="shrink-0 text-xs text-token-input-placeholder-foreground">{shortcut}</span> : undefined}

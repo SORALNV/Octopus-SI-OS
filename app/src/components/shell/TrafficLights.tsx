@@ -15,7 +15,7 @@ export function TrafficLights() {
   return (
     <div className="app-traffic-lights no-drag">
       <button
-        aria-label="Close window"
+        aria-label="ウィンドウを閉じる"
         className="app-traffic-light"
         onClick={() => window.octopusTransport?.windowControl("close")}
         type="button"
@@ -25,7 +25,7 @@ export function TrafficLights() {
         </svg>
       </button>
       <button
-        aria-label="Minimize window"
+        aria-label="ウィンドウを最小化"
         className="app-traffic-light"
         onClick={() => window.octopusTransport?.windowControl("minimize")}
         type="button"
@@ -35,7 +35,7 @@ export function TrafficLights() {
         </svg>
       </button>
       <button
-        aria-label="Zoom window"
+        aria-label="ウィンドウを拡大"
         className="app-traffic-light"
         onClick={() => window.octopusTransport?.windowControl("zoom")}
         type="button"

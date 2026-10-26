@@ -8,13 +8,13 @@ export type ProjectPolicyOption = {
 };
 
 const PRESENTATIONS: Record<string, { label: string; description: string }> = {
-  project: { label: "Project preset", description: "Use the installed project policy." },
-  operator_space: { label: "General work", description: "Organize everyday work and nested projects." },
-  operator_interaction: { label: "Focused task", description: "Complete a specific request with the permitted tools." },
-  self_improvement: { label: "Framework development", description: "Work on Octopus configuration or source within the parent’s permissions." },
-  startup_management: { label: "Startup and setup", description: "Manage startup and configuration work." },
-  memory_maintenance: { label: "Knowledge maintenance", description: "Maintain the context artifacts available to this project." },
-  context_maintenance: { label: "Context maintenance", description: "Prepare and maintain context for ongoing work." },
+  project: { label: "プロジェクトのプリセット", description: "インストール済みのプロジェクトポリシーを使います。" },
+  operator_space: { label: "一般的な作業", description: "日常の作業と階層化したプロジェクトを整理します。" },
+  operator_interaction: { label: "個別のタスク", description: "許可されたツールを使って、具体的な依頼を完了します。" },
+  self_improvement: { label: "フレームワークの開発", description: "親の権限の範囲内で、Octopus の設定やソースを変更します。" },
+  startup_management: { label: "起動とセットアップ", description: "起動と設定の作業を管理します。" },
+  memory_maintenance: { label: "知識の管理", description: "このプロジェクトで使えるコンテキストの成果物を管理します。" },
+  context_maintenance: { label: "コンテキストの管理", description: "継続的な作業に使うコンテキストを準備・管理します。" },
 };
 
 const ALLOWANCE_FIELDS = [
@@ -36,10 +36,10 @@ export function projectPolicyOption(value: unknown): ProjectPolicyOption | null 
   const words = row.id.replace(/[_-]+/g, " ");
   return {
     id: row.id,
-    label: inheritsParentPolicy ? "Same policy as parent" : presentation?.label ?? `${words[0].toUpperCase()}${words.slice(1)}`,
+    label: inheritsParentPolicy ? "親と同じポリシー" : presentation?.label ?? `${words[0].toUpperCase()}${words.slice(1)}`,
     description: inheritsParentPolicy
-      ? "Keep the parent’s access limits. No additional access restrictions."
-      : presentation?.description ?? "Use this installed policy, limited by the parent’s permissions.",
+      ? "親のアクセス制限をそのまま使い、追加の制限は設けません。"
+      : presentation?.description ?? "親の権限の範囲内で、このインストール済みポリシーを使います。",
     source: `registry/ee_template/${row.id}/ee_template.json`,
     goal: typeof row.goal_class === "string" ? row.goal_class : "",
     inheritsParentPolicy,

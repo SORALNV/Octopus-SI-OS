@@ -118,9 +118,9 @@ function BreadcrumbDirectory({ activePath, directoryPath, expandActivePath, onSe
     }
     return [...result];
   }, [directories, directoryPath, expanded, prefix]);
-  if (error) return <div className="os-files-breadcrumb-message is-error" role="alert" title={error}>Couldn't load folder contents</div>;
-  if (!directories[directoryPath]) return <OcLoadingRows className="os-files-breadcrumb-message" label="Loading folder contents…" />;
-  if (!paths.length) return <div className="os-files-breadcrumb-message">This folder is empty</div>;
+  if (error) return <div className="os-files-breadcrumb-message is-error" role="alert" title={error}>フォルダーの内容を読み込めませんでした</div>;
+  if (!directories[directoryPath]) return <OcLoadingRows className="os-files-breadcrumb-message" label="フォルダーの内容を読み込んでいます…" />;
+  if (!paths.length) return <div className="os-files-breadcrumb-message">このフォルダーは空です</div>;
   return <OctopusFileTree
     initialExpandedPaths={expanded}
     onExpandedPathsChange={(paths) => setExpanded((current) => current.length === paths.length && current.every((path, index) => path === paths[index]) ? current : paths)}

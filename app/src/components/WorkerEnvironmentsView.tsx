@@ -66,17 +66,17 @@ type ProjectPresentationProjection = {
 };
 
 const ROOM_TABS: Array<{ value: RoomTab; label: string; note: string }> = [
-  { value: "all", label: "All", note: "" },
-  { value: "tasks", label: "Tasks", note: "Rooms your tasks opened to do their work." },
-  { value: "home", label: "Home", note: "Rooms opened for Home." },
-  { value: "system", label: "System", note: "Rooms Octopus opens for its own upkeep rather than for a task. They come and go on their own and need nothing from you." },
+  { value: "all", label: "すべて", note: "" },
+  { value: "tasks", label: "タスク", note: "Rooms your tasks opened to do their work." },
+  { value: "home", label: "ホーム", note: "Rooms opened for Home." },
+  { value: "system", label: "システム", note: "Rooms Octopus opens for its own upkeep rather than for a task. They come and go on their own and need nothing from you." },
 ];
 
 const ROOM_STATE_OPTIONS = [
-  { label: "Any state", value: "all" as const },
-  { label: "Open", value: "open" as const },
-  { label: "Needs attention", value: "attention" as const },
-  { label: "Closed", value: "closed" as const },
+  { label: "すべての状態", value: "all" as const },
+  { label: "開く", value: "open" as const },
+  { label: "確認が必要", value: "attention" as const },
+  { label: "終了", value: "closed" as const },
 ];
 
 const ROOM_ROW_HEIGHT = 60;
@@ -143,13 +143,13 @@ export function WorkerEnvironmentsView({ accessProfile, chatRuns, snapshot, sear
     return counts;
   }, [rows]);
   const kindOptions = useMemo(() => [
-    { label: "Any kind", value: "all" },
+    { label: "すべての種類", value: "all" },
     ...Array.from(new Set(rows.map((row) => row.room.kind).filter(Boolean)))
       .sort((left, right) => left.localeCompare(right))
       .map((kind) => ({ label: sentenceCase(kind), value: kind })),
   ], [rows]);
   const projectOptions = useMemo(() => [
-    { label: "Any project", value: "all" },
+    { label: "すべてのプロジェクト", value: "all" },
     ...Array.from(new Map(rows.map((row) => [row.projectId, row.projectName])).entries())
       .sort((left, right) => left[1].localeCompare(right[1]))
       .map(([value, label]) => ({ label, value })),
@@ -178,25 +178,24 @@ export function WorkerEnvironmentsView({ accessProfile, chatRuns, snapshot, sear
         <motion.div animate={{ opacity: 1, transform: "translateY(0)" }} initial={{ opacity: 0, transform: "translateY(-4px)" }} transition={{ duration: 0.2 }}>
           <div className="mx-auto w-full max-w-6xl px-panel pt-panel">
             <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-2">
-              <h1 className="heading-xl m-0 font-normal text-token-foreground">Worker environments</h1>
+              <h1 className="heading-xl m-0 font-normal text-token-foreground">作業環境</h1>
               <OcSearchField
                 className="w-full min-w-0 sm:w-72"
                 id="worker-environment-search"
                 inputRef={searchRef}
-                label="Search rooms"
+                label="作業環境を検索"
                 onChange={setQuery}
-                placeholder="Search rooms"
+                placeholder="作業環境を検索"
                 value={query}
               />
             </div>
             <p className="m-0 mt-2 max-w-3xl px-2 text-base leading-6 text-token-text-secondary">
-              Rooms where work touches the world: a browser, a code checkout, a terminal, a desktop. Octopus opens one when a task's tools need it.
-              Open a room to watch it live, review its changes, or browse its files.
+              ブラウザー、コードのチェックアウト、ターミナル、デスクトップなど、実際に作業を行う環境です。タスクのツールが必要とするときに起動します。開くと、現在の動作、変更内容、ファイルを確認できます。
             </p>
           </div>
         </motion.div>
         <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-panel pt-5 pb-3">
-          <div aria-label="Rooms by owner" className="hide-scrollbar flex min-w-0 items-center gap-1 overflow-x-auto px-1" role="tablist">
+          <div aria-label="所有者ごとの作業環境" className="hide-scrollbar flex min-w-0 items-center gap-1 overflow-x-auto px-1" role="tablist">
             {ROOM_TABS.map((candidate) => {
               const selected = candidate.value === tab;
               return (
@@ -218,9 +217,9 @@ export function WorkerEnvironmentsView({ accessProfile, chatRuns, snapshot, sear
             })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <OcSelect className="min-w-32" label="Room state" onChange={setStateFilter} options={ROOM_STATE_OPTIONS} value={stateFilter} />
-            {kindOptions.length > 2 ? <OcSelect className="min-w-32" label="Room kind" onChange={setKindFilter} options={kindOptions} value={kindFilter} /> : null}
-            {projectOptions.length > 2 ? <OcSelect className="min-w-32" label="Project" onChange={setProjectFilter} options={projectOptions} value={projectFilter} /> : null}
+            <OcSelect className="min-w-32" label="作業環境の状態" onChange={setStateFilter} options={ROOM_STATE_OPTIONS} value={stateFilter} />
+            {kindOptions.length > 2 ? <OcSelect className="min-w-32" label="作業環境の種類" onChange={setKindFilter} options={kindOptions} value={kindFilter} /> : null}
+            {projectOptions.length > 2 ? <OcSelect className="min-w-32" label="プロジェクト" onChange={setProjectFilter} options={projectOptions} value={projectFilter} /> : null}
           </div>
         </div>
         {tabNote ? (
@@ -230,14 +229,14 @@ export function WorkerEnvironmentsView({ accessProfile, chatRuns, snapshot, sear
         ) : null}
         {projectProjection.status === "degraded" ? (
           <RoomNotice
-            action={<OcButton leadingIcon="retry" onClick={() => setProjectProjectionRetry((value) => value + 1)} size="sm" variant="secondary">Retry</OcButton>}
-            detail={`Rooms are still listed. Project names use the last successful read until this one succeeds. ${projectProjection.error}`}
-            title="Project names could not be refreshed"
+            action={<OcButton leadingIcon="retry" onClick={() => setProjectProjectionRetry((value) => value + 1)} size="sm" variant="secondary">再試行</OcButton>}
+            detail={`作業環境は引き続き表示しています。プロジェクト名は再取得できるまで前回の情報を使います。 ${projectProjection.error}`}
+            title="プロジェクト名を更新できませんでした"
           />
         ) : null}
         {rows.length > 0 && !projectionLive ? (
           <RoomNotice
-            detail={`${fixture ? "Client Lab rooms are samples and are never shown as open." : "These rooms are from the last successful read and are not shown as open."} ${snapshot.projection.detail}`}
+            detail={`${fixture ? "テストラボの作業環境はサンプルであり、稼働中としては表示しません。" : "これらは前回取得できた作業環境です。稼働中としては表示しません。"} ${snapshot.projection.detail}`}
             title={snapshot.projection.label}
           />
         ) : null}
@@ -245,14 +244,14 @@ export function WorkerEnvironmentsView({ accessProfile, chatRuns, snapshot, sear
           {rows.length === 0 ? (
             <RoomEmptyState
               detail={projectionLive
-                ? "When a task needs a browser, a code checkout, a terminal or a desktop, Octopus opens a room for it and it appears here."
+                ? "タスクがブラウザー、コード、ターミナル、デスクトップを必要とすると、Octopus が作業環境を開いてここに表示します。"
                 : snapshot.projection.detail}
-              title={projectionLive ? "No rooms yet" : snapshot.projection.label}
+              title={projectionLive ? "作業環境はまだありません" : snapshot.projection.label}
             />
           ) : visibleRows.length === 0 ? (
             <RoomEmptyState
-              detail={filtered ? "Try another search, state, kind or project." : tab === "tasks" ? "None of your tasks has opened a room." : tab === "home" ? "Home has no rooms." : "Octopus has no upkeep rooms."}
-              title={filtered ? "No matching rooms" : "Nothing here"}
+              detail={filtered ? "別のキーワード、状態、種類、プロジェクトで絞り込んでください。" : tab === "tasks" ? "タスクで開いた作業環境はありません。" : tab === "home" ? "ホームの作業環境はありません。" : "保守用の作業環境はありません。"}
+              title={filtered ? "一致する作業環境がありません" : "表示するものがありません"}
             />
           ) : (
             <RoomTable onOpenRun={onOpenRun} onSelect={onSelect} rows={visibleRows} surfaces={surfaces} />
@@ -306,12 +305,12 @@ function RoomTable({ onOpenRun, onSelect, rows, surfaces }: {
   };
 
   return (
-    <div aria-label="Worker environments" aria-rowcount={rows.length} className="@container/rooms flex min-h-0 flex-1 flex-col" role="grid">
+    <div aria-label="作業環境" aria-rowcount={rows.length} className="@container/rooms flex min-h-0 flex-1 flex-col" role="grid">
       <div className="flex h-11 shrink-0 items-center gap-4 border-b border-token-border px-3 text-sm leading-5 text-token-text-secondary" role="row">
-        <span className="min-w-0 flex-1 ps-11" role="columnheader">Room</span>
-        <span className="hidden w-56 shrink-0 @2xl/rooms:block" role="columnheader">Used by</span>
-        <span className="hidden w-36 shrink-0 @lg/rooms:block" role="columnheader">State</span>
-        <span className="hidden w-32 shrink-0 @xl/rooms:block" role="columnheader">Last activity</span>
+        <span className="min-w-0 flex-1 ps-11" role="columnheader">作業環境</span>
+        <span className="hidden w-56 shrink-0 @2xl/rooms:block" role="columnheader">使用元</span>
+        <span className="hidden w-36 shrink-0 @lg/rooms:block" role="columnheader">状態</span>
+        <span className="hidden w-32 shrink-0 @xl/rooms:block" role="columnheader">最終アクティビティ</span>
         <span aria-hidden="true" className="w-16 shrink-0" />
       </div>
       <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto [scrollbar-gutter:stable]" onScroll={virtualRows.onScroll} ref={virtualRows.setScrollRef}>
@@ -373,7 +372,7 @@ function RoomTableRow({ index, onFocus, onKeyDown, onOpenRun, onSelect, row, sur
           />
         </span>
         <button
-          aria-label={`Open ${row.title} room${row.openRole ? ` used by ${row.usedBy}` : ""}`}
+          aria-label={`開く ${row.title} room${row.openRole ? ` used by ${row.usedBy}` : ""}`}
           className="flex min-w-0 flex-1 cursor-interaction flex-col text-left after:absolute after:inset-0 after:z-0 focus-visible:outline-none"
           data-worker-environment-index={index}
           onClick={() => dispatchOpenWorkerEnvironmentPane(defaultWorkerEnvironmentPaneTarget(row.room, surfaces))}
@@ -407,13 +406,13 @@ function RoomTableRow({ index, onFocus, onKeyDown, onOpenRun, onSelect, row, sur
       </span>
       <span className="relative z-10 flex w-16 shrink-0 items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100" role="gridcell">
         {openRun ? (
-          <OcIconButton glyph={row.openRole === "home" ? "home" : "chat"} label={row.openRole === "home" ? "Open Home" : `Open ${row.usedBy}`} onClick={openRun} size="xs" tabIndex={-1} variant="ghost" />
+          <OcIconButton glyph={row.openRole === "home" ? "home" : "chat"} label={row.openRole === "home" ? "ホームを開く" : `開く ${row.usedBy}`} onClick={openRun} size="xs" tabIndex={-1} variant="ghost" />
         ) : onSelect ? (
-          <OcIconButton glyph="topology" label="Show its run in topology" onClick={() => onSelect({ kind: "run", id: row.runId })} size="xs" tabIndex={-1} variant="ghost" />
+          <OcIconButton glyph="topology" label="構成図でこの実行を表示" onClick={() => onSelect({ kind: "run", id: row.runId })} size="xs" tabIndex={-1} variant="ghost" />
         ) : null}
         <OcIconButton
           glyph="viewAll"
-          label={`${row.title} room details`}
+          label={`${row.title} 作業環境の詳細`}
           onClick={() => dispatchOpenWorkerEnvironmentPane({ workerEnvironmentId: row.room.id, panelKind: "overview" })}
           size="xs"
           tabIndex={-1}
@@ -480,7 +479,7 @@ function projectRooms(
     const chat = chats.get(runId);
     const eeId = run?.eeId || room.eeId || projectId;
     const section: RoomSection = chat ? (chat.clientSurfaceRole === "home" ? "home" : "tasks") : taskEeIds.has(eeId) ? "tasks" : "system";
-    const usedBy = chat ? (chat.clientSurfaceRole === "home" ? "Home" : chat.title) : runId ? `Run ${shortId(runId, 12, 5)}` : "No run";
+    const usedBy = chat ? (chat.clientSurfaceRole === "home" ? "Home" : chat.title) : runId ? `実行 ${shortId(runId, 12, 5)}` : "No run";
     const presentation = roomPresentation(room, surfaces);
     const state = roomState(room, projectionLive, fixture);
     const clientSurfaceTitles = workerEnvironmentClientSurfaces(room.id, surfaces).map((surface) => surface.document.title);
@@ -518,7 +517,7 @@ function roomPresentation(room: WorkerEnvironmentProjection, surfaces: AdmittedC
   const detail = location || toolSummary(room.tools) || roots[0] || room.root;
   return {
     title: sentenceCase(room.kind) || "Room",
-    detail: detail && roots.length > 1 && detail === roots[0] ? `${detail} +${roots.length - 1} more` : detail,
+    detail: detail && roots.length > 1 && detail === roots[0] ? `${detail} +${roots.length - 1} その他` : detail,
     glyph: surface ? workerEnvironmentSurfaceGlyph(surface) : document?.document.glyph ?? "ee",
   };
 }
@@ -549,12 +548,12 @@ function roomState(room: WorkerEnvironmentProjection, projectionLive: boolean, f
   const detail = Array.from(new Set([lifecycle, status].filter(Boolean))).map(sentenceCase).join(" · ");
   const failed = [lifecycle, status].some((value) => ["failed", "blocked", "error", "denied"].includes(value));
   const disconnected = lifecycle === "active" && ["closed", "released", "offline"].includes(status);
-  if (failed) return { filter: "attention", label: "Failed", tone: "danger", detail };
-  if (disconnected) return { filter: "attention", label: "Disconnected", tone: "danger", detail };
-  if (lifecycle === "released") return { filter: "closed", label: "Closed", tone: "neutral", detail };
-  if (fixture) return { filter: "other", label: "Sample", tone: "neutral", detail };
-  if (!projectionLive) return { filter: "other", label: "Last seen", tone: "neutral", detail };
-  if (room.live) return { filter: "open", label: "Open", tone: "success", detail };
+  if (failed) return { filter: "attention", label: "失敗", tone: "danger", detail };
+  if (disconnected) return { filter: "attention", label: "切断済み", tone: "danger", detail };
+  if (lifecycle === "released") return { filter: "closed", label: "終了", tone: "neutral", detail };
+  if (fixture) return { filter: "other", label: "サンプル", tone: "neutral", detail };
+  if (!projectionLive) return { filter: "other", label: "最終確認", tone: "neutral", detail };
+  if (room.live) return { filter: "open", label: "開く", tone: "success", detail };
   return { filter: "other", label: sentenceCase(status || lifecycle) || "Unknown", tone: "neutral", detail };
 }
 

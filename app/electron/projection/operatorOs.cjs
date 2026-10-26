@@ -667,7 +667,7 @@ function operatorOsProjection(store) {
             : receiptState !== "valid"
               ? "This Driver has no valid local install receipt and must be repaired before removal."
               : activeInstances.length
-                ? `Release ${activeInstances.length} active worker environment${activeInstances.length === 1 ? "" : "s"} before removing this Driver.`
+                ? `リリース ${activeInstances.length} active worker environment${activeInstances.length === 1 ? "" : "s"} before removing this Driver.`
                 : projectConfigured
                   ? "Remove this Driver from every project before removing its package."
                   : "",

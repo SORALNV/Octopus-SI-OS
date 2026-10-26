@@ -122,8 +122,8 @@ export default function FilesPierreEditor({ documentId, filename, initialViewSta
   return <div className="os-files-pierre-surface" data-pierre-editor-surface="">
     <div aria-label={label} className="os-files-pierre-viewport" ref={containerRef} />
     {history.canUndo || history.canRedo ? <div className="os-files-pierre-history">
-      <button aria-label="Undo" disabled={!history.canUndo} onClick={() => instanceRef.current?.editor?.undo()} title="Undo" type="button"><UndoIcon /></button>
-      <button aria-label="Redo" disabled={!history.canRedo} onClick={() => instanceRef.current?.editor?.redo()} title="Redo" type="button"><UndoIcon redo /></button>
+      <button aria-label="元に戻す" disabled={!history.canUndo} onClick={() => instanceRef.current?.editor?.undo()} title="元に戻す" type="button"><UndoIcon /></button>
+      <button aria-label="やり直す" disabled={!history.canRedo} onClick={() => instanceRef.current?.editor?.redo()} title="やり直す" type="button"><UndoIcon redo /></button>
     </div> : null}
   </div>;
 }

@@ -27,7 +27,7 @@ export function AccountRailButton({ accessProfile, runtimeHost, onLogOut, onOpen
     openingSettings.current = false;
     document.getElementById("settings-search")?.focus({ preventScroll: true });
   }, [open]);
-  const name = accessProfile === "lab" ? "Test" : "Administrator";
+  const name = accessProfile === "lab" ? "テスト" : "管理者";
   const accountLabel = accessProfile !== "live" ? "Octopus OS" : state.loading && !account ? "Checking ChatGPT…" : account?.signedIn
     ? `ChatGPT${account.planType ? ` ${accountPlanLabel(account.planType)}` : ""}`
     : account ? "ChatGPT disconnected" : "ChatGPT unavailable";
@@ -39,11 +39,11 @@ export function AccountRailButton({ accessProfile, runtimeHost, onLogOut, onOpen
 
   return (
     <div className="navigation-rail-account">
-      <MessageTooltip label="Account" side="right" delayMs={300} disabled={open}>
+      <MessageTooltip label="アカウント" side="right" delayMs={300} disabled={open}>
         <button
           aria-expanded={open}
           aria-haspopup="menu"
-          aria-label={`Account: ${name}`}
+          aria-label={`アカウント： ${name}`}
           className="oc-octopus-icon-control no-drag"
           data-appearance="rail"
           data-state={open ? "open" : "closed"}
@@ -58,20 +58,20 @@ export function AccountRailButton({ accessProfile, runtimeHost, onLogOut, onOpen
           type="button"
         >{avatar}</button>
       </MessageTooltip>
-      <MessageTooltip asChild label={connected ? "Runtime connected" : runtimeHost.error || runtimeHost.phase} side="right" delayMs={300}><span
-        aria-label={connected ? "Runtime connected" : "Runtime unavailable"}
+      <MessageTooltip asChild label={connected ? "実行基盤に接続済み" : runtimeHost.error || runtimeHost.phase} side="right" delayMs={300}><span
+        aria-label={connected ? "実行基盤に接続済み" : "実行基盤を利用できません"}
         className={`sidebar-runtime-dot navigation-rail-account-status${connected ? " is-ready" : runtimeHost.phase === "degraded" ? " is-error" : ""}`}
         role="status"
       /></MessageTooltip>
-      <OcDropdown align="start" anchorRef={trigger} aria-label="Account" contentWidth="sidebar" open={open} onOpenChange={setOpen} onCloseAutoFocus={(event) => {
+      <OcDropdown align="start" anchorRef={trigger} aria-label="アカウント" contentWidth="sidebar" open={open} onOpenChange={setOpen} onCloseAutoFocus={(event) => {
         if (openingSettings.current) event.preventDefault();
       }} side="top" sideOffset={6}>
         <div className="account-menu-identity">{avatar}<div><strong>{name}</strong><small>{accountLabel}</small></div></div>
-        <OcMenuItem label="Settings" leadingIcon="settings" onClick={() => openSettings()} role="menuitem" trailing={settingsShortcut ? <span className="text-xs text-token-description-foreground">{settingsShortcut}</span> : undefined} />
-        {accessProfile === "live" && account?.signedIn ? <OcMenuItem label="Usage" leadingIcon="usage" onClick={() => openSettings("account")} role="menuitem"
+        <OcMenuItem label="設定" leadingIcon="settings" onClick={() => openSettings()} role="menuitem" trailing={settingsShortcut ? <span className="text-xs text-token-description-foreground">{settingsShortcut}</span> : undefined} />
+        {accessProfile === "live" && account?.signedIn ? <OcMenuItem label="使用状況" leadingIcon="usage" onClick={() => openSettings("account")} role="menuitem"
           trailing={usageWindow ? <span className="whitespace-nowrap text-token-description-foreground">{accountRemainingLabel(usageWindow.remaining)}</span> : undefined} /> : null}
         <div className="navigation-account-separator" role="separator" />
-        <OcMenuItem label="Lock Octopus" leadingIcon="logOut" onClick={onLogOut} role="menuitem" />
+        <OcMenuItem label="Octopus をロック" leadingIcon="logOut" onClick={onLogOut} role="menuitem" />
       </OcDropdown>
     </div>
   );

@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "./locale";
 export function array(value: unknown): any[] {
   return Array.isArray(value) ? value : [];
 }
@@ -72,7 +73,7 @@ export function formatTime(ms: number): string {
   if (!ms) return "-";
   const date = new Date(ms);
   if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return date.toLocaleTimeString(APP_LOCALE, { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
 export function formatDateTime(value: unknown): string {
@@ -80,7 +81,7 @@ export function formatDateTime(value: unknown): string {
   if (!text) return "-";
   const parsed = Date.parse(text);
   if (Number.isNaN(parsed)) return text;
-  return new Date(parsed).toLocaleString([], {
+  return new Date(parsed).toLocaleString(APP_LOCALE, {
     month: "short",
     day: "2-digit",
     hour: "2-digit",

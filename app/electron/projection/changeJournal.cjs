@@ -93,7 +93,7 @@ async function undoChangeJournal(registryRoot, octopusHomeRoot, request, commitC
   if (typeof commitClientAuthoring !== "function") throw new Error("client authoring transaction is unavailable");
   const runId = requiredSafeRegistryId(request?.runId, "runId");
   const plan = await changeJournalPlan(octopusHomeRoot, registryRoot, runId);
-  if (!plan) throw new Error(`run ${runId} kept no change journal`);
+  if (!plan) throw new Error(`実行 ${runId} kept no change journal`);
   if (plan.digest !== requiredDigest(request?.expectedJournalDigest, "expectedJournalDigest")) throw new Error("the change journal changed before undo");
   if (!plan.undoable) {
     const blocked = plan.changes.filter((entry) => entry.kind === "file" && (entry.status !== "applied" || !entry.restorable));

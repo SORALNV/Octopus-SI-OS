@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../../locale";
 import { useEffect, useMemo, useRef, useState } from "react";
 import "../icon-glyphs/chat";
 import { loadChatRunMessages, loadChatRuns, type ChatRun, type ChatRunMessage } from "../../chatRuns";
@@ -44,7 +45,7 @@ export function TaskMonitorWindow({ accessProfile }: { accessProfile: OctopusCli
       : run?.turnState === "waiting"
         ? "Waiting for output"
         : run?.turnState === "failed"
-          ? "Needs attention"
+          ? "確認が必要"
       : error
         ? "Unavailable"
         : run
@@ -78,7 +79,7 @@ export function TaskMonitorWindow({ accessProfile }: { accessProfile: OctopusCli
   }, [generation, runId]);
 
   useEffect(() => {
-    document.title = `${run?.title || "Task Monitor"} — Octopus`;
+    document.title = `${run?.title || "タスクモニター"} — Octopus`;
   }, [run?.title]);
 
   useEffect(() => {
@@ -101,12 +102,12 @@ export function TaskMonitorWindow({ accessProfile }: { accessProfile: OctopusCli
     <main className="task-monitor-window">
       <header className="task-monitor-titlebar">
         <div className="task-monitor-titlebar-left">
-          <ShellTooltip label="Dismiss"><button aria-label="Dismiss Task Monitor" onClick={closeWindow} type="button"><Glyph name="close" size={15} /></button></ShellTooltip>
+          <ShellTooltip label="閉じる"><button aria-label="タスクモニターを閉じる" onClick={closeWindow} type="button"><Glyph name="close" size={15} /></button></ShellTooltip>
         </div>
-        <div className="task-monitor-titlebar-title"><span>{run?.title || "Task Monitor"}</span></div>
+        <div className="task-monitor-titlebar-title"><span>{run?.title || "タスクモニター"}</span></div>
         <div className="task-monitor-titlebar-actions">
-          <ShellTooltip label={pinned ? "Stop keeping on top" : "Keep on top"}><button aria-label={pinned ? "Stop keeping on top" : "Keep on top"} aria-pressed={pinned} className={pinned ? "is-active" : ""} onClick={togglePinned} type="button"><Glyph name="pin" size={15} /></button></ShellTooltip>
-          <ShellTooltip label="Open in main window"><button aria-label="Open in main window" onClick={openMain} type="button"><Glyph name="openExternal" size={15} /></button></ShellTooltip>
+          <ShellTooltip label={pinned ? "最前面表示を解除" : "最前面に表示"}><button aria-label={pinned ? "最前面表示を解除" : "最前面に表示"} aria-pressed={pinned} className={pinned ? "is-active" : ""} onClick={togglePinned} type="button"><Glyph name="pin" size={15} /></button></ShellTooltip>
+          <ShellTooltip label="メインウィンドウで開く"><button aria-label="メインウィンドウで開く" onClick={openMain} type="button"><Glyph name="openExternal" size={15} /></button></ShellTooltip>
         </div>
       </header>
 
@@ -118,22 +119,22 @@ export function TaskMonitorWindow({ accessProfile }: { accessProfile: OctopusCli
       </section>
 
       <div className="task-monitor-scroll" ref={scrollRef}>
-        {loading && !visibleMessages.length ? <TaskMonitorState label="Reading projected task…" loading /> : null}
+        {loading && !visibleMessages.length ? <TaskMonitorState label="タスクの情報を読み込んでいます…" loading /> : null}
         {!loading && error ? <TaskMonitorState label={error} /> : null}
-        {!loading && !error && !visibleMessages.length ? <TaskMonitorState label="No admitted messages are projected for this task." /> : null}
+        {!loading && !error && !visibleMessages.length ? <TaskMonitorState label="このタスクに表示できるメッセージはありません。" /> : null}
         {visibleMessages.map((message) => (
           <article className={`task-monitor-message is-${message.role}${message.error ? " is-error" : ""}`} key={message.id}>
             <header><span>{messageTitle(message)}</span><time>{formatTime(message.createdAtMs)}</time></header>
             {message.role === "assistant" ? <MessageContent text={message.text} /> : <p>{message.text}</p>}
-            {message.attachments.length ? <small>{message.attachments.length} attachment{message.attachments.length === 1 ? "" : "s"}</small> : null}
+            {message.attachments.length ? <small>{message.attachments.length} 添付ファイル{message.attachments.length === 1 ? "" : "s"}</small> : null}
           </article>
         ))}
-        {run?.turnState === "working" ? <div className="task-monitor-live-edge"><span className="composer-spinner" />Receiving admitted output</div> : null}
+        {run?.turnState === "working" ? <div className="task-monitor-live-edge"><span className="composer-spinner" />許可された出力を受信しています</div> : null}
       </div>
 
       {workerEnvironments.length ? (
-        <section className="task-monitor-environments" aria-label="Worker Environments">
-          <header><span>Worker environments</span><small>{workerEnvironments.length}</small></header>
+        <section className="task-monitor-environments" aria-label="作業環境">
+          <header><span>作業環境</span><small>{workerEnvironments.length}</small></header>
           <div>
             {workerEnvironments.map((environment) => (
               <button key={environment.id} onClick={() => openWorkerEnvironment(runId, environment, clientSurfaces.workerEnvironmentSurfaces)} type="button">
@@ -153,10 +154,10 @@ export function TaskMonitorAccessUnavailable() {
   return (
     <main className="task-monitor-window">
       <header className="task-monitor-titlebar">
-        <div className="task-monitor-titlebar-left"><button aria-label="Dismiss Task Monitor" onClick={closeWindow} type="button"><Glyph name="close" size={15} /></button></div>
-        <div className="task-monitor-titlebar-title"><span>Task Monitor</span></div>
+        <div className="task-monitor-titlebar-left"><button aria-label="タスクモニターを閉じる" onClick={closeWindow} type="button"><Glyph name="close" size={15} /></button></div>
+        <div className="task-monitor-titlebar-title"><span>タスクモニター</span></div>
       </header>
-      <TaskMonitorState label="Unlock the main application before opening a projected task monitor." />
+      <TaskMonitorState label="タスクモニターを開くには、メインアプリのロックを解除してください。" />
     </main>
   );
 }
@@ -189,17 +190,17 @@ function openWorkerEnvironment(
 }
 
 function messageTitle(message: ChatRunMessage): string {
-  if (message.eventKind === "steering") return "Steer";
+  if (message.eventKind === "steering") return "今すぐ送信";
   if (message.eventKind === "tool") return "Tool activity";
-  if (message.eventKind === "plan") return "Plan";
-  if (message.eventKind === "web_search") return "Web search";
+  if (message.eventKind === "plan") return "計画";
+  if (message.eventKind === "web_search") return "ウェブ検索";
   if (message.eventKind === "approval" || message.eventKind === "elicitation" || message.eventKind === "user_input") return "Operator request";
-  return message.role === "user" ? "Operator" : message.error ? "Error" : "Octopus";
+  return message.role === "user" ? "ユーザー" : message.error ? "エラー" : "Octopus";
 }
 
 function formatTime(value: number): string {
   if (!Number.isFinite(value) || value <= 0) return "";
-  return new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(value);
+  return new Intl.DateTimeFormat(APP_LOCALE, { hour: "numeric", minute: "2-digit" }).format(value);
 }
 
 function closeWindow() {

@@ -72,7 +72,7 @@ async function request(
   method: "GET" | "POST",
   body?: Record<string, unknown>,
 ): Promise<OctopusClientAccessStatus> {
-  if (!import.meta.env.DEV) throw new Error("Client access host is unavailable");
+  if (!import.meta.env.DEV) throw new Error("クライアントの接続先を利用できません");
   const response = await fetch(`${ACCESS_URL}/${operation}`, {
     method,
     credentials: "same-origin",
@@ -90,7 +90,7 @@ async function labRequest(
   method: "GET" | "POST",
   body?: Record<string, unknown>,
 ): Promise<OctopusClientLabAccess> {
-  if (!import.meta.env.DEV) throw new Error("Client access host is unavailable");
+  if (!import.meta.env.DEV) throw new Error("クライアントの接続先を利用できません");
   const response = await fetch(`${ACCESS_URL}/${operation}`, {
     method,
     credentials: "same-origin",
@@ -108,7 +108,7 @@ async function detailsRequest(
   method: "GET" | "POST",
   body?: OctopusAdministratorAccessUpdate,
 ): Promise<OctopusClientAccessDetails> {
-  if (!import.meta.env.DEV) throw new Error("Client access host is unavailable");
+  if (!import.meta.env.DEV) throw new Error("クライアントの接続先を利用できません");
   const response = await fetch(`${ACCESS_URL}/${operation}`, {
     method,
     credentials: "same-origin",

@@ -27,14 +27,14 @@ export function ScheduledLanding({ disabledReason, onCreate, templates, timeDisa
             <div className="flex flex-col items-center gap-3">
               <span aria-hidden="true" className="text-5xl leading-none select-none">🕗</span>
               <div className="flex flex-col items-center gap-0.5">
-                <h1 className="m-0 text-[18px] leading-[26px] font-normal tracking-[-0.025em] text-default">Create a trigger</h1>
-                <p className="m-0 text-[14px] leading-5 font-normal tracking-[-0.01em] text-tertiary">Octopus can take care of ongoing tasks so you don’t have to.</p>
+                <h1 className="m-0 text-[18px] leading-[26px] font-normal tracking-[-0.025em] text-default">トリガーを作成</h1>
+                <p className="m-0 text-[14px] leading-5 font-normal tracking-[-0.01em] text-tertiary">継続的な作業を Octopus に任せられます。</p>
               </div>
             </div>
           </div>
           <div className="flex w-full flex-wrap items-center justify-center gap-2">
             {suggestions.length ? (
-              <ul aria-label="Trigger suggestions" className="m-0 grid w-full grid-cols-1 gap-5 p-0 @min-[39rem]:grid-cols-2">
+              <ul aria-label="トリガーの提案" className="m-0 grid w-full grid-cols-1 gap-5 p-0 @min-[39rem]:grid-cols-2">
                 {suggestions.map(({ suggestion, reason }) => (
                   <li className="list-none" data-automation-card="" key={suggestion.id}>
                     <button
@@ -56,7 +56,7 @@ export function ScheduledLanding({ disabledReason, onCreate, templates, timeDisa
                 ))}
               </ul>
             ) : (
-              <OcButton className="shrink-0 rounded-full! px-4" disabled={Boolean(disabledReason)} onClick={() => onCreate()} size="md" variant="primary">New trigger</OcButton>
+              <OcButton className="shrink-0 rounded-full! px-4" disabled={Boolean(disabledReason)} onClick={() => onCreate()} size="md" variant="primary">新しいトリガー</OcButton>
             )}
             {disabledReason ? <p className="m-0 w-full text-[14px] leading-5 text-tertiary" role="status">{disabledReason}</p> : null}
           </div>

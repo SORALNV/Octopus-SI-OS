@@ -188,28 +188,28 @@ export function paneTargetTitle(
   clientSurface?: AdmittedClientSurfaceDocument | null,
 ): { title: string; glyph: ReturnType<typeof workerEnvironmentSurfaceGlyph> } {
   if (clientSurface) return { title: clientSurface.document.title, glyph: clientSurface.document.glyph };
-  if (target.panelKind === "terminal") return { title: "Terminal", glyph: "terminal" };
+  if (target.panelKind === "terminal") return { title: "ターミナル", glyph: "terminal" };
   if (target.filePath) {
     const name = target.filePath.replaceAll("\\", "/").split("/").filter(Boolean).pop() ?? target.filePath;
     return { title: name, glyph: "file" };
   }
   const surface = resolvePaneSurface(workerEnvironment, target);
   if (!surface) {
-    if (target.panelKind === "browser") return { title: "Browser", glyph: "browser" };
+    if (target.panelKind === "browser") return { title: "ブラウザー", glyph: "browser" };
     return target.panelKind === "files"
-      ? { title: "Files", glyph: "folder" }
-      : { title: workerEnvironment.label || "Worker Environment", glyph: "ee" };
+      ? { title: "ファイル", glyph: "folder" }
+      : { title: workerEnvironment.label || "作業環境", glyph: "ee" };
   }
   return { title: paneWorkerEnvironmentSurfaceLabel(workerEnvironment, surface), glyph: workerEnvironmentSurfaceGlyph(surface) };
 }
 
 export function paneSurfaceLabel(kind: string, label: string, panelKind: WorkerEnvironmentPanelKind): string {
-  if (panelKind === "changes") return "Review";
+  if (panelKind === "changes") return "レビュー";
   if (panelKind === "browser") {
-    return label || (workerEnvironmentSurfaceIsPreview({ kind }) ? "Preview" : "Browser");
+    return label || (workerEnvironmentSurfaceIsPreview({ kind }) ? "プレビュー" : "ブラウザー");
   }
-  if (panelKind === "terminal") return "Terminal";
-  if (panelKind === "files") return "Files";
+  if (panelKind === "terminal") return "ターミナル";
+  if (panelKind === "files") return "ファイル";
   if (panelKind === "desktop") return "Desktop";
   return label || kind;
 }
@@ -223,7 +223,7 @@ export function paneWorkerEnvironmentSurfaceLabel(
     const reviewSurfaces = workerEnvironmentProductSurfaces(workerEnvironment.surfaces)
       .filter((candidate) => workerEnvironmentPanelKind(candidate) === "changes");
     const rootLabel = surfaceSlotLabel(surface.data.slot) || filesystemRootLabel(surface.root);
-    return reviewSurfaces.length > 1 && rootLabel ? `Review · ${rootLabel}` : "Review";
+    return reviewSurfaces.length > 1 && rootLabel ? `Review · ${rootLabel}` : "レビュー";
   }
   if (panelKind !== "files") return paneSurfaceLabel(surface.kind, surface.label, panelKind);
   const label = surface.label.trim();

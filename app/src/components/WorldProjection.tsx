@@ -171,7 +171,7 @@ export const WorldProjection = memo(function WorldProjection({ environments, reg
       <svg
         viewBox={viewBox}
         role="application"
-        aria-label="Two-layer world projection: drag to rotate, wheel to zoom"
+        aria-label="外部と実行環境の二層表示：ドラッグで回転、ホイールで拡大・縮小"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -192,8 +192,8 @@ export const WorldProjection = memo(function WorldProjection({ environments, reg
                 y={worldSurfaceHalfExtent - 26}
                 z={WORLD_ELEVATION}
                 text={mode === "routeSets"
-                  ? `World Surface · ${worldDots.length} route sets · ${boundNodeCount} bound`
-                  : `World Surface · ${worldDots.length} registered · ${scene.boundWorldInterfaces.size} bound`}
+                  ? `外部の画面 · ${worldDots.length} 件の経路グループ · ${boundNodeCount} bound`
+                  : `外部の画面 · ${worldDots.length} 件登録済み · ${scene.boundWorldInterfaces.size} bound`}
                 className="wp-surface-caption is-world"
               />
             </>
@@ -222,16 +222,16 @@ export const WorldProjection = memo(function WorldProjection({ environments, reg
         </g>
       </svg>
 
-      <div className="world-controls" role="group" aria-label="Projection controls">
-        <DashboardTooltip text="Rotate left"><button type="button" aria-label="Rotate left" onClick={() => setYawDeg((yaw) => yaw - 15)}>⟲</button></DashboardTooltip>
-        <DashboardTooltip text="Rotate right"><button type="button" aria-label="Rotate right" onClick={() => setYawDeg((yaw) => yaw + 15)}>⟳</button></DashboardTooltip>
-        <DashboardTooltip text="Zoom out"><button type="button" aria-label="Zoom out" onClick={() => setZoom((current) => clamp(current / 1.2, MIN_ZOOM, MAX_ZOOM))}>−</button></DashboardTooltip>
-        <DashboardTooltip text="Zoom in"><button type="button" aria-label="Zoom in" onClick={() => setZoom((current) => clamp(current * 1.2, MIN_ZOOM, MAX_ZOOM))}>+</button></DashboardTooltip>
-        <DashboardTooltip text="Reset view"><button type="button" aria-label="Reset view" onClick={() => { setYawDeg(DEFAULT_YAW); setPitchDeg(DEFAULT_PITCH); setZoom(DEFAULT_ZOOM); }}>⌂</button></DashboardTooltip>
+      <div className="world-controls" role="group" aria-label="表示の操作">
+        <DashboardTooltip text="左に回転"><button type="button" aria-label="左に回転" onClick={() => setYawDeg((yaw) => yaw - 15)}>⟲</button></DashboardTooltip>
+        <DashboardTooltip text="右に回転"><button type="button" aria-label="右に回転" onClick={() => setYawDeg((yaw) => yaw + 15)}>⟳</button></DashboardTooltip>
+        <DashboardTooltip text="縮小"><button type="button" aria-label="縮小" onClick={() => setZoom((current) => clamp(current / 1.2, MIN_ZOOM, MAX_ZOOM))}>−</button></DashboardTooltip>
+        <DashboardTooltip text="拡大"><button type="button" aria-label="拡大" onClick={() => setZoom((current) => clamp(current * 1.2, MIN_ZOOM, MAX_ZOOM))}>+</button></DashboardTooltip>
+        <DashboardTooltip text="表示をリセット"><button type="button" aria-label="表示をリセット" onClick={() => { setYawDeg(DEFAULT_YAW); setPitchDeg(DEFAULT_PITCH); setZoom(DEFAULT_ZOOM); }}>⌂</button></DashboardTooltip>
       </div>
 
       {scene.worldNodes.length === 0 ? (
-        <div className="world-empty-note">No world interfaces are registered.</div>
+        <div className="world-empty-note">外部インターフェースが登録されていません。</div>
       ) : null}
     </div>
   );

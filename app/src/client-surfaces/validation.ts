@@ -37,7 +37,7 @@ export function admitClientSurfaceSource(source: ClientSurfaceDocumentSource): C
   )) {
     return rejected(source.digest, result.admitted.document.id, result.admitted.document.revision, result.verdict.details.node_count, result.verdict.details.max_depth, [{
       code: "document.delivery.invalid", path: "",
-      message: "Artifact-delivered surfaces require an artifact id, exact run and recipient interface, and movement sequence",
+      message: "成果物から配信される画面には、成果物 ID、実行と受信先インターフェースの正確な指定、移動の連番が必要です",
     }]);
   }
   if (result.admitted && result.admitted.document.data?.home_presentation
@@ -45,7 +45,7 @@ export function admitClientSurfaceSource(source: ClientSurfaceDocumentSource): C
     && (!source.artifactId || !isPresentationTimestamp(source.modifiedAt))) {
     return rejected(source.digest, result.admitted.document.id, result.admitted.document.revision, result.verdict.details.node_count, result.verdict.details.max_depth, [{
       code: "home.presentation.delivery_missing", path: "/data/home_presentation/lifetime_ms",
-      message: "A presentation lifetime requires an artifact delivery with a valid UTC timestamp",
+      message: "表示期間の指定には、有効な UTC 時刻を持つ成果物の配信が必要です",
     }]);
   }
   if (result.admitted) {
@@ -116,7 +116,7 @@ function schemaIssues(errors: ErrorObject[] | null | undefined): ClientSurfaceAd
   return (errors ?? []).slice(0, 64).map((error) => ({
     code: `schema.${error.keyword}`,
     path: error.instancePath,
-    message: error.message || "schema validation failed",
+    message: error.message || "スキーマの検証に失敗しました",
   }));
 }
 

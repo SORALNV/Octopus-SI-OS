@@ -303,7 +303,7 @@ function parseApplicationSetup(value, interfaces, file) {
       pointer,
       label,
       kind,
-      required: requiredBoolean(candidate.required, `application setup field ${index} required`),
+      required: requiredBoolean(candidate.required, `application setup field ${index} 必須`),
     };
   });
   const identities = fields.map((field) => `${field.interface}\0${field.pointer}`);

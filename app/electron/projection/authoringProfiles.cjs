@@ -179,7 +179,7 @@ function parseOctopusOsExternalInputs(value, file) {
       ["checkpoint_id", "interface_id"],
       `Octopus OS external input ${index}`,
     );
-    const checkpointId = requiredSafeRegistryId(candidate.checkpoint_id, `Octopus OS external input ${index} checkpoint`);
+    const checkpointId = requiredSafeRegistryId(candidate.checkpoint_id, `Octopus OS external input ${index} チェックポイント`);
     const interfaceId = requiredSafeRegistryId(candidate.interface_id, `Octopus OS external input ${index} interface`);
     const artifactNames = parseOctopusOsArtifactNames(candidate.artifact_names, `Octopus OS external input ${index}`, file);
     if (checkpoints.has(checkpointId) || interfaces.has(interfaceId)) {
@@ -223,7 +223,7 @@ function parseOctopusOsExternalRelays(value, file) {
       ["checkpoint_id", "interface_id", "outbound_interface_ids"],
       `Octopus OS external relay ${index}`,
     );
-    const checkpointId = requiredSafeRegistryId(candidate.checkpoint_id, `Octopus OS external relay ${index} checkpoint`);
+    const checkpointId = requiredSafeRegistryId(candidate.checkpoint_id, `Octopus OS external relay ${index} チェックポイント`);
     const interfaceId = requiredSafeRegistryId(candidate.interface_id, `Octopus OS external relay ${index} interface`);
     if (!Array.isArray(candidate.outbound_interface_ids) || candidate.outbound_interface_ids.length === 0) {
       throw new Error(`Octopus OS external relay ${index} has no outbound interfaces: ${file}`);
@@ -311,7 +311,7 @@ function parseOctopusOsModelOutputs(value, file) {
       ["checkpoint_id", "interface_id", "required_verified_artifact"],
       `Octopus OS model output ${index}`,
     );
-    const checkpointId = requiredSafeRegistryId(candidate.checkpoint_id, `Octopus OS model output ${index} checkpoint`);
+    const checkpointId = requiredSafeRegistryId(candidate.checkpoint_id, `Octopus OS model output ${index} チェックポイント`);
     const interfaceId = requiredSafeRegistryId(candidate.interface_id, `Octopus OS model output ${index} interface`);
     if (checkpoints.has(checkpointId) || interfaces.has(interfaceId)) {
       throw new Error(`Octopus OS model output ${index} is duplicated: ${file}`);

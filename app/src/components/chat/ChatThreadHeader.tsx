@@ -62,7 +62,7 @@ export function ChatThreadHeader({
               <>
                 <ShellTooltip className="min-w-0 max-w-full" label={activeTitle}>
                   <button
-                    aria-label={`Open recent tasks. Current task: ${activeTitle}`}
+                    aria-label={`最近のタスクを開く。現在のタスク： ${activeTitle}`}
                     className="thread-header-title-button min-w-0 flex-1 truncate !px-0 !py-0 text-left text-sm text-token-foreground hover:opacity-80 electron:font-medium"
                     data-thread-title
                     onPointerDown={mode === "pane" ? compactTab?.onPointerDown : undefined}
@@ -145,10 +145,10 @@ export function ChatThreadHeaderActions({
     <Fragment>
       {activeRun?.clientSurfaceRole === "task" ? (
         <div className="chat-thread-header-action-slot no-drag pointer-events-auto flex shrink-0 items-center gap-px">
-          <ShellTooltip label="Task actions">
+          <ShellTooltip label="タスクの操作">
             <button
               aria-haspopup="menu"
-              aria-label="Task actions"
+              aria-label="タスクの操作"
               className="app-titlebar-action no-drag"
               data-task-actions-run-id={activeRun.runId}
               onClick={(event) => dispatchOpenClientTaskActionsMenu(activeRun.runId, event.currentTarget)}
@@ -166,9 +166,9 @@ export function ChatThreadHeaderActions({
       ) : null}
       {pinnedContextCount > 0 ? (
         <div className="chat-thread-header-action-slot no-drag pointer-events-auto flex shrink-0 items-center gap-px">
-          <ShellTooltip label={`${pinnedContextCount} pinned context ${pinnedContextCount === 1 ? "item" : "items"}`}>
+          <ShellTooltip label={`${pinnedContextCount} 固定したコンテキスト ${pinnedContextCount === 1 ? "item" : "items"}`}>
             <button
-              aria-label={pinnedContextOpen ? "Close pinned context" : "Open pinned context"}
+              aria-label={pinnedContextOpen ? "固定したコンテキストを閉じる" : "固定したコンテキストを開く"}
               aria-pressed={pinnedContextOpen}
               className="app-titlebar-action no-drag"
               data-state={pinnedContextOpen ? "open" : "closed"}
@@ -187,7 +187,7 @@ export function ChatThreadHeaderActions({
               align="end"
               anchor={summaryTrigger}
               className="task-summary-popover"
-              label="Task summary"
+              label="タスクの概要"
               onDismiss={() => onSummaryOpenChange(false)}
               open={summaryOpen}
               panelClassName="task-summary-popover-panel"

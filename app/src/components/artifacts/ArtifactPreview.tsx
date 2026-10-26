@@ -59,7 +59,7 @@ function TextPreview({ code = false, language = "", text, zoomPercent }: {
 function DocumentPreview({ model, zoomPercent }: Props) {
   const pages = documentPages(model.payload, model.searchableText);
   if (!pages.some((page) => page.trim())) {
-    return <PreviewUnavailable glyph="file" title="Document text is not exposed by the admitted payload" detail="Binary office documents require renderer-ready text or structured pages from the interface." />;
+    return <PreviewUnavailable glyph="file" title="許可されたデータに文書のテキストが含まれていません" detail="Office のバイナリ文書を表示するには、インターフェースから表示用のテキストか構造化ページを受け取る必要があります。" />;
   }
   return (
     <div className="artifact-document-preview" style={{ "--artifact-preview-scale": zoomPercent / 100 } as CSSProperties}>
@@ -76,7 +76,7 @@ function DocumentPreview({ model, zoomPercent }: Props) {
 function ImagePreview({ model, zoomPercent }: { model: ArtifactPreviewModel; zoomPercent: number }) {
   const [failed, setFailed] = useState(false);
   if (!model.dataUrl || failed) {
-    return <PreviewUnavailable glyph="image" title={failed ? "Image could not be decoded" : "Image bytes are not exposed by the admitted payload"} detail={model.mediaType || model.filename} />;
+    return <PreviewUnavailable glyph="image" title={failed ? "画像を読み取れませんでした" : "許可されたデータに画像の実体が含まれていません"} detail={model.mediaType || model.filename} />;
   }
   return (
     <div className="artifact-image-preview">
@@ -93,12 +93,12 @@ function ImagePreview({ model, zoomPercent }: { model: ArtifactPreviewModel; zoo
 
 function PdfPreview({ model }: { model: ArtifactPreviewModel }) {
   if (!model.dataUrl) {
-    return <PreviewUnavailable glyph="file" title="PDF bytes are not exposed by the admitted payload" detail="The admitted artifact cannot be rendered as a document preview." />;
+    return <PreviewUnavailable glyph="file" title="許可されたデータに PDF の実体が含まれていません" detail="この成果物は文書のプレビューとして表示できません。" />;
   }
   return (
     <div className="artifact-pdf-preview">
-      <object aria-label={`PDF preview of ${model.title}`} data={model.dataUrl} type="application/pdf">
-        <PreviewUnavailable glyph="file" title="The embedded PDF renderer is unavailable" detail={model.filename} />
+      <object aria-label={`PDF のプレビュー： ${model.title}`} data={model.dataUrl} type="application/pdf">
+        <PreviewUnavailable glyph="file" title="組み込みの PDF 表示機能を利用できません" detail={model.filename} />
       </object>
     </div>
   );
@@ -106,7 +106,7 @@ function PdfPreview({ model }: { model: ArtifactPreviewModel }) {
 
 function MediaPreview({ model }: { model: ArtifactPreviewModel }) {
   if (!model.dataUrl) {
-    return <PreviewUnavailable glyph="play" title="Media bytes are not exposed by the admitted payload" detail={model.mediaType || model.filename} />;
+    return <PreviewUnavailable glyph="play" title="許可されたデータにメディアの実体が含まれていません" detail={model.mediaType || model.filename} />;
   }
   if (model.mediaType.toLocaleLowerCase().startsWith("video/")) {
     return <div className="artifact-media-preview"><video controls preload="metadata" src={model.dataUrl} /></div>;
@@ -116,13 +116,13 @@ function MediaPreview({ model }: { model: ArtifactPreviewModel }) {
 
 function NotebookPreview({ model }: { model: ArtifactPreviewModel }) {
   const notebook = notebookRecord(model.payload);
-  if (!notebook) return <PreviewUnavailable glyph="file" title="Notebook payload is malformed" detail="A notebook preview requires a JSON object with a cells array." />;
-  if (!notebook.cells.length) return <PreviewUnavailable glyph="file" title="This notebook does not contain any cells" detail="Read-only notebook preview" />;
+  if (!notebook) return <PreviewUnavailable glyph="file" title="ノートブックのデータ形式が正しくありません" detail="ノートブックのプレビューには、cells 配列を含む JSON オブジェクトが必要です。" />;
+  if (!notebook.cells.length) return <PreviewUnavailable glyph="file" title="このノートブックにはセルがありません" detail="読み取り専用のノートブックプレビュー" />;
   return (
     <div className="artifact-notebook-preview">
       <div className="artifact-notebook-status">
         <span>IPYNB · {notebook.cells.length} {notebook.cells.length === 1 ? "cell" : "cells"}</span>
-        <span className="artifact-notebook-readonly">Read only</span>
+        <span className="artifact-notebook-readonly">読み取り専用</span>
       </div>
       <div className="artifact-notebook-cells">
         {notebook.cells.map((cell, index) => <NotebookCell cell={cell} index={index} key={cellKey(cell, index)} total={notebook.cells.length} />)}
@@ -141,17 +141,17 @@ function NotebookCell({ cell, index, total }: { cell: unknown; index: number; to
     <details className="artifact-notebook-cell" open>
       <summary>
         <span className="artifact-notebook-cell-title"><Glyph name="chevronDown" size={12} /><strong>{title}</strong></span>
-        <span>{type === "code" && row.execution_count != null ? `Run ${String(row.execution_count)} · ` : ""}Cell {index + 1} of {total}</span>
+        <span>{type === "code" && row.execution_count != null ? `実行 ${String(row.execution_count)} · ` : ""}セル {index + 1} / {total}</span>
       </summary>
       <div className="artifact-notebook-cell-body">
         {type === "markdown" ? (
-          source.trim() ? <MessageContent text={source} /> : <NotebookEmpty label="Empty Markdown cell" />
+          source.trim() ? <MessageContent text={source} /> : <NotebookEmpty label="空の Markdown セル" />
         ) : type === "code" ? (
           <>
-            {source.trim() ? <pre className="artifact-notebook-code"><code>{source}</code></pre> : <NotebookEmpty label="Empty code cell" />}
+            {source.trim() ? <pre className="artifact-notebook-code"><code>{source}</code></pre> : <NotebookEmpty label="空のコードセル" />}
             {outputs.length ? <div className="artifact-notebook-outputs">{outputs.map((output, outputIndex) => <NotebookOutput output={output} key={outputIndex} outputIndex={outputIndex} />)}</div> : null}
           </>
-        ) : source.trim() ? <pre className="artifact-notebook-code"><code>{source}</code></pre> : <NotebookEmpty label="Empty raw cell" />}
+        ) : source.trim() ? <pre className="artifact-notebook-code"><code>{source}</code></pre> : <NotebookEmpty label="空の Raw セル" />}
       </div>
     </details>
   );
@@ -169,9 +169,9 @@ function NotebookOutput({ output, outputIndex }: { output: unknown; outputIndex:
   }
   const data = object(row.data);
   const image = notebookImage(data);
-  if (image) return <div className="artifact-notebook-image"><img alt={`Notebook output ${outputIndex + 1}`} src={image} /></div>;
+  if (image) return <div className="artifact-notebook-image"><img alt={`ノートブックの出力 ${outputIndex + 1}`} src={image} /></div>;
   const html = joinedText(data["text/html"]);
-  if (html) return <iframe className="artifact-notebook-html" sandbox="" srcDoc={sandboxedNotebookHtml(html)} title={`Notebook HTML output ${outputIndex + 1}`} />;
+  if (html) return <iframe className="artifact-notebook-html" sandbox="" srcDoc={sandboxedNotebookHtml(html)} title={`ノートブックの HTML 出力 ${outputIndex + 1}`} />;
   const markdown = joinedText(data["text/markdown"]);
   if (markdown) return <div className="artifact-notebook-markdown"><MessageContent text={markdown} /></div>;
   const plain = joinedText(data["text/plain"]);
@@ -184,7 +184,7 @@ function NotebookEmpty({ label }: { label: string }) {
 }
 
 function UnsupportedPreview({ model }: { model: ArtifactPreviewModel }) {
-  return <PreviewUnavailable glyph="artifact" title="No renderer accepted this payload" detail={`${model.mediaType || "Unknown carrier"} · ${model.filename}`} />;
+  return <PreviewUnavailable glyph="artifact" title="このデータに対応する表示機能がありません" detail={`${model.mediaType || "不明な形式"} · ${model.filename}`} />;
 }
 
 function PreviewUnavailable({ detail, glyph, title }: { detail: string; glyph: "artifact" | "file" | "image" | "play"; title: string }) {
@@ -227,7 +227,7 @@ function notebookCellTitle(row: Record<string, unknown>, type: string, number: n
     const heading = /^\s*#{1,6}\s+(.+)$/m.exec(joinedText(row.source))?.[1]?.trim();
     if (heading) return heading;
   }
-  return `${type === "code" ? "Code" : type === "markdown" ? "Markdown" : "Raw"} cell ${number}`;
+  return `${type === "code" ? "コード" : type === "markdown" ? "Markdown" : "生データ"} cell ${number}`;
 }
 
 function notebookImage(data: Record<string, unknown>): string {

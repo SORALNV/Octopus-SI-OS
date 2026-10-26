@@ -55,14 +55,14 @@ export function commandActivityModel(message: ChatRenderMessage): CommandActivit
   const notices: string[] = [];
   const sections: CommandOutputSection[] = [];
   const projection = record(data._payload_projection);
-  if (projection.truncated === true && projection.resolved !== true) notices.push("Command evidence is a partial preview.");
+  if (projection.truncated === true && projection.resolved !== true) notices.push("コマンドの記録は一部のみ表示しています。");
   const chunks = Array.isArray(output.chunks) ? output.chunks : [];
   if (Array.isArray(body.output)) {
     for (const block of body.output) {
       const value = record(block);
       if (value.type === "text") appendSection(sections, "", text(value.text));
     }
-    if (body.output.some((block) => record(block).type !== "text")) notices.push("Non-text output retained in the artifact.");
+    if (body.output.some((block) => record(block).type !== "text")) notices.push("テキスト以外の出力は成果物に保存されています。");
   } else if (chunks.length) {
     for (const value of chunks) {
       const chunk = record(value);
@@ -83,11 +83,11 @@ export function commandActivityModel(message: ChatRenderMessage): CommandActivit
       ?? (native && typeof data.result === "string" ? data.result : undefined);
     if (typeof value === "string" && value) sections.push({ stream: "", text: value });
   }
-  if (continuationAvailable) notices.push("More output is available.");
+  if (continuationAvailable) notices.push("さらに出力があります。");
   const control = record(body.control);
-  if (control.delivered === true && text(control.action)) notices.push(`Process control delivered: ${text(control.action)}.`);
+  if (control.delivered === true && text(control.action)) notices.push(`プロセスの制御を送信しました： ${text(control.action)}.`);
   if (failure) notices.push(failure);
-  if (running && phase !== "running") notices.push("The process is still running.");
+  if (running && phase !== "running") notices.push("プロセスは引き続き実行中です。");
   return {
     phase, invocationStatus, exitCode, running,
     yielded: running && (body.completed === false || resultState === "yielded") && invocationStatus === "completed",
@@ -98,14 +98,14 @@ export function commandActivityModel(message: ChatRenderMessage): CommandActivit
 }
 
 export function commandOutcomeLabel(model: CommandActivityModel, isCode = false): string {
-  if (model.phase === "running") return model.yielded ? model.processId ? "Running at last check" : "Still running" : "Running";
-  const exit = model.exitCode === null ? "" : ` · exit code ${model.exitCode}`;
-  if (model.phase === "timed_out") return `Timed out${exit}`;
-  if (model.phase === "interrupted") return `Interrupted${exit}`;
-  if (model.phase === "failed") return `Failed${exit}`;
-  if (model.phase === "unknown") return "Outcome unknown";
-  if (isCode && model.exitCode === null) return "Completed";
-  return model.exitCode === 0 ? "Success" : model.exitCode === null ? "Exited · exit code unavailable" : `Exit code ${model.exitCode}`;
+  if (model.phase === "running") return model.yielded ? model.processId ? "最終確認時点で実行中" : "引き続き実行中" : "実行中";
+  const exit = model.exitCode === null ? "" : ` · 終了コード ${model.exitCode}`;
+  if (model.phase === "timed_out") return `タイムアウト${exit}`;
+  if (model.phase === "interrupted") return `中断${exit}`;
+  if (model.phase === "failed") return `失敗${exit}`;
+  if (model.phase === "unknown") return "結果は不明です";
+  if (isCode && model.exitCode === null) return "完了";
+  return model.exitCode === 0 ? "成功" : model.exitCode === null ? "終了 · 終了コードを取得できません" : `終了コード ${model.exitCode}`;
 }
 
 function streamText(value: unknown, preview: unknown, notices: string[]): string {
@@ -113,9 +113,9 @@ function streamText(value: unknown, preview: unknown, notices: string[]): string
   const exact = record(value);
   if (typeof exact.text === "string") return exact.text;
   const rendered = record(preview);
-  if (rendered.lossy === true) notices.push("Text preview contains replacement characters; retained bytes remain in the artifact.");
+  if (rendered.lossy === true) notices.push("テキストのプレビューに代替文字が含まれています。元のデータは成果物に保存されています。");
   if (typeof rendered.text === "string") return rendered.text;
-  if (exact.encoding === "base64") notices.push(`Binary output${finiteNumber(exact.retained_bytes) !== null ? ` · ${exact.retained_bytes} bytes retained` : ""}; no text preview.`);
+  if (exact.encoding === "base64") notices.push(`バイナリ出力${finiteNumber(exact.retained_bytes) !== null ? ` · ${exact.retained_bytes} bytes retained` : ""}; no text preview.`);
   return "";
 }
 

@@ -61,9 +61,9 @@ export function FilesSurface({ active, environment, onOpenFile, surface }: {
     return (
       <div className="flex h-full min-h-0 w-full flex-col bg-token-main-surface-primary">
         <LiveSurfaceEmpty
-          detail="Files appear when this room projects a bounded filesystem."
+          detail="この作業環境でアクセス範囲が指定されると、ファイルを表示します。"
           glyph="folder"
-          title="No files yet"
+          title="ファイルはまだありません"
         />
       </div>
     );
@@ -305,13 +305,13 @@ function LiveFilesSurface({ active, environment, onOpenFile, surface }: {
         <OctopusFilterField
           inputId={filterInputId}
           inputRef={searchInputRef}
-          label="Filter files"
+          label="ファイルを絞り込む"
           onQueryChange={setQuery}
-          placeholder="Filter files…"
+          placeholder="ファイルを絞り込む…"
           searchQuery={query}
           trailing={(
             <button
-              aria-label="Refresh files"
+              aria-label="ファイルを更新"
               className="flex size-7 shrink-0 cursor-interaction items-center justify-center rounded-lg text-token-input-placeholder-foreground outline-none hover:text-token-foreground"
               onClick={() => void refresh()}
               type="button"
@@ -329,17 +329,17 @@ function LiveFilesSurface({ active, environment, onOpenFile, surface }: {
               className="ms-2 cursor-interaction text-token-text-secondary underline-offset-2 hover:underline"
               onClick={() => void refresh()}
               type="button"
-            >Retry</button>
+            >再試行</button>
           </div>
         ) : searching ? (
           indexState === "indexing" && !searchTreePaths.length ? (
-            <OctopusPanelNote>Searching files…</OctopusPanelNote>
+            <OctopusPanelNote>ファイルを検索しています…</OctopusPanelNote>
           ) : !searchTreePaths.length ? (
-            <OctopusPanelNote>No matching files</OctopusPanelNote>
+            <OctopusPanelNote>一致するファイルがありません</OctopusPanelNote>
           ) : (
             <div className="flex h-full min-h-0 flex-col">
               {indexState === "bounded" || indexState === "error" ? (
-                <OctopusPanelNote>{indexState === "bounded" ? `Showing the first ${indexedEntries} indexed entries` : "Workspace index failed"}</OctopusPanelNote>
+                <OctopusPanelNote>{indexState === "bounded" ? `先頭から表示： ${indexedEntries} 件の索引項目` : "ワークスペースの索引作成に失敗しました"}</OctopusPanelNote>
               ) : null}
               <div className="min-h-0 flex-1">
                 <OctopusFileTree
@@ -357,9 +357,9 @@ function LiveFilesSurface({ active, environment, onOpenFile, surface }: {
             </div>
           )
         ) : rootLoading && !treePaths.length ? (
-          <OcLoadingRows label="Loading directory entries…" />
+          <OcLoadingRows label="ディレクトリの項目を読み込んでいます…" />
         ) : !treePaths.length ? (
-          <OctopusPanelNote>No files in this folder</OctopusPanelNote>
+          <OctopusPanelNote>このフォルダーにファイルはありません</OctopusPanelNote>
         ) : (
           <OctopusFileTree
             initialExpandedPaths={[...expanded]}
@@ -400,15 +400,15 @@ function ProjectedFilesSurface({ onOpenFile, surface }: {
         <FilesRootIdentity surface={surface} />
         <OctopusFilterField
           inputId={filterInputId}
-          label="Filter files"
+          label="ファイルを絞り込む"
           onQueryChange={setQuery}
-          placeholder="Filter files…"
+          placeholder="ファイルを絞り込む…"
           searchQuery={query}
         />
       </div>
       <div className="min-h-0 flex-1">
         {!matchedPaths.length ? (
-          <OctopusPanelNote>{entries.length ? "No matching files" : "No files in this folder"}</OctopusPanelNote>
+          <OctopusPanelNote>{entries.length ? "一致するファイルがありません" : "このフォルダーにファイルはありません"}</OctopusPanelNote>
         ) : (
           <OctopusFileTree
             flattenEmptyDirectories={Boolean(normalizedQuery)}
@@ -679,7 +679,7 @@ export function FilePreviewSurface({ active, environment, path, surface }: {
     <>
     <div className="we-file-preview">
       <header className="we-file-preview-toolbar">
-        <nav aria-label="File path" className="we-file-preview-breadcrumb" title={path}>
+        <nav aria-label="ファイルのパス" className="we-file-preview-breadcrumb" title={path}>
           <ol>
             {pathParts.map((part, index) => (
               <li key={`${index}:${part}`}>
@@ -690,25 +690,25 @@ export function FilePreviewSurface({ active, environment, path, surface }: {
           </ol>
         </nav>
         {direct ? (
-          <div aria-label="File actions" className="we-file-preview-actions" role="group">
-            {editable && !editMode ? <FileActionButton glyph="edit" label="Edit file manually" onClick={beginManualEdit} /> : null}
+          <div aria-label="ファイルの操作" className="we-file-preview-actions" role="group">
+            {editable && !editMode ? <FileActionButton glyph="edit" label="ファイルを手動で編集" onClick={beginManualEdit} /> : null}
             {editMode ? (
               <span className="we-file-edit-actions">
-                {saveState === "error" ? <small title={saveError}>Save failed</small> : editDraft !== liveFile?.text ? <small>Unsaved</small> : null}
-                <OcButton disabled={saveState === "saving"} onClick={cancelManualEdit} size="sm" variant="secondary">Cancel</OcButton>
-                <OcButton disabled={saveState === "saving" || editDraft === liveFile?.text} onClick={() => void saveManualEdit()} size="sm" variant="primary">{saveState === "saving" ? "Saving…" : "Save"}</OcButton>
+                {saveState === "error" ? <small title={saveError}>保存できませんでした</small> : editDraft !== liveFile?.text ? <small>未保存</small> : null}
+                <OcButton disabled={saveState === "saving"} onClick={cancelManualEdit} size="sm" variant="secondary">キャンセル</OcButton>
+                <OcButton disabled={saveState === "saving" || editDraft === liveFile?.text} onClick={() => void saveManualEdit()} size="sm" variant="primary">{saveState === "saving" ? "保存しています…" : "保存"}</OcButton>
               </span>
             ) : null}
-            <FileActionButton glyph="copy" label="Copy absolute path" onClick={() => void performFileSystemAction("resolve")} />
-            <FileActionButton glyph="folderOpen" label="Reveal in file manager" onClick={() => void performFileSystemAction("reveal")} />
-            <FileActionButton glyph="openExternal" label="Open in default app" onClick={() => void performFileSystemAction("open")} />
+            <FileActionButton glyph="copy" label="絶対パスをコピー" onClick={() => void performFileSystemAction("resolve")} />
+            <FileActionButton glyph="folderOpen" label="ファイルマネージャーで表示" onClick={() => void performFileSystemAction("reveal")} />
+            <FileActionButton glyph="openExternal" label="既定のアプリで開く" onClick={() => void performFileSystemAction("open")} />
           </div>
         ) : null}
       </header>
       <div className="we-file-preview-content">
         {editMode ? (
           <textarea
-            aria-label={`Edit ${path}`}
+            aria-label={`編集 ${path}`}
             autoFocus
             className="we-file-text-editor"
             onChange={(event) => {
@@ -732,30 +732,30 @@ export function FilePreviewSurface({ active, environment, path, surface }: {
             value={editDraft}
           />
         ) : liveState === "loading" ? (
-          <div className="we-file-preview-state"><OcLoadingText label="Reading projected file…" /></div>
+          <div className="we-file-preview-state"><OcLoadingText label="作業環境のファイルを読み込んでいます…" /></div>
         ) : liveState === "error" ? (
           <div className="we-file-preview-state is-error">{liveError}</div>
         ) : binaryPreviewState === "loading" ? (
-          <div className="we-file-preview-state"><OcLoadingText label="Loading bounded binary preview…" /></div>
+          <div className="we-file-preview-state"><OcLoadingText label="バイナリのプレビューを読み込んでいます…" /></div>
         ) : binaryPreviewState === "error" ? (
           <div className="we-file-unsupported" role="alert">
-            <strong>Preview could not be loaded</strong>
+            <strong>プレビューを読み込めませんでした</strong>
             <small>{binaryPreviewError}</small>
-            <OcButton onClick={() => setBinaryPreviewGeneration((generation) => generation + 1)} size="sm" variant="secondary">Retry</OcButton>
+            <OcButton onClick={() => setBinaryPreviewGeneration((generation) => generation + 1)} size="sm" variant="secondary">再試行</OcButton>
           </div>
         ) : binaryPreview?.mimeType === "application/pdf" ? (
-          <object aria-label={`PDF preview of ${binaryPreview.name}`} className="we-file-binary-preview is-pdf" data={binaryPreview.url} type={binaryPreview.mimeType}>
-            <div className="we-file-unsupported"><strong>PDF preview unavailable</strong><small>{formatFileSize(binaryPreview.size)} · read only</small></div>
+          <object aria-label={`PDF のプレビュー： ${binaryPreview.name}`} className="we-file-binary-preview is-pdf" data={binaryPreview.url} type={binaryPreview.mimeType}>
+            <div className="we-file-unsupported"><strong>PDF をプレビューできません</strong><small>{formatFileSize(binaryPreview.size)} · 読み取り専用</small></div>
           </object>
         ) : binaryPreview ? (
           <div className="we-file-binary-preview is-image">
             <img alt={binaryPreview.name} src={binaryPreview.url} />
           </div>
         ) : liveFile?.kind === "binary" ? (
-          <div className="we-file-unsupported"><strong>Binary preview unavailable</strong><small>{formatFileSize(liveFile.size)} · read only</small></div>
+          <div className="we-file-unsupported"><strong>バイナリをプレビューできません</strong><small>{formatFileSize(liveFile.size)} · 読み取り専用</small></div>
         ) : file ? (
           <article className="we-file-document">
-            {liveFile?.truncated ? <div className="we-file-truncated-note">Showing a bounded text preview of {formatFileSize(liveFile.size)}</div> : null}
+            {liveFile?.truncated ? <div className="we-file-truncated-note">テキストの一部をプレビュー： {formatFileSize(liveFile.size)}</div> : null}
             <CodeFile
               className="we-file-code"
               file={{ contents: file.text || " ", name: path }}
@@ -763,7 +763,7 @@ export function FilePreviewSurface({ active, environment, path, surface }: {
             />
           </article>
         ) : (
-          <div className="we-file-preview-state">This file has no projected text snapshot.</div>
+          <div className="we-file-preview-state">このファイルには表示用のテキストがありません。</div>
         )}
       </div>
     </div>
@@ -798,13 +798,13 @@ function ManualFileEditWarning({ onCancel, onContinue, open }: {
         <div className="we-manual-control-dialog__icon"><Glyph name="file" size={20} /></div>
         <OcDialogHeader
           className="we-manual-control-dialog__copy p-0"
-          description="The file changes on disk immediately when you save. This operator action is not recorded as an Octopus artifact, movement, mark, or model action."
-          title="Edit this room file manually?"
+          description="保存するとディスク上のファイルがすぐに変更されます。この手動操作は、Octopus の成果物、移動、検証記録、モデルの操作としては記録されません。"
+          title="この作業環境のファイルを手動で編集しますか？"
           titleId="we-manual-file-edit-title"
         />
         <OcDialogFooter className="we-manual-control-dialog__actions">
-          <OcButton onClick={onCancel} variant="secondary">Cancel</OcButton>
-          <OcButton onClick={onContinue} variant="primary">Continue manually</OcButton>
+          <OcButton onClick={onCancel} variant="secondary">キャンセル</OcButton>
+          <OcButton onClick={onContinue} variant="primary">手動操作を続ける</OcButton>
         </OcDialogFooter>
     </OcDialog>
   );

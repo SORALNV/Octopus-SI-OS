@@ -541,7 +541,7 @@ async function octopusOsOwnedWriterRunsAtRoot(runRoot, run, exactInterfaces) {
     if (Object.hasOwn(binding, "initial_record_format") && !["pretty", "compact"].includes(binding.initial_record_format)) {
       throw new Error(`${label} has invalid initial record format`);
     }
-    const id = requiredSafeRegistryId(binding.run, `${label} Run`);
+    const id = requiredSafeRegistryId(binding.run, `${label} 実行`);
     if (id === run.id || ids.has(id) || !exactInterfaces.has(owner)
       || (provider && state.writer_run !== undefined) || !Array.isArray(binding.role_artifact_bindings)) {
       throw new Error(`${label} has conflicting ownership`);
@@ -590,7 +590,7 @@ async function octopusOsOwnedWriterRunsAtRoot(runRoot, run, exactInterfaces) {
         && arrayValue(cp.outbound_interface_bindings).some((binding) => interfaceBindingId(binding) === destination))) {
         throw new Error(`${label} duplicates its writer edge in the target Run`);
       }
-      const cp = rows[0], checkpointId = requiredSafeRegistryId(cp.id, `${label} checkpoint`);
+      const cp = rows[0], checkpointId = requiredSafeRegistryId(cp.id, `${label} チェックポイント`);
       if (checkpoints.has(checkpointId) || cp.run !== id || cp.trace !== `trace:${id}:${checkpointId}`
         || !Number.isSafeInteger(cp.epoch) || cp.epoch < 0
         || !Array.isArray(cp.artifact_bindings) || !Array.isArray(cp.required_verified_artifacts)) {

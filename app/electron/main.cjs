@@ -1,4 +1,5 @@
 const { app, BrowserWindow, clipboard, dialog, globalShortcut, ipcMain, Menu, nativeTheme, net: electronNet, powerSaveBlocker, safeStorage, screen, session, shell, systemPreferences } = require("electron");
+app.commandLine.appendSwitch("lang", "ja");
 const net = require("node:net");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -574,7 +575,7 @@ function getNativeBrowserSurface() {
     },
     windowForSender: (sender) => BrowserWindow.fromWebContents(sender),
     chooseDownloadDirectory: async (window) => {
-      const result = await dialog.showOpenDialog(window, { properties: ["openDirectory", "createDirectory"], title: "Choose Downloads Folder" });
+      const result = await dialog.showOpenDialog(window, { properties: ["openDirectory", "createDirectory"], title: "ダウンロードフォルダーを選択" });
       return result.canceled ? null : result.filePaths[0] ?? null;
     },
     requireAccess: (token) => getClientAccessController().requireSession(token, ["live"]),
@@ -1069,7 +1070,7 @@ function getOsFileStore() {
         const source = resolveRepoRoot();
         return [
           { id: "octopus-home", label: "Octopus Home", root: resolveOctopusHome() },
-          ...(source ? [{ id: "source", label: "Source", root: source }] : []),
+          ...(source ? [{ id: "source", label: "ソース", root: source }] : []),
         ];
       },
     });
@@ -2062,7 +2063,7 @@ function createQuickTaskWindow(accessToken) {
     height: 430,
     minWidth: 520,
     minHeight: 320,
-    title: "Quick task — Octopus",
+    title: "クイックタスク — Octopus",
     backgroundColor: isMac ? (nativeTheme.shouldUseDarkColors ? "#171717" : "#f7f7f7") : "#181818",
     show: false,
     titleBarStyle: isMac ? "hidden" : "hidden",
@@ -2126,7 +2127,7 @@ function createWorkerEnvironmentWindow(accessToken, target) {
     height: 760,
     minWidth: 620,
     minHeight: 440,
-    title: "Worker Environment — Octopus",
+    title: "作業環境 — Octopus",
     backgroundColor: isMac ? (nativeTheme.shouldUseDarkColors ? "#171717" : "#f7f7f7") : "#181818",
     show: false,
     titleBarStyle: "hidden",
@@ -2196,7 +2197,7 @@ function createTaskMonitorWindow(accessToken, runId) {
     height: 620,
     minWidth: 380,
     minHeight: 420,
-    title: "Task Monitor — Octopus",
+    title: "タスクモニター — Octopus",
     backgroundColor: isMac ? (nativeTheme.shouldUseDarkColors ? "#171717" : "#f7f7f7") : "#181818",
     show: false,
     titleBarStyle: "hidden",
@@ -2378,10 +2379,10 @@ function attachContextMenu(win) {
           click: () => win.webContents.replaceMisspelling(suggestion),
         })));
       } else {
-        template.push({ label: "No spelling suggestions", enabled: false });
+        template.push({ label: "修正候補はありません", enabled: false });
       }
       template.push({
-        label: "Add to dictionary",
+        label: "辞書に追加",
         click: () => win.webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord),
       }, { type: "separator" });
     }
@@ -4659,71 +4660,71 @@ function setApplicationMenu() {
     {
       label: "Octopus",
       submenu: [
-        { role: "about", label: "About Octopus" },
-        commandItem("Settings…", "open_settings"),
+        { role: "about", label: "Octopus について" },
+        commandItem("設定…", "open_settings"),
         { type: "separator" },
-        { role: "services" },
+        { role: "services", label: "サービス" },
         { type: "separator" },
-        { role: "hide", label: "Hide Octopus" },
-        { role: "hideOthers" },
-        { role: "unhide" },
+        { role: "hide", label: "Octopus を非表示" },
+        { role: "hideOthers", label: "ほかを非表示" },
+        { role: "unhide", label: "すべて表示" },
         { type: "separator" },
-        { role: "quit", label: "Quit Octopus" },
+        { role: "quit", label: "Octopus を終了" },
       ],
     },
     {
-      label: "File",
+      label: "ファイル",
       submenu: [
-        { label: "New Window", click: () => openNewClientWindowFromMenu() },
+        { label: "新しいウィンドウ", click: () => openNewClientWindowFromMenu() },
         { type: "separator" },
-        commandItem("New Task", "new_chat"),
-        commandItem("Attach Files…", "attach_files"),
-        commandItem("Attach Projected File…", "attach_projected_file"),
-        commandItem("Copy Task as Markdown", "copy_task_markdown"),
-        commandItem("Copy Run ID", "copy_run_id"),
-        commandItem("Copy Working Directory", "copy_working_directory"),
-        commandItem("Pin or Unpin Task", "toggle_pin_task"),
+        commandItem("新しいタスク", "new_chat"),
+        commandItem("ファイルを添付…", "attach_files"),
+        commandItem("作業環境のファイルを添付…", "attach_projected_file"),
+        commandItem("タスクを Markdown でコピー", "copy_task_markdown"),
+        commandItem("実行 ID をコピー", "copy_run_id"),
+        commandItem("作業ディレクトリをコピー", "copy_working_directory"),
+        commandItem("タスクの固定を切り替え", "toggle_pin_task"),
         { type: "separator" },
-        { role: "close" },
+        { role: "close", label: "ウィンドウを閉じる" },
       ],
     },
     {
-      label: "Edit",
+      label: "編集",
       submenu: [
-        { role: "undo" },
-        { role: "redo" },
+        { role: "undo", label: "元に戻す" },
+        { role: "redo", label: "やり直す" },
         { type: "separator" },
-        { role: "cut" },
-        { role: "copy" },
-        { role: "paste" },
-        { role: "selectAll" },
+        { role: "cut", label: "切り取り" },
+        { role: "copy", label: "コピー" },
+        { role: "paste", label: "貼り付け" },
+        { role: "selectAll", label: "すべてを選択" },
         { type: "separator" },
-        commandItem("Toggle Dictation", "start_dictation"),
+        commandItem("音声入力を切り替え", "start_dictation"),
       ],
     },
     {
-      label: "View",
+      label: "表示",
       submenu: [
-        commandItem("Command Menu…", "open_command_menu"),
+        commandItem("コマンドメニュー…", "open_command_menu"),
         { type: "separator" },
-        commandItem("Back", "navigate_back"),
-        commandItem("Forward", "navigate_forward"),
-        commandItem("Previous Surface", "previous_surface"),
-        commandItem("Next Surface", "next_surface"),
+        commandItem("戻る", "navigate_back"),
+        commandItem("進む", "navigate_forward"),
+        commandItem("前の画面", "previous_surface"),
+        commandItem("次の画面", "next_surface"),
         { type: "separator" },
-        commandItem("Toggle Sidebar", "toggle_sidebar"),
-        commandItem("Toggle Split View", "toggle_split"),
-        commandItem("Toggle Task Summary", "toggle_task_summary"),
-        commandItem("Open Terminal", "open_terminal"),
-        commandItem("Open Worker Environment Browser", "open_browser"),
-        commandItem("Open Worker Environment Changes", "open_changes"),
-        commandItem("Open Model Picker", "open_model_picker"),
-        commandItem("Open Side Task", "open_side_task"),
+        commandItem("サイドバーの表示を切り替え", "toggle_sidebar"),
+        commandItem("分割表示を切り替え", "toggle_split"),
+        commandItem("タスクの概要の表示を切り替え", "toggle_task_summary"),
+        commandItem("ターミナルを開く", "open_terminal"),
+        commandItem("作業環境のブラウザーを開く", "open_browser"),
+        commandItem("作業環境の変更を開く", "open_changes"),
+        commandItem("モデルを選択", "open_model_picker"),
+        commandItem("サブペインでタスクを開く", "open_side_task"),
         { type: "separator" },
-        { role: "togglefullscreen" },
+        { role: "togglefullscreen", label: "フルスクリーンを切り替え" },
       ],
     },
-    { role: "windowMenu" },
+    { role: "windowMenu", label: "ウィンドウ" },
   ]));
 }
 

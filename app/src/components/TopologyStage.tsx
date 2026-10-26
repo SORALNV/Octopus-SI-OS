@@ -460,11 +460,11 @@ export const TopologyStage = memo(function TopologyStage({ snapshot, query, scop
 
   if (scope === "World") {
     return (
-      <section className="topology-shell is-world-scope" aria-label="World projection">
+      <section className="topology-shell is-world-scope" aria-label="外部の構成">
         <div className="stage-title">
           <Glyph name="topology" size={14} />
-          <span>World Projection</span>
-          <em>environments below · world surface above</em>
+          <span>外部の構成</span>
+          <em>下：実行環境 · 上：外部の画面</em>
         </div>
         <div className="topology-stage is-world">
           {snapshot.environments.length === 0 && registeredWorldInterfaces.length === 0 ? (
@@ -483,9 +483,9 @@ export const TopologyStage = memo(function TopologyStage({ snapshot, query, scop
         </div>
         <div className="legend-bar">
           <div className="legend-items">
-            <span><i className="dot red" />Run</span>
-            <span><i className="dot blue" />{viewMode === "zones" ? "Interface route set" : "Interface"}</span>
-            <span><i className="line solid" />Interface binding</span>
+            <span><i className="dot red" />実行</span>
+            <span><i className="dot blue" />{viewMode === "zones" ? "インターフェースの経路グループ" : "インターフェース"}</span>
+            <span><i className="line solid" />インターフェースの紐付け</span>
             <TransferBurstLegend />
           </div>
           <div className="legend-stats">
@@ -497,13 +497,13 @@ export const TopologyStage = memo(function TopologyStage({ snapshot, query, scop
   }
 
   return (
-    <section className="topology-shell" aria-label="Executional Environments">
+    <section className="topology-shell" aria-label="実行環境">
       <div className="stage-title">
         <Glyph name="ee" size={14} />
-        <span>{viewMode === "zones" ? "Runs in EE Zones" : "Run Drilldown"}</span>
+        <span>{viewMode === "zones" ? "実行環境の領域別に表示" : "実行の詳細"}</span>
         {viewMode === "drilldown" && breadcrumb.length > 0 ? (
-          <nav className="stage-breadcrumb" aria-label="Environment breadcrumb">
-            <button type="button" onClick={() => setLevelId("")}>root</button>
+          <nav className="stage-breadcrumb" aria-label="環境の階層ナビゲーション">
+            <button type="button" onClick={() => setLevelId("")}>ルート</button>
             {breadcrumb.map((crumb, index) => (
               <span className="stage-breadcrumb-item" key={crumb.id}>
                 <i className="crumb-sep" aria-hidden="true">/</i>
@@ -593,7 +593,7 @@ export const TopologyStage = memo(function TopologyStage({ snapshot, query, scop
                         key={zone.id}
                       >
                         <button
-                          aria-label={`Open ${zone.name}`}
+                          aria-label={`開く ${zone.name}`}
                           className="ee-zone-head"
                           data-topology-interactive="true"
                           onClick={() => onSelect({ kind: "environment", id: zone.id })}
@@ -656,13 +656,13 @@ export const TopologyStage = memo(function TopologyStage({ snapshot, query, scop
 
       <div className="legend-bar">
         <div className="legend-items">
-          <span><i className="dot green" />Made checkpoint</span>
-          <span><i className="dot gray" />Ephemeral checkpoint</span>
-          <span><i className="diamond amber" />Artifact</span>
-          <span><i className="diamond purple" />Binding</span>
-          <span><i className="dot blue" />Interface</span>
-          <span><i className="dot yellow" />In progress</span>
-          <span><i className="dot red" />Blocked</span>
+          <span><i className="dot green" />作成済みのチェックポイント</span>
+          <span><i className="dot gray" />一時チェックポイント</span>
+          <span><i className="diamond amber" />成果物</span>
+          <span><i className="diamond purple" />紐付け</span>
+          <span><i className="dot blue" />インターフェース</span>
+          <span><i className="dot yellow" />進行中</span>
+          <span><i className="dot red" />ブロック中</span>
           <TransferBurstLegend />
         </div>
         <div className="legend-stats">
@@ -674,8 +674,8 @@ export const TopologyStage = memo(function TopologyStage({ snapshot, query, scop
 });
 
 function TransferBurstLegend() {
-  return <DashboardTooltip text="Repeated traffic is grouped by run and interface pair. The first movement in each direction anchors its burst; newer repeats join that burst. Related steps keep recorded order with a 300 ms pause. Independent paths animate together. Only recent paths animate; full movement history stays in the ledger.">
-    <span>Latest transfer bursts</span>
+  return <DashboardTooltip text="繰り返し発生する通信は、実行とインターフェースの組み合わせごとにまとめて表示します。各方向の最初の移動を起点に、その後の移動を同じまとまりに追加します。関連するステップは記録順に 300 ミリ秒間隔で表示し、独立した経路は同時に動かします。アニメーションは最近の経路のみが対象です。すべての移動履歴は台帳に残ります。">
+    <span>最近の転送</span>
   </DashboardTooltip>;
 }
 
@@ -734,20 +734,20 @@ const EnvironmentCard = memo(function EnvironmentCard({
               onEnterChildren(env.id);
             }}
           >
-            {childCount} child env{childCount === 1 ? "" : "s"}
+            {childCount} 子環境{childCount === 1 ? "" : "s"}
           </button>
         ) : null}
       </div>
 
       <div className="env-goal">
-        <span>Goal</span>
+        <span>目標</span>
         <p>{env.goal}</p>
       </div>
 
       <div className="env-runs">
         <div className="env-runs-head">
-          <span>Runs</span>
-          <em>{env.runs.length ? `${activeRuns} active / ${env.runs.length} total` : "none projected"}</em>
+          <span>実行</span>
+          <em>{env.runs.length ? `${activeRuns} active / ${env.runs.length} total` : "情報がありません"}</em>
         </div>
         {env.runs.map((run) => (
           <RunBlock
@@ -770,7 +770,7 @@ const EnvironmentCard = memo(function EnvironmentCard({
             onEnterChildren(env.id);
           }}
         >
-          <span>Child environments</span>
+          <span>子環境</span>
           <em>{childCount}</em>
           <i>›</i>
         </button>
@@ -828,13 +828,13 @@ const RunNodeCard = memo(function RunNodeCard({
       </div>
 
       <div className="env-goal">
-        <span>Goal</span>
+        <span>目標</span>
         <p>{run.goal}</p>
       </div>
 
       <div className="env-runs">
         <div className="env-runs-head">
-          <span>Checkpoints</span>
+          <span>チェックポイント</span>
           <div className="env-runs-head-meta">
             <em>{checkpointSummary}</em>
             {hasMoreCheckpoints ? (
@@ -842,7 +842,7 @@ const RunNodeCard = memo(function RunNodeCard({
                 className={`env-run-chevron ${showAllCheckpoints ? "is-open" : ""}`}
                 type="button"
                 aria-expanded={showAllCheckpoints}
-                aria-label={`${showAllCheckpoints ? "Collapse" : "Show all"} checkpoints`}
+                aria-label={`${showAllCheckpoints ? "折りたたむ" : "すべて表示"} checkpoints`}
                 onClick={(event) => {
                   event.stopPropagation();
                   setShowAllCheckpoints((current) => !current);
@@ -866,7 +866,7 @@ const RunNodeCard = memo(function RunNodeCard({
             <div className="env-run-row">
               <div className="env-run-main is-static">
                 <i className="status-dot gray" />
-                <strong>No checkpoints yet</strong>
+                <strong>チェックポイントはまだありません</strong>
               </div>
             </div>
           </div>
@@ -891,7 +891,7 @@ function CheckpointAsRunBlock({
       <div className="env-run-row">
         <div className="env-run-main is-static">
           <i className={`status-dot ${checkpointTone(checkpoint.status)}`} />
-          <strong><DashboardLabel text={checkpoint.label || `Checkpoint ${index + 1}`} /></strong>
+          <strong><DashboardLabel text={checkpoint.label || `チェックポイント ${index + 1}`} /></strong>
           <em className={`env-status-word is-${checkpointTone(checkpoint.status)}`}>{titleCase(checkpoint.status)}</em>
         </div>
         <CheckpointInterface checkpoint={checkpoint} onSelect={onSelect} />
@@ -915,7 +915,7 @@ function RequiredVerifiedArtifactList({ checkpoint }: { checkpoint: CheckpointRo
         <div className="env-checkpoint-required-row" key={`${checkpoint.id}:${row.mark}`}>
           <i className={`status-dot ${requiredVerifiedArtifactTone(row.outcome)}`} />
           <strong><DashboardLabel text={row.mark} /></strong>
-          {row.verifier ? <small>via <DashboardLabel text={row.verifier} /></small> : null}
+          {row.verifier ? <small>経由 <DashboardLabel text={row.verifier} /></small> : null}
           <em className={`env-status-word is-${requiredVerifiedArtifactTone(row.outcome)}`}>{titleCase(row.outcome)}</em>
         </div>
       ))}
@@ -967,7 +967,7 @@ function RunBlock({
             className={`env-run-chevron ${expanded ? "is-open" : ""}`}
             type="button"
             aria-expanded={expanded}
-            aria-label={`${expanded ? "Collapse" : "Expand"} checkpoints`}
+            aria-label={`${expanded ? "折りたたむ" : "展開"} checkpoints`}
             onClick={(event) => {
               event.stopPropagation();
               onToggle();
@@ -998,13 +998,13 @@ function CheckpointBlock({ checkpoint, index, projectionVisible, onSelect }: { c
     <div className="env-checkpoint">
       <div className="env-checkpoint-head">
         <i className="env-checkpoint-mark" aria-hidden="true" />
-        <strong>{`Checkpoint ${index + 1}`}</strong>
+        <strong>{`チェックポイント ${index + 1}`}</strong>
         <em className={`env-status-word is-${checkpointTone(checkpoint.status)}`}>{titleCase(checkpoint.status)}</em>
         <CheckpointInterface checkpoint={checkpoint} onSelect={onSelect} visible={projectionVisible} />
       </div>
       <div className="env-checkpoint-chips">
-        <span>Artifact bindings <b>{artifactCount}</b></span>
-        <span>Interface bindings <b>{interfaceCount}</b></span>
+        <span>成果物の紐付け <b>{artifactCount}</b></span>
+        <span>インターフェースの紐付け <b>{interfaceCount}</b></span>
       </div>
       <RequiredVerifiedArtifactList checkpoint={checkpoint} />
     </div>
@@ -1014,12 +1014,12 @@ function CheckpointBlock({ checkpoint, index, projectionVisible, onSelect }: { c
 function CheckpointInterface({ checkpoint, onSelect, visible = true }: { checkpoint: CheckpointRow; onSelect: (selection: SelectionRef) => void; visible?: boolean }) {
   if (!checkpoint.interfaceName) return null;
   return (
-    <DashboardTooltip text={`Interface: ${checkpoint.interfaceName}`}><button
+    <DashboardTooltip text={`インターフェース： ${checkpoint.interfaceName}`}><button
       className="env-checkpoint-interface"
       data-projection-interface={visible ? checkpoint.interfaceName : undefined}
       data-projection-checkpoint={checkpoint.id}
       type="button"
-      aria-label={`Open interface ${checkpoint.interfaceName}`}
+      aria-label={`インターフェースを開く ${checkpoint.interfaceName}`}
       onClick={(event) => {
         event.stopPropagation();
         onSelect({ kind: "interface", id: checkpoint.interfaceName! });

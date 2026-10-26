@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../locale";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { isolateModalLayer, isTopmostModal, restoreModalFocus } from "../design-system/modalFocus";
 import { searchChatTaskMessages, type ChatRun, type ChatRunMessage } from "../chatRuns";
@@ -257,7 +258,7 @@ export function CommandMenu({
       .map<CommandMenuEntry>((run) => ({
         id: `run:${run.runId}`,
         label: clientTaskTitle(run.runId, run.title, organization),
-        detail: `${run.messageCount} ${run.messageCount === 1 ? "message" : "messages"} · ${relativeDate(run.updatedAtMs)}${run.continuedFrom ? " · continued run" : ""}`,
+        detail: `${run.messageCount} ${run.messageCount === 1 ? "message" : "messages"} · ${relativeDate(run.updatedAtMs)}${run.continuedFrom ? " · 継続した実行" : ""}`,
         group: "Recent tasks",
         glyph: "chat",
         run: () => {
@@ -282,8 +283,8 @@ export function CommandMenu({
     if (messageSearch.hasOlder) {
       messageEntries.push({
         id: `message-search-more:${messageSearch.nextBeforeSeq}`,
-        label: "Search older task history",
-        detail: `Continue search for “${query.trim()}” across ${messageSearch.taskCount} visible tasks`,
+        label: "過去のタスク履歴を検索",
+        detail: `検索を続ける：「${query.trim()}」対象： ${messageSearch.taskCount} 件の表示中のタスク`,
         group: "Message results",
         glyph: "search",
         closeOnRun: false,
@@ -299,7 +300,7 @@ export function CommandMenu({
         return [{
           id: `recent:${destination.key}`,
           label: clientTaskTitle(run.runId, run.title, organization),
-          detail: "Tasks",
+          detail: "タスク",
           group: "Recent",
           glyph: "chat",
           run: () => {
@@ -420,7 +421,7 @@ export function CommandMenu({
   let flatIndex = -1;
   return (
     <div
-      aria-label="Command menu"
+      aria-label="コマンドメニュー"
       aria-modal="true"
       className="command-menu-overlay fixed inset-0"
       ref={layerRef}
@@ -440,7 +441,7 @@ export function CommandMenu({
             setSelectedIndex(0);
           }}
           onKeyDown={onKeyDown}
-          placeholder="Search tasks or run a command"
+          placeholder="タスクを検索、またはコマンドを実行"
           ref={inputRef}
           role="combobox"
           value={query}
@@ -478,15 +479,15 @@ export function CommandMenu({
               })}
             </section>
           ))}
-          {messageSearch.error ? <div className="px-3 py-2 text-sm text-token-error-foreground" role="status">Task transcript search unavailable · {messageSearch.error}</div> : null}
+          {messageSearch.error ? <div className="px-3 py-2 text-sm text-token-error-foreground" role="status">タスクの会話を検索できません · {messageSearch.error}</div> : null}
           {normalize(query).length >= 2 && !messageSearch.error ? (
             <div className="px-3 py-2 text-sm text-token-description-foreground" role="status">
               {searchingMessages
-                ? "Searching indexed task transcripts…"
-                : `Finalized operator and agent messages · ${messageSearch.taskCount} visible tasks · ${messageSearch.runCount} runs`}
+                ? "タスクの会話の索引を検索しています…"
+                : `確定済みのユーザーとエージェントのメッセージ · ${messageSearch.taskCount} 件の表示中のタスク · ${messageSearch.runCount} 件の実行`}
             </div>
           ) : null}
-          {!filtered.length ? <div className="flex h-14 items-center justify-center text-sm text-token-description-foreground">{searchingMessages ? "Searching indexed task transcripts…" : "No matches"}</div> : null}
+          {!filtered.length ? <div className="flex h-14 items-center justify-center text-sm text-token-description-foreground">{searchingMessages ? "タスクの会話の索引を検索しています…" : "一致するものがありません"}</div> : null}
         </div>
       </div>
     </div>
@@ -545,5 +546,5 @@ function relativeDate(timestamp: number): string {
   if (elapsed < 60_000) return "Just now";
   if (elapsed < 3_600_000) return `${Math.floor(elapsed / 60_000)}m ago`;
   if (elapsed < 86_400_000) return `${Math.floor(elapsed / 3_600_000)}h ago`;
-  return new Date(timestamp).toLocaleDateString();
+  return new Date(timestamp).toLocaleDateString(APP_LOCALE);
 }

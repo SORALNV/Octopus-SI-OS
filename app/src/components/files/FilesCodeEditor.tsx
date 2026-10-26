@@ -15,7 +15,7 @@ export function FilesCodeEditor({ documentId, filename, initialViewState, label,
   value: string;
   wordWrap: boolean;
 }) {
-  return <Suspense fallback={<div aria-label={onChange ? "Loading editor" : "Loading file"} className="os-files-loading" role="status"><OctopusSpinner /></div>}>
+  return <Suspense fallback={<div aria-label={onChange ? "エディターを読み込んでいます" : "ファイルを読み込んでいます"} className="os-files-loading" role="status"><OctopusSpinner /></div>}>
     {onChange
       ? <PierreFileEditor documentId={documentId} filename={filename} initialViewState={initialViewState} key={documentId} label={label} onChange={onChange} onViewStateChange={onViewStateChange} value={value} wordWrap={wordWrap} />
       : <ReadonlyFileViewer documentId={documentId} filename={filename} key={documentId} label={label} value={value} wordWrap={wordWrap} />}

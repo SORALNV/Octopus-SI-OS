@@ -142,7 +142,7 @@ export function useMarkActivity(profile: string, home: string, primary: boolean,
     } catch (error) { setReadFailure(formatProjectionError(error)); return false; }
   }, [items, key, mergeRead, snapshot?.key]);
 
-  const groups = useMemo<MarkActivityGroup[]>(() => [{ key: "priority", label: "Priority", items: listed }], [listed]);
+  const groups = useMemo<MarkActivityGroup[]>(() => [{ key: "priority", label: "優先度", items: listed }], [listed]);
   const clearNotifications = useCallback(() => {
     try {
       if (snapshot?.key !== key || readState?.key !== key || failure || readFailure) throw new Error("Activity read state is unavailable.");

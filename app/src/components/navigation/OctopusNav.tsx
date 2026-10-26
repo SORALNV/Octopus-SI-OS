@@ -222,7 +222,7 @@ export function OctopusTaskRow({
     <div
       aria-busy={working || undefined}
       aria-current={active ? "page" : undefined}
-      aria-label={[title, subtitle, working ? "Running" : failed ? "Failed" : waiting ? "Waiting" : scheduledLabel, unread ? "unread" : ""].filter(Boolean).join(", ")}
+      aria-label={[title, subtitle, working ? "実行中" : failed ? "失敗" : waiting ? "待機中" : scheduledLabel, unread ? "unread" : ""].filter(Boolean).join(", ")}
       className={cx(
         "octopus-nav-row octopus-task-row group relative h-[var(--height-token-row)] cursor-interaction sidebar-item px-[var(--padding-row-cell-x,var(--padding-row-x))] py-row-y text-sm hover:bg-token-list-hover-background focus-visible:outline-offset-[-2px]",
         active && "bg-token-list-hover-background",
@@ -265,12 +265,12 @@ export function OctopusTaskRow({
             {working ? (
               <SidebarWorkingIndicator />
             ) : failed ? (
-              <SidebarTaskStatus state="failed" detail="Task failed · open to view the error" />
+              <SidebarTaskStatus state="failed" detail="タスクが失敗しました · 開くとエラーを確認できます" />
             ) : waiting ? (
-              <SidebarTaskStatus state="waiting" detail="Waiting for a response" />
+              <SidebarTaskStatus state="waiting" detail="応答待ち" />
             ) : scheduledLabel ? (
               <SidebarTaskStatus state="scheduled" label={scheduledLabel} text={scheduledLabel.replace(/^Scheduled · /, "")} />
-            ) : unread ? <SidebarTaskStatus state="unread" label="Unread reply" />
+            ) : unread ? <SidebarTaskStatus state="unread" label="未読の応答" />
               : meta ? <span className="sidebar-task-age">{meta}</span> : null}
             {action ? <div className="sidebar-task-action"><RowActionButton action={action} /></div> : null}
           </div>

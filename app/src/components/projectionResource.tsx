@@ -68,7 +68,7 @@ export function useProjectionResource<T>({
           setState({ data: result.data, error, phase: error ? "degraded" : "ready", resourceKey });
         } catch (failure) {
           if (cancelled) break;
-          const error = formatProjectionError(failure) || "Projection read failed";
+          const error = formatProjectionError(failure) || "表示用データを読み込めませんでした";
           const data = dataRef.current;
           setState({ data, error, phase: data === null ? "failed" : "degraded", resourceKey });
         }
@@ -116,7 +116,7 @@ export function ProjectionResourceFailure({
     <OcEmptyState
       action={(
         <OcButton disabled={retrying} leadingIcon="retry" onClick={onRetry} variant="secondary">
-          {retrying ? "Retrying…" : "Try again"}
+          {retrying ? "再試行しています…" : "再試行"}
         </OcButton>
       )}
       className={className}
@@ -149,7 +149,7 @@ export function ProjectionResourceIssue({
         <div className="mt-1 whitespace-pre-wrap break-words text-[10px] leading-4 text-token-text-secondary">{detail}</div>
       </div>
       <OcButton disabled={retrying} leadingIcon="retry" onClick={onRetry} size="xs" variant="secondary">
-        {retrying ? "Retrying…" : "Retry"}
+        {retrying ? "再試行しています…" : "再試行"}
       </OcButton>
     </div>
   );

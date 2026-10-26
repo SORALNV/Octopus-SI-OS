@@ -47,7 +47,7 @@ export function WorkerEnvironmentWindow({ accessProfile }: { accessProfile: Octo
   }), []);
 
   useEffect(() => {
-    document.title = `${resolved?.workerEnvironment.label || "Worker Environment"} — Octopus`;
+    document.title = `${resolved?.workerEnvironment.label || "作業環境"} — Octopus`;
   }, [resolved?.workerEnvironment.label]);
 
   const openInMain = () => {
@@ -66,19 +66,19 @@ export function WorkerEnvironmentWindow({ accessProfile }: { accessProfile: Octo
     <main className="worker-environment-window">
       <header className="worker-environment-window-titlebar">
         <div className="worker-environment-window-title-left">
-          <button aria-label="Dismiss Worker Environment window" onClick={closeWindow} title="Dismiss" type="button">
+          <button aria-label="作業環境のウィンドウを閉じる" onClick={closeWindow} title="閉じる" type="button">
             <Glyph name="close" size={15} />
           </button>
         </div>
         <div className="worker-environment-window-title">
-          <span>{resolved?.workerEnvironment.label || "Worker Environment"}</span>
+          <span>{resolved?.workerEnvironment.label || "作業環境"}</span>
           {resolved ? <small>{resolved.environmentName}</small> : null}
         </div>
         <div className="worker-environment-window-title-actions">
-          <button aria-pressed={pinned} className={pinned ? "is-active" : ""} onClick={togglePinned} title={pinned ? "Stop keeping on top" : "Keep on top"} type="button">
+          <button aria-pressed={pinned} className={pinned ? "is-active" : ""} onClick={togglePinned} title={pinned ? "最前面表示を解除" : "最前面に表示"} type="button">
             <Glyph name="pin" size={15} />
           </button>
-          <button onClick={openInMain} title="Open in main window" type="button">
+          <button onClick={openInMain} title="メインウィンドウで開く" type="button">
             <Glyph name="openExternal" size={15} />
           </button>
         </div>
@@ -104,11 +104,11 @@ export function WorkerEnvironmentWindow({ accessProfile }: { accessProfile: Octo
         ) : (
           <WorkerEnvironmentWindowUnavailable
             detail={topology.projection.mode === "connecting"
-              ? "Reading the active serialized projection."
+              ? "現在の保存済みの表示用データを読み込んでいます。"
               : resolved
-                ? "The exact projected surface behind this window is no longer available. Reopen it from the current Worker Environment projection."
-                : `The projected Worker Environment ${target.workerEnvironmentId || "target"} is unavailable.`}
-            title={topology.projection.mode === "connecting" ? "Reading Worker Environment" : resolved ? "Worker Environment surface changed" : "Worker Environment unavailable"}
+                ? "このウィンドウの画面は利用できなくなりました。現在の作業環境から開き直してください。"
+                : `対象の作業環境 ${target.workerEnvironmentId || "target"} は利用できません。`}
+            title={topology.projection.mode === "connecting" ? "作業環境を読み込んでいます" : resolved ? "作業環境の画面が変更されました" : "作業環境を利用できません"}
           />
         )}
       </section>
@@ -121,12 +121,12 @@ export function WorkerEnvironmentWindowAccessUnavailable() {
     <main className="worker-environment-window">
       <header className="worker-environment-window-titlebar">
         <div className="worker-environment-window-title-left">
-          <button aria-label="Dismiss Worker Environment window" onClick={closeWindow} title="Dismiss" type="button"><Glyph name="close" size={15} /></button>
+          <button aria-label="作業環境のウィンドウを閉じる" onClick={closeWindow} title="閉じる" type="button"><Glyph name="close" size={15} /></button>
         </div>
-        <div className="worker-environment-window-title"><span>Worker Environment</span></div>
+        <div className="worker-environment-window-title"><span>作業環境</span></div>
       </header>
       <section className="worker-environment-window-content">
-        <WorkerEnvironmentWindowUnavailable detail="Unlock the main application before opening a projected Worker Environment." title="Octopus is locked" />
+        <WorkerEnvironmentWindowUnavailable detail="作業環境を開くには、メインアプリのロックを解除してください。" title="Octopus はロックされています" />
       </section>
     </main>
   );

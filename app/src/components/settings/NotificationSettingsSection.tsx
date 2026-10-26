@@ -12,18 +12,18 @@ export function MarkActivitySettingsRow() {
     <OcSettingsRow {...settingsTargetProps("notifications.mark-activity")}
       control={(
         <OcSelect<ClientPreferences["markNotifications"]>
-          label="Inbox notifications"
+          label="受信トレイの通知"
           onChange={(markNotifications) => setClientPreferences({ markNotifications })}
           options={[
-            { value: "never", label: "Never" },
-            { value: "unfocused", label: "Only when unfocused" },
-            { value: "always", label: "Always" },
+            { value: "never", label: "通知しない" },
+            { value: "unfocused", label: "ウィンドウが非アクティブのときのみ" },
+            { value: "always", label: "常に通知" },
           ]}
           value={preferences.markNotifications}
         />
       )}
-      description="Notify about new messages, requests, and marks selected in Inbox."
-      label="Inbox notifications"
+      description="受信トレイで選んだ新着メッセージ、リクエスト、検証記録を通知します。"
+      label="受信トレイの通知"
     />
   );
 }
@@ -35,17 +35,17 @@ export function NotificationSoundSettingsRow() {
     <OcSettingsRow {...settingsTargetProps("notifications.sound")}
       control={(
         <OcSelect<NotificationSound>
-          label="Notification sound"
+          label="通知音"
           onChange={(notificationSound) => setClientPreferences({ notificationSound })}
           options={[
-            { value: "system", label: "System default" },
-            { value: "silent", label: "Silent" },
+            { value: "system", label: "システムの既定値" },
+            { value: "silent", label: "サイレント" },
           ]}
           value={preferences.notificationSound}
         />
       )}
-      description="The sound played with desktop notifications."
-      label="Sound"
+      description="デスクトップ通知と一緒に鳴らす音です。"
+      label="音"
     />
   );
 }
@@ -79,61 +79,61 @@ export function NotificationsSection() {
   return (
     <section className="settings-section">
       <SettingsHeading
-        description="When the desktop can notify you about run and interface activity."
-        title="Notifications"
+        description="実行やインターフェースの動作をデスクトップで通知する条件です。"
+        title="通知"
       />
 
-      <OcGroup title="Runs" description="Notifications that follow chat work on this device.">
+      <OcGroup title="実行" description="このデバイスでのチャットの作業に関する通知です。">
         <OcCard>
           <MarkActivitySettingsRow />
           <OcSettingsRow {...settingsTargetProps("notifications.operator-input")}
             control={(
               <OcSwitch
                 checked={preferences.notifyOperatorInputRequired}
-                label="Operator input required"
+                label="ユーザーの入力が必要"
                 onCheckedChange={(notifyOperatorInputRequired) => setClientPreferences({ notifyOperatorInputRequired })}
               />
             )}
-            description="Notify when a run pauses on an operator request."
-            label="Operator input required"
+            description="ユーザーへのリクエストで実行が一時停止したときに通知します。"
+            label="ユーザーの入力が必要"
           />
           <OcSettingsRow {...settingsTargetProps("notifications.blocked")}
             control={(
               <OcSwitch
                 checked={preferences.notifyBlockedOrDeliveryFailed}
-                label="Blocked or delivery failed"
+                label="処理の停止・配信の失敗"
                 onCheckedChange={(notifyBlockedOrDeliveryFailed) => setClientPreferences({ notifyBlockedOrDeliveryFailed })}
               />
             )}
-            description="Notify when an artifact hand-in is rejected or a run reports a blocked checkpoint."
-            label="Blocked or delivery failed"
+            description="成果物の提出が拒否されたときや、チェックポイントで実行が停止したときに通知します。"
+            label="処理の停止・配信の失敗"
           />
         </OcCard>
       </OcGroup>
 
-      <OcGroup title="System" description="Environment and Home voice events.">
+      <OcGroup title="システム" description="作業環境とホームの音声通話に関するイベントです。">
         <OcCard>
           <OcSettingsRow {...settingsTargetProps("notifications.worker-environment")}
             control={(
               <OcSwitch
                 checked={preferences.notifyWorkerEnvironmentDisconnected}
-                label="Worker Environment disconnected"
+                label="作業環境が切断されたとき"
                 onCheckedChange={(notifyWorkerEnvironmentDisconnected) => setClientPreferences({ notifyWorkerEnvironmentDisconnected })}
               />
             )}
-            description="Notify when an attached Worker Environment stops being projected."
-            label="Worker Environment disconnected"
+            description="接続している作業環境の情報を取得できなくなったときに通知します。"
+            label="作業環境が切断されたとき"
           />
           <OcSettingsRow {...settingsTargetProps("notifications.home-voice")}
             control={(
               <OcSwitch
                 checked={preferences.notifyVoiceSession}
-                label="Home voice"
+                label="ホームの音声通話"
                 onCheckedChange={(notifyVoiceSession) => setClientPreferences({ notifyVoiceSession })}
               />
             )}
-            description="Notify when Home voice ends while the window is unfocused."
-            label="Home voice"
+            description="ウィンドウが非アクティブの間にホームの音声通話が終了したときに通知します。"
+            label="ホームの音声通話"
           />
           <NotificationSoundSettingsRow />
           <OcSettingsRow {...settingsTargetProps("notifications.permission")}
@@ -144,12 +144,12 @@ export function NotificationsSection() {
                   tone={notificationPermissionTone(permission)}
                 />
                 {permission === "default" ? (
-                  <OcButton onClick={() => void requestNotificationPermission()}>Allow</OcButton>
+                  <OcButton onClick={() => void requestNotificationPermission()}>許可</OcButton>
                 ) : null}
               </div>
             )}
             description={notificationPermissionDescription(permission)}
-            label="System permission"
+            label="システムの権限"
           />
         </OcCard>
       </OcGroup>
@@ -162,10 +162,10 @@ function readNotificationPermission(): NotificationPermission | "unsupported" {
 }
 
 function notificationPermissionLabel(permission: NotificationPermission | "unsupported"): string {
-  if (permission === "granted") return "Allowed";
+  if (permission === "granted") return "許可済み";
   if (permission === "denied") return "Denied by system";
-  if (permission === "default") return "Not requested";
-  return "Unavailable";
+  if (permission === "default") return "未要求";
+  return "利用できません";
 }
 
 function notificationPermissionTone(permission: NotificationPermission | "unsupported"): OcTone {

@@ -17,11 +17,11 @@ export type GestureShortcutPreferences = Readonly<{
 }>;
 
 export const airHandGestures: readonly { id: AirHandGestureId; label: string; detail: string }[] = [
-  { id: "open_palm", label: "Open palm", detail: "A stable open-palm pose" },
-  { id: "left_click", label: "Finger fold", detail: "Index folded while the supporting fingers stay closed" },
-  { id: "fist", label: "Fist", detail: "A stable closed-fist pose" },
-  { id: "swipe_left", label: "Swipe left", detail: "A quick sideways flick to the left, open hand or two fingers" },
-  { id: "swipe_right", label: "Swipe right", detail: "A quick sideways flick to the right, open hand or two fingers" },
+  { id: "open_palm", label: "手のひらを開く", detail: "手のひらを開いて静止するポーズ" },
+  { id: "left_click", label: "指を曲げる", detail: "他の指を閉じたまま人差し指を曲げるポーズ" },
+  { id: "fist", label: "握りこぶし", detail: "こぶしを握って静止するポーズ" },
+  { id: "swipe_left", label: "左にスワイプ", detail: "手のひらか二本指を素早く左に動かす" },
+  { id: "swipe_right", label: "右にスワイプ", detail: "手のひらか二本指を素早く右に動かす" },
 ];
 
 const DEFAULT_PREFERENCES: GestureShortcutPreferences = Object.freeze({

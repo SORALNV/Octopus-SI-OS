@@ -35,13 +35,13 @@ export function ShortcutsSection({ accessProfile }: { accessProfile: OctopusClie
         keys: (shortcuts[command.id] ?? []).map(formatKeyboardShortcut),
         detail: command.detail,
       })),
-      { id: "surface-index", action: "Jump to surface 1–9", command: null, keys: ["⌘1–9"], detail: "Open a fixed product surface" },
-      { id: "send", action: "Send message", command: null, keys: sendKeys, detail: "Send the current composer message" },
+      { id: "surface-index", action: "Jump to surface 1–9", command: null, keys: ["⌘1–9"], detail: "指定された画面を開く" },
+      { id: "send", action: "Send message", command: null, keys: sendKeys, detail: "入力中のメッセージを送信" },
       { id: "queue", action: "Queue message while replying", command: null,
         keys: [formatKeyboardShortcut(preferences.sendShortcut === "enter" ? "Mod+Enter" : "Mod+Shift+Enter")],
-        detail: "Queue this message after the current reply; ordinary Send still steers immediately" },
-      { id: "newline", action: "New line in message", command: null, keys: newlineKeys, detail: "Insert a new line in the composer" },
-      { id: "escape", action: "Close settings or dialog", command: null, keys: ["Esc"], detail: "Close the active dialog" },
+        detail: "現在の応答が終わってから送信します。通常の送信ではすぐに指示を追加します" },
+      { id: "newline", action: "New line in message", command: null, keys: newlineKeys, detail: "入力欄に改行を挿入" },
+      { id: "escape", action: "Close settings or dialog", command: null, keys: ["Esc"], detail: "開いているダイアログを閉じる" },
     ];
   }, [preferences.sendShortcut, shortcuts]);
   const normalized = query.trim().toLowerCase();
@@ -62,7 +62,7 @@ export function ShortcutsSection({ accessProfile }: { accessProfile: OctopusClie
       if (previous.length) {
         const label = clientCommands.find((candidate) => candidate.id === command)?.label ?? command;
         appToast.info(`${label} unassigned`, 8, {
-          action: { label: "Undo", onSelect: () => setShortcuts(command, previous) },
+          action: { label: "元に戻す", onSelect: () => setShortcuts(command, previous) },
           dedupeKey: `keyboard-shortcut-unassign:${accessProfile}:${command}`,
         });
       }
@@ -89,23 +89,23 @@ export function ShortcutsSection({ accessProfile }: { accessProfile: OctopusClie
   return (
     <section {...settingsTargetProps("shortcuts.bindings")} className="settings-section settings-shortcuts-section">
       <div className="flex items-start justify-between gap-4">
-        <SettingsHeading description="Profile-scoped bindings shared by the app shell and command menu." title="Keyboard shortcuts" />
+        <SettingsHeading description="プロフィールごとのショートカットです。アプリとコマンドメニューで共通して使います。" title="キーボードショートカット" />
         <OcButton onClick={() => {
           const previous = shortcuts;
           resetShortcuts();
           setCapturingCommand(null);
           setShortcutError("");
           appToast.info("Keyboard shortcuts restored to defaults", 8, {
-            action: { label: "Undo", onSelect: () => replaceShortcuts(previous) },
+            action: { label: "元に戻す", onSelect: () => replaceShortcuts(previous) },
             dedupeKey: `keyboard-shortcuts-reset:${accessProfile}`,
           });
-        }} size="sm" variant="secondary">Restore defaults</OcButton>
+        }} size="sm" variant="secondary">既定値に戻す</OcButton>
       </div>
       <div className="sticky top-[calc(-1*var(--padding-panel))] z-30 bg-token-main-surface-primary pt-panel pb-2 after:pointer-events-none after:absolute after:top-full after:right-0 after:left-0 after:h-8 after:bg-linear-to-b after:from-token-main-surface-primary after:to-transparent after:content-['']">
         <div>
           <div className="no-drag flex h-token-button-composer items-center gap-2 rounded-lg border border-token-input-border bg-token-input-background/75 px-2.5 py-0 text-base leading-[18px] shadow-sm backdrop-blur-sm">
             <Glyph className="icon-sm text-token-text-secondary" name="search" size={16} />
-            <label className="sr-only" htmlFor="shortcut-search">Search keyboard shortcuts</label>
+            <label className="sr-only" htmlFor="shortcut-search">キーボードショートカットを検索</label>
             <input
               className="min-w-0 flex-1 bg-transparent text-base leading-[18px] text-token-input-foreground outline-none select-text placeholder:text-token-input-placeholder-foreground [&::placeholder]:select-none"
               id="shortcut-search"
@@ -116,13 +116,13 @@ export function ShortcutsSection({ accessProfile }: { accessProfile: OctopusClie
                 const shortcut = capturedShortcut(event);
                 if (shortcut) setQuery(shortcut);
               }}
-              placeholder={searchByKeystroke ? "Press shortcut" : "Search shortcuts"}
+              placeholder={searchByKeystroke ? "ショートカットを入力" : "ショートカットを検索"}
               type="text"
               value={query}
             />
             <div className="flex shrink-0 items-center">
               <button
-                aria-label="Search by keystrokes"
+                aria-label="キー操作で検索"
                 aria-pressed={searchByKeystroke}
                 className={cx(
                   "border-token-border no-drag cursor-interaction flex aspect-square h-token-button-composer items-center justify-center gap-1 whitespace-nowrap rounded-lg border border-transparent !px-0 py-0 text-base leading-[18px] text-token-text-tertiary select-none focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 enabled:hover:bg-token-list-hover-background",
@@ -159,12 +159,12 @@ export function ShortcutsSection({ accessProfile }: { accessProfile: OctopusClie
                             type="button"
                           >
                             <kbd className="inline-flex !rounded-md !border-0 !bg-current/10 !font-sans !text-xs !text-current !shadow-none !px-2 !py-1 !leading-none !text-sm">
-                              {capturingCommand === row.command ? "Press shortcut" : row.keys.join("  ") || "Unassigned"}
+                              {capturingCommand === row.command ? "ショートカットを入力" : row.keys.join("  ") || "未割り当て"}
                             </kbd>
                           </button>
                         ) : (
                           <kbd className="inline-flex !rounded-md !border-0 !bg-current/10 !font-sans !text-xs !text-current !shadow-none !px-2 !py-1 !leading-none !text-sm">
-                            {row.keys.join("  ") || "Unassigned"}
+                            {row.keys.join("  ") || "未割り当て"}
                           </kbd>
                         )}
                       </span>
@@ -173,10 +173,10 @@ export function ShortcutsSection({ accessProfile }: { accessProfile: OctopusClie
                           const previous = shortcuts[row.command!] ?? [];
                           setShortcuts(row.command!, defaultKeyboardShortcuts[row.command!] ?? []);
                           appToast.info(`${row.action} restored to default`, 8, {
-                            action: { label: "Undo", onSelect: () => setShortcuts(row.command!, previous) },
+                            action: { label: "元に戻す", onSelect: () => setShortcuts(row.command!, previous) },
                             dedupeKey: `keyboard-shortcut-reset:${accessProfile}:${row.command}`,
                           });
-                        }} size="sm" variant="ghost">Reset</OcButton>
+                        }} size="sm" variant="ghost">リセット</OcButton>
                       ) : null}
                     </div>
                   </div>
@@ -187,7 +187,7 @@ export function ShortcutsSection({ accessProfile }: { accessProfile: OctopusClie
               label={<span className="block truncate">{row.action}</span>}
             />
           ))}
-          {displayRows.length === 0 ? <OcEmptyState className="min-h-0 py-6" size="compact" title="No matching shortcuts" /> : null}
+          {displayRows.length === 0 ? <OcEmptyState className="min-h-0 py-6" size="compact" title="一致するショートカットがありません" /> : null}
         </OcCard>
 
       </div>

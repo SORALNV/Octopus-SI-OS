@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../../locale";
 import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { OcMenuItem, cx } from "../../design-system/components";
 import { OcDropdown } from "../../design-system/OcDropdown";
@@ -37,9 +38,9 @@ export function ScheduledTaskRow({ actions, expanded, canExpand, now, onActivate
   const secondary = (
     <span className="flex w-full min-w-0 items-center gap-1 pe-row-y text-xs leading-4 text-tertiary select-none" data-thread-secondary-title="">
       <span className="min-w-0 flex-1 truncate">
-        {status === "invalid" ? <>Needs attention{separator}</> : null}
-        {status === "paused" ? <>Paused{schedule || oneTime && date != null ? separator : null}</> : null}
-        {status === "completed" ? <>Completed{schedule || date != null ? separator : null}</> : null}
+        {status === "invalid" ? <>確認が必要{separator}</> : null}
+        {status === "paused" ? <>一時停止中{schedule || oneTime && date != null ? separator : null}</> : null}
+        {status === "completed" ? <>完了{schedule || date != null ? separator : null}</> : null}
         {(status !== "paused" || oneTime) && date != null ? <><span>{scheduledCalendarTime(date, now, task.timezone, oneTime)}</span>{schedule ? separator : null}</> : null}
         {schedule ? <span>{schedule}</span> : null}
       </span>
@@ -62,7 +63,7 @@ export function ScheduledTaskRow({ actions, expanded, canExpand, now, onActivate
           <span className="relative flex size-5 shrink-0 items-center justify-center"><Glyph className="shrink-0 text-danger" name="warning" size={16} /></span>
         </MessageTooltip>
       ) : status === "completed" ? (
-        <MessageTooltip label="Completed"><span className="inline-flex text-tertiary"><Glyph className="icon-xs" name="check" size={16} /></span></MessageTooltip>
+        <MessageTooltip label="完了"><span className="inline-flex text-tertiary"><Glyph className="icon-xs" name="check" size={16} /></span></MessageTooltip>
       ) : null}
       title={task.displayName}
       titleTone={status === "active" ? "default" : "muted"}
@@ -77,12 +78,12 @@ export function ScheduledRunRows({ deliveries, onOpen, onUndo, openable }: {
   onUndo: (delivery: ScheduledDelivery) => void;
 }) {
   const [limit, setLimit] = useState(5);
-  if (!deliveries.length) return <p className="m-0 px-2 py-2 text-xs text-secondary">No runs yet</p>;
+  if (!deliveries.length) return <p className="m-0 px-2 py-2 text-xs text-secondary">実行履歴はまだありません</p>;
   return (
     <>
       {deliveries.slice(0, limit).map((delivery) => (
         <SidebarRow
-          actions={delivery.journal?.undoable ? [{ glyph: "restore", label: "Undo changes…", onSelect: () => onUndo(delivery) }] : []}
+          actions={delivery.journal?.undoable ? [{ glyph: "restore", label: "変更を元に戻す…", onSelect: () => onUndo(delivery) }] : []}
           ariaLabel={`${runTitle(delivery)}, ${formatEvidenceTime(delivery.atMs)}`}
           disabled={!openable || !delivery.chatInterfaceId}
           indent
@@ -94,7 +95,7 @@ export function ScheduledRunRows({ deliveries, onOpen, onUndo, openable }: {
       ))}
       {deliveries.length > limit ? (
         <div className="flex gap-1 py-1">
-          <ShowMoreButton onClick={() => setLimit(deliveries.length)}>Show older</ShowMoreButton>
+          <ShowMoreButton onClick={() => setLimit(deliveries.length)}>過去の項目を表示</ShowMoreButton>
         </div>
       ) : null}
     </>
@@ -118,7 +119,7 @@ export function runTitle(delivery: ScheduledDelivery): string {
   if (journal?.outcome === "unchanged") return "No update from this run";
   if (journal) {
     const files = journal.changes.filter((change) => change.kind === "file").length;
-    return files ? `${files} ${files === 1 ? "file" : "files"} changed` : "Run completed";
+    return files ? `${files} ${files === 1 ? "file" : "ファイル"} changed` : "Run completed";
   }
   return "Run started";
 }
@@ -176,11 +177,11 @@ function SidebarRow({ actions = [], active = false, ariaLabel, disabled = false,
             {status ?? (meta ? <span className="sidebar-task-age">{meta}</span> : null)}
             {actions.length ? (
               <div className={cx("sidebar-task-action", menuOpen && "opacity-100! pointer-events-auto!")}>
-                <MessageTooltip label={multiline ? "Trigger actions" : "Run actions"}>
+                <MessageTooltip label={multiline ? "トリガーの操作" : "実行の操作"}>
                   <button
                     aria-expanded={menuOpen}
                     aria-haspopup="menu"
-                    aria-label={multiline ? "Trigger actions" : "Run actions"}
+                    aria-label={multiline ? "トリガーの操作" : "実行の操作"}
                     className="no-drag flex !h-5 !w-5 cursor-interaction items-center justify-center rounded-md border border-transparent !p-0 !text-token-foreground/50 select-none hover:!text-token-foreground focus:outline-none focus-visible:!text-token-foreground"
                     data-state={menuOpen ? "open" : "closed"}
                     onClick={(event) => { event.stopPropagation(); setMenuOpen(!menuOpen); }}
@@ -191,7 +192,7 @@ function SidebarRow({ actions = [], active = false, ariaLabel, disabled = false,
                     <Glyph className="translate-x-px" name="more" size={16} />
                   </button>
                 </MessageTooltip>
-                <OcDropdown align="end" anchorRef={menuRef} aria-label={multiline ? "Trigger actions" : "Run actions"} onOpenChange={setMenuOpen} open={menuOpen} sideOffset={4} style={{ width: 208 }}>
+                <OcDropdown align="end" anchorRef={menuRef} aria-label={multiline ? "トリガーの操作" : "実行の操作"} onOpenChange={setMenuOpen} open={menuOpen} sideOffset={4} style={{ width: 208 }}>
                   {actions.map((action) => (
                     <OcMenuItem disabled={action.disabled} key={action.label} label={action.label} leadingIcon={action.glyph} onClick={(event) => { event.stopPropagation(); setMenuOpen(false); action.onSelect(); }} role="menuitem" tone={action.tone} />
                   ))}
@@ -223,12 +224,12 @@ export function scheduledCalendarTime(timestamp: number, now: number, timezone: 
       return Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day));
     };
     const at = new Date(timestamp);
-    const minuteOfHour = Number(new Intl.DateTimeFormat("en-US", { timeZone, minute: "numeric" }).format(at));
-    const time = new Intl.DateTimeFormat(undefined, { timeZone, hour: "numeric", ...(minuteOfHour === 0 ? {} : { minute: "2-digit" }) }).format(at);
+    const minuteOfHour = Number(new Intl.DateTimeFormat(APP_LOCALE, { timeZone, minute: "numeric" }).format(at));
+    const time = new Intl.DateTimeFormat(APP_LOCALE, { timeZone, hour: "numeric", ...(minuteOfHour === 0 ? {} : { minute: "2-digit" }) }).format(at);
     const dayDifference = (calendarDay(timestamp) - calendarDay(now)) / 86_400_000;
-    if (dayDifference === 0) return `Today ${time}`;
+    if (dayDifference === 0) return `今日 ${time}`;
     if (dayDifference === 1) return `Tomorrow ${time}`;
-    return new Intl.DateTimeFormat(undefined, { timeZone, month: "short", day: "numeric", ...(withTime ? { hour: "numeric", minute: "2-digit" } : {}) }).format(at);
+    return new Intl.DateTimeFormat(APP_LOCALE, { timeZone, month: "short", day: "numeric", ...(withTime ? { hour: "numeric", minute: "2-digit" } : {}) }).format(at);
   } catch {
     return "Time unavailable";
   }

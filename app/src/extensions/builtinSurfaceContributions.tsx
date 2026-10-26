@@ -32,8 +32,8 @@ type BuiltinSurfaceContribution = {
 const CONTRIBUTIONS = [
   {
     surfaceId: "metrics",
-    label: "Metrics",
-    description: "Read-only activity and distribution lenses.",
+    label: "メトリクス",
+    description: "動作状況や内訳を読み取り専用で確認します。",
     glyph: "metrics",
     order: 45,
     placements: ["shell"],
@@ -48,8 +48,8 @@ const CONTRIBUTIONS = [
   },
   {
     surfaceId: "usage",
-    label: "Usage",
-    description: "Local provider token activity and API-equivalent cost.",
+    label: "使用状況",
+    description: "ローカルのプロバイダーのトークン使用量と、API 料金に換算した費用です。",
     glyph: "dollar",
     order: 46,
     placements: ["shell"],

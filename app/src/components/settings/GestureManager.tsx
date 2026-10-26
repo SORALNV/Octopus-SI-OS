@@ -81,7 +81,7 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
     appToast.info(`Removed ${label}`, 8, {
       dedupeKey: `builtin-gesture-remove:${accessProfile}:${gesture}`,
       action: {
-        label: "Undo",
+        label: "元に戻す",
         onSelect: () => setPreferences((current) => current.removedBuiltins.includes(gesture) ? {
           removedBuiltins: current.removedBuiltins.filter((id) => id !== gesture),
           mappings: { ...current.mappings, [gesture]: previousMapping },
@@ -141,50 +141,50 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
 
   return (
     <OcGroup
-      description="Move focus and control Home widgets with your hand, and record your own gestures for any command."
-      title="Gesture control"
+      description="手の動きでフォーカスを移動したり、ホームのウィジェットを操作できます。独自のジェスチャーをコマンドに割り当てることもできます。"
+      title="ジェスチャー操作"
     >
       <div className="gesture-manager">
         <OcCard>
           <OcSettingsRow
-            control={<OcSwitch checked={preferences.enabled} label="Enable gesture control" onCheckedChange={(enabled) => setPreferences({ enabled })} />}
-            description="Recognition runs locally in this desktop client and controls only mapped commands."
-            label="Gesture control"
+            control={<OcSwitch checked={preferences.enabled} label="ジェスチャー操作を有効にする" onCheckedChange={(enabled) => setPreferences({ enabled })} />}
+            description="ジェスチャーはこのアプリ内で認識し、割り当てられたコマンドだけを実行します。"
+            label="ジェスチャー操作"
           />
           <OcSettingsRow
             control={granted ? (
-              <OcStatus label="Allowed" tone="success" />
+              <OcStatus label="許可済み" tone="success" />
             ) : (
               <div className="settings-inline-actions">
                 <OcStatus label={permissionLabel(permission)} tone={permission?.status === "denied" ? "danger" : "muted"} />
                 <OcButton disabled={requesting || permission?.status === "denied"} onClick={() => void requestPermission()} size="sm">
-                  {requesting ? "Requesting…" : "Allow camera access"}
+                  {requesting ? "要求しています…" : "カメラへのアクセスを許可"}
                 </OcButton>
               </div>
             )}
             description={permission?.status === "denied"
-              ? "Camera access was denied. Enable it for Octopus in System Settings → Privacy & Security → Camera."
-              : "The camera is a local hardware check. Frames stay in memory for hand landmarks; nothing reaches the runtime."}
-            label="Camera access"
+              ? "カメラへのアクセスが拒否されました。「システム設定 → プライバシーとセキュリティ → カメラ」で Octopus を有効にしてください。"
+              : "カメラはローカルでの動作確認に使います。映像は手の認識のためにメモリ上で処理され、実行基盤には送信しません。"}
+            label="カメラへのアクセス"
           />
           <div className="gesture-camera-setting">
             <div className="gesture-camera-head">
               <div className="gesture-camera-copy">
-                <span className="gesture-camera-label">Camera</span>
-                <span className="gesture-camera-detail">Choose which local camera tracks your hand.</span>
+                <span className="gesture-camera-label">カメラ</span>
+                <span className="gesture-camera-detail">手を認識するためのカメラを選びます。</span>
               </div>
               <div className="settings-inline-actions">
                 <OcSelect<string>
                   disabled={!granted}
-                  label="Gesture camera"
+                  label="ジェスチャー用カメラ"
                   onChange={(cameraDeviceId) => setPreferences({ cameraDeviceId })}
                   options={[
-                    { value: "", label: "Automatic" },
+                    { value: "", label: "自動" },
                     ...devicesView.devices.map((device) => ({ value: device.deviceId, label: device.label })),
                   ]}
                   value={preferences.cameraDeviceId}
                 />
-                <OcButton disabled={!granted} onClick={() => void refreshGestureCameras()} size="sm" variant="secondary">Refresh</OcButton>
+                <OcButton disabled={!granted} onClick={() => void refreshGestureCameras()} size="sm" variant="secondary">更新</OcButton>
               </div>
             </div>
             {preferences.enabled ? (
@@ -201,35 +201,35 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
           <OcSettingsRow
             control={(
               <OcSelect
-                label="Gesture response"
+                label="ジェスチャーの反応"
                 onChange={(sensitivity) => setPreferences({ sensitivity })}
                 options={[
-                  { value: "responsive", label: "Responsive" },
-                  { value: "balanced", label: "Balanced" },
-                  { value: "deliberate", label: "Deliberate" },
+                  { value: "responsive", label: "すばやく" },
+                  { value: "balanced", label: "標準" },
+                  { value: "deliberate", label: "じっくり" },
                 ]}
                 value={preferences.sensitivity}
               />
             )}
-            description="Controls pose hold time and the distance required for a swipe."
-            label="Response"
+            description="ポーズを保つ時間と、スワイプとして認識する距離を調整します。"
+            label="回答"
           />
           <OcSettingsRow
-            control={<OcSwitch checked={preferences.mirrorX} label="Mirror horizontal movement" onCheckedChange={(mirrorX) => setPreferences({ mirrorX })} />}
-            description="Matches the direction you see in a mirrored camera preview."
-            label="Mirroring"
+            control={<OcSwitch checked={preferences.mirrorX} label="左右の動きを反転" onCheckedChange={(mirrorX) => setPreferences({ mirrorX })} />}
+            description="鏡像のカメラプレビューに合わせて左右の方向を調整します。"
+            label="左右反転"
           />
           <OcSettingsRow
-            control={<OcSwitch checked={preferences.spatialControl} label="Control Home widgets" onCheckedChange={(spatialControl) => setPreferences({ spatialControl })} />}
-            description="Aim, fist-drag, and pinch-resize widgets on the Home surface."
-            label="Spatial widget control"
+            control={<OcSwitch checked={preferences.spatialControl} label="ホームのウィジェットを操作" onCheckedChange={(spatialControl) => setPreferences({ spatialControl })} />}
+            description="ホームのウィジェットを指し、握ってドラッグし、つまんでサイズを変えられます。"
+            label="手の動きでウィジェットを操作"
           />
         </OcCard>
 
         <OcGroup
-          actions={<OcButton disabled={!cameraLive || recording} onClick={() => setRecording(true)} size="sm">Record gesture</OcButton>}
-          description="Each pose points at a command. Defaults are ready — rebind, delete, or record your own."
-          title="Gestures"
+          actions={<OcButton disabled={!cameraLive || recording} onClick={() => setRecording(true)} size="sm">ジェスチャーを登録</OcButton>}
+          description="各ポーズにコマンドを割り当てます。既定の割り当てを変更・削除したり、独自のポーズを登録できます。"
+          title="ジェスチャー"
         >
           <OcCard>
             {recording ? (
@@ -254,12 +254,12 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
                       label={`${gesture.label} command`}
                       onChange={(command) => setMapping(gesture.id, command)}
                       options={[
-                        { value: "none", label: "No action" },
+                        { value: "none", label: "操作なし" },
                         ...clientCommands.map((command) => ({ value: command.id, label: command.label })),
                       ]}
                       value={preferences.mappings[gesture.id]}
                     />
-                    <OcButton aria-label={`Delete ${gesture.label}`} onClick={() => removeBuiltin(gesture.id)} size="sm" variant="secondary" tone="danger">Delete</OcButton>
+                    <OcButton aria-label={`削除 ${gesture.label}`} onClick={() => removeBuiltin(gesture.id)} size="sm" variant="secondary" tone="danger">削除</OcButton>
                   </div>
                 )}
                 description={gesture.detail}
@@ -278,7 +278,7 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
                   const removed = custom.remove(gesture.id);
                   if (!removed) return;
                   appToast.info(`Removed ${gesture.name}`, 8, {
-                    action: { label: "Undo", onSelect: () => custom.restore(removed.gesture, removed.index) },
+                    action: { label: "元に戻す", onSelect: () => custom.restore(removed.gesture, removed.index) },
                     dedupeKey: `custom-gesture-remove:${gesture.id}`,
                   });
                 }}
@@ -286,11 +286,11 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
               />
             ))}
             {visibleBuiltins.length === 0 && custom.gestures.length === 0 && !recording ? (
-              <OcEmptyState className="min-h-0 py-6" detail="Record one, or restore a default below." size="compact" title="No gestures" />
+              <OcEmptyState className="min-h-0 py-6" detail="新しく登録するか、下の既定のジェスチャーを復元してください。" size="compact" title="ジェスチャーがありません" />
             ) : null}
             {removedBuiltins.length > 0 ? (
               <div className="gesture-restore-row">
-                <span>Removed defaults</span>
+                <span>削除した既定のジェスチャー</span>
                 <div className="settings-inline-actions">
                   {removedBuiltins.map((gesture) => (
                     <OcButton key={gesture.id} onClick={() => restoreBuiltin(gesture.id)} size="sm" variant="secondary">＋ {gesture.label}</OcButton>
@@ -302,7 +302,7 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
         </OcGroup>
 
         {accessProfile === "lab" ? (
-          <OcGroup description="Emit isolated synthetic gesture events without the camera." title="Simulate">
+          <OcGroup description="カメラを使わず、テスト用のジェスチャーイベントを生成します。" title="シミュレーション">
             <OcCard>
               <div className="gesture-simulate-row">
                 {airHandGestures.map((gesture) => (
@@ -352,7 +352,7 @@ function LivePoseBadge({ cameraLive, idleNote, mappings }: { cameraLive: boolean
     <div className={`gesture-preview-badge${recognized ? " is-recognized" : ""}`}>
       <span className={`gesture-preview-dot is-${cameraLive ? "live" : "idle"}`} />
       {recognized
-        ? `${gestureLabel(recognized)} → ${command === "none" ? "No action" : commandLabel(command)} · runs when Settings is closed`
+        ? `${gestureLabel(recognized)} → ${command === "none" ? "操作なし" : commandLabel(command)} · 設定を閉じると動作します`
         : cameraLive ? poseLabel(recognition.pose) : idleNote}
     </div>
   );
@@ -363,7 +363,7 @@ function CameraRateNote() {
   if (cameraFps == null || cameraFps >= GESTURE_MIN_CAMERA_FPS) return null;
   return (
     <span className="gesture-camera-rate" role="status">
-      The camera is delivering {cameraFps} frames per second; swipes need at least {GESTURE_MIN_CAMERA_FPS}. More light usually brings the rate back, and a phone used as a camera slows down when it is hot.
+      カメラのフレームレート： {cameraFps} fps。スワイプの認識に必要な最小値： {GESTURE_MIN_CAMERA_FPS}。明るさを増すと改善することがあります。スマートフォンをカメラに使う場合は、発熱によって速度が落ちることがあります。
     </span>
   );
 }
@@ -421,13 +421,13 @@ function GestureRecorder({
   return (
     <div className="gesture-recorder">
       <div className="gesture-recorder-copy">
-        <strong>Hold the pose</strong>
-        <span>{countdown > 0 ? `Capturing in ${countdown}…` : "Capturing…"}</span>
+        <strong>ポーズを保ってください</strong>
+        <span>{countdown > 0 ? `撮影まで ${countdown}…` : "撮影しています…"}</span>
       </div>
       <div className="gesture-recorder-live">
-        {recognition.curls ? <CurlBars curls={recognition.curls} /> : <span className="gesture-preview-note">Show your hand to the camera</span>}
+        {recognition.curls ? <CurlBars curls={recognition.curls} /> : <span className="gesture-preview-note">カメラに手を見せてください</span>}
       </div>
-      <OcButton onClick={onCancel} size="sm" variant="secondary">Cancel</OcButton>
+      <OcButton onClick={onCancel} size="sm" variant="secondary">キャンセル</OcButton>
     </div>
   );
 }
@@ -455,21 +455,21 @@ function CustomGestureRow({
           {gesture.definition ? <span className="gesture-custom-definition">{gesture.definition}</span> : null}
         </div>
         <div className="settings-inline-actions">
-          <OcButton onClick={onEditToggle} size="sm" variant="secondary">{editing ? "Done" : "Edit"}</OcButton>
-          <OcButton onClick={onRemoved} size="sm" variant="secondary" tone="danger">Delete</OcButton>
+          <OcButton onClick={onEditToggle} size="sm" variant="secondary">{editing ? "完了" : "編集"}</OcButton>
+          <OcButton onClick={onRemoved} size="sm" variant="secondary" tone="danger">削除</OcButton>
         </div>
       </div>
       {editing ? (
         <div className="gesture-custom-edit">
-          <OcTextField label="Name" onChange={(event) => onUpdate({ name: event.currentTarget.value })} showLabel value={gesture.name} />
-          <OcTextField label="Definition" onChange={(event) => onUpdate({ definition: event.currentTarget.value })} placeholder="What this pose means to you" showLabel value={gesture.definition} />
+          <OcTextField label="名前" onChange={(event) => onUpdate({ name: event.currentTarget.value })} showLabel value={gesture.name} />
+          <OcTextField label="定義" onChange={(event) => onUpdate({ definition: event.currentTarget.value })} placeholder="このポーズの意味" showLabel value={gesture.definition} />
           <div className="gesture-field">
-            <span>Command</span>
+            <span>コマンド</span>
             <OcSelect<ClientCommandId | "none">
-              label="Command"
+              label="コマンド"
               onChange={(command) => onUpdate({ command })}
               options={[
-                { value: "none", label: "No action" },
+                { value: "none", label: "操作なし" },
                 ...clientCommands.map((command) => ({ value: command.id, label: command.label })),
               ]}
               value={gesture.command}
@@ -483,7 +483,7 @@ function CustomGestureRow({
             size="sm"
             variant="secondary"
           >
-            Re-capture current pose
+            現在のポーズを撮り直す
           </OcButton>
         </div>
       ) : null}
@@ -493,7 +493,7 @@ function CustomGestureRow({
 
 function CurlBars({ curls }: { curls: FingerCurls }) {
   return (
-    <div className="gesture-curl-bars" role="img" aria-label="Finger pose">
+    <div className="gesture-curl-bars" role="img" aria-label="指のポーズ">
       {CURL_KEYS.map((key) => (
         <span className="gesture-curl-bar" key={key} title={CURL_LABELS[key]}>
           <span style={{ height: `${Math.round(clampUnit(curls[key]) * 100)}%` }} />
@@ -518,15 +518,15 @@ function clampUnit(value: number): number {
 }
 
 function permissionLabel(permission: CameraPermission | null): string {
-  if (!permission) return "Not requested";
+  if (!permission) return "未要求";
   if (permission.status === "denied") return "Denied";
   if (permission.status === "restricted") return "Restricted";
-  return "Not requested";
+  return "未要求";
 }
 
 function previewNote(enabled: boolean, granted: boolean, phase: GestureRecognitionPhase): string {
-  if (!enabled) return "Enable gesture control";
-  if (!granted) return "Allow camera access";
+  if (!enabled) return "ジェスチャー操作を有効にする";
+  if (!granted) return "カメラへのアクセスを許可";
   return recognitionLabel(phase);
 }
 
@@ -535,15 +535,15 @@ function recognitionLabel(phase: GestureRecognitionPhase): string {
   if (phase === "loading") return "Loading recognition";
   if (phase === "running") return "Camera active";
   if (phase === "denied") return "Permission denied";
-  if (phase === "error") return "Unavailable";
-  return "Off";
+  if (phase === "error") return "利用できません";
+  return "オフ";
 }
 
 function poseLabel(pose: string): string {
-  if (pose === "open_palm") return "Open palm";
-  if (pose === "left_click") return "Finger fold";
+  if (pose === "open_palm") return "手のひらを開く";
+  if (pose === "left_click") return "指を曲げる";
   if (pose === "mission_control") return "Two fingers";
-  if (pose === "fist") return "Fist";
+  if (pose === "fist") return "握りこぶし";
   if (pose === "pinch") return "Pinch";
   if (pose === "aim") return "Aim";
   return "No hand";

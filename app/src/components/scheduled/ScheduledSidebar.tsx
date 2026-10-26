@@ -13,10 +13,10 @@ import { useScheduledWorkspace } from "./ScheduledWorkspace";
 export { scheduledCalendarTime } from "./ScheduledRows";
 
 const STATUSES: ReadonlyArray<{ value: ScheduledRowStatus; label: string }> = [
-  { value: "active", label: "Active" },
-  { value: "paused", label: "Paused" },
-  { value: "completed", label: "Completed" },
-  { value: "invalid", label: "Needs attention" },
+  { value: "active", label: "有効" },
+  { value: "paused", label: "一時停止中" },
+  { value: "completed", label: "完了" },
+  { value: "invalid", label: "確認が必要" },
 ];
 const STATUS_RANK: Record<ScheduledRowStatus, number> = { active: 0, paused: 1, completed: 2, invalid: 3 };
 const VISIBLE_ROWS = 5;
@@ -63,11 +63,11 @@ export function ScheduledSidebar({ onNavigate, onSelectChat }: { onNavigate?: ()
 
   const filter = (
     <>
-      <MessageTooltip label="Filter">
-        <OcIconButton appearance="sidebar" aria-expanded={filterOpen} aria-haspopup="menu" buttonRef={filterRef} glyph="filter" label="Filter tasks" onClick={() => setFilterOpen(!filterOpen)} selected={!allStatuses} title="" />
+      <MessageTooltip label="絞り込み">
+        <OcIconButton appearance="sidebar" aria-expanded={filterOpen} aria-haspopup="menu" buttonRef={filterRef} glyph="filter" label="タスクを絞り込む" onClick={() => setFilterOpen(!filterOpen)} selected={!allStatuses} title="" />
       </MessageTooltip>
-      <OcDropdown align="start" anchorRef={filterRef} aria-label="Trigger status" onOpenChange={setFilterOpen} open={filterOpen}>
-        <OcMenuSectionLabel>Filter by</OcMenuSectionLabel>
+      <OcDropdown align="start" anchorRef={filterRef} aria-label="トリガーの状態" onOpenChange={setFilterOpen} open={filterOpen}>
+        <OcMenuSectionLabel>絞り込み条件</OcMenuSectionLabel>
         {STATUSES.map(({ value, label }) => (
           <OcMenuItem aria-checked={statuses.includes(value)} key={value} label={label} onClick={(event) => { event.preventDefault(); toggleStatus(value); }} role="menuitemcheckbox" selected={statuses.includes(value)} />
         ))}
@@ -81,11 +81,11 @@ export function ScheduledSidebar({ onNavigate, onSelectChat }: { onNavigate?: ()
         <div className="relative z-10 flex shrink-0 flex-col px-row-x">
           <div className="@container/navigation-header ms-2 flex h-[var(--sidebar-navigation-header-height,calc(var(--spacing)*8))] items-center pe-1">
             <h2 className="m-0 min-w-0 flex-1 truncate text-[18px] leading-6 font-semibold text-default">
-              <button className="max-w-full cursor-interaction truncate border-0 bg-transparent p-0 text-start [font:inherit] text-inherit focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring" onClick={() => { workspace.selectTask(""); onNavigate?.(); }} type="button">Triggers</button>
+              <button className="max-w-full cursor-interaction truncate border-0 bg-transparent p-0 text-start [font:inherit] text-inherit focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-ring" onClick={() => { workspace.selectTask(""); onNavigate?.(); }} type="button">トリガー</button>
             </h2>
             <div className="flex shrink-0 items-center gap-1">
-              <MessageTooltip label="Search triggers">
-                <OcIconButton appearance="sidebar" aria-controls={searchId} aria-expanded={search !== null} buttonRef={searchButtonRef} glyph="search" label="Search triggers" onClick={() => setSearch(search === null ? "" : null)} selected={search !== null} title="" />
+              <MessageTooltip label="トリガーを検索">
+                <OcIconButton appearance="sidebar" aria-controls={searchId} aria-expanded={search !== null} buttonRef={searchButtonRef} glyph="search" label="トリガーを検索" onClick={() => setSearch(search === null ? "" : null)} selected={search !== null} title="" />
               </MessageTooltip>
             </div>
           </div>
@@ -93,7 +93,7 @@ export function ScheduledSidebar({ onNavigate, onSelectChat }: { onNavigate?: ()
             <div className="pt-1" data-codex-escape-boundary="">
               <label className="no-drag flex h-9 shrink-0 items-center gap-2 rounded-full bg-background-secondary-soft-alpha px-3 py-0 text-base leading-[18px]" htmlFor={searchId}>
                 <Glyph className="shrink-0 text-secondary" name="search" size={16} />
-                <span className="sr-only">Search triggers</span>
+                <span className="sr-only">トリガーを検索</span>
                 <input
                   className="min-w-0 flex-1 bg-transparent text-base leading-[18px] text-default outline-none select-text placeholder:text-tertiary [&::placeholder]:select-none"
                   id={searchId}
@@ -103,7 +103,7 @@ export function ScheduledSidebar({ onNavigate, onSelectChat }: { onNavigate?: ()
                     event.preventDefault(); event.stopPropagation();
                     setSearch(null); searchButtonRef.current?.focus();
                   }}
-                  placeholder="Search triggers"
+                  placeholder="トリガーを検索"
                   ref={searchRef}
                   type="search"
                   value={search}
@@ -115,14 +115,14 @@ export function ScheduledSidebar({ onNavigate, onSelectChat }: { onNavigate?: ()
             <OctopusNavItem
               disabled={Boolean(workspace.createUnavailableReason) || workspace.pending}
               glyph="plus"
-              label="New trigger"
+              label="新しいトリガー"
               onClick={() => { workspace.startCreate(); onNavigate?.(); }}
             />
           </div>
         </div>
         <div className="flex flex-col gap-4 px-row-x pb-row-x">
           <OctopusNavSection title={heading} titleActions={filter} titleRowClassName="ps-2 pe-1.5">
-            <div aria-label="Triggers" className="flex flex-col gap-px" role="list">
+            <div aria-label="トリガー" className="flex flex-col gap-px" role="list">
               {shown.map(({ task }) => (
                 <TriggerListItem
                   key={task.interfaceId}
@@ -133,16 +133,16 @@ export function ScheduledSidebar({ onNavigate, onSelectChat }: { onNavigate?: ()
                 />
               ))}
             </div>
-            {hasMore ? <div className="flex gap-1 py-1"><ShowMoreButton onClick={() => setExpanded(true)}>Show more</ShowMoreButton></div> : null}
+            {hasMore ? <div className="flex gap-1 py-1"><ShowMoreButton onClick={() => setExpanded(true)}>さらに表示</ShowMoreButton></div> : null}
             {workspace.error ? (
               <div className="flex flex-col gap-2 p-2 text-sm text-secondary" role="alert">
-                Triggers could not be loaded
-                <OcButton className="self-start" onClick={() => void workspace.reload()} size="sm" variant="ghost">Try again</OcButton>
+                トリガーを読み込めませんでした
+                <OcButton className="self-start" onClick={() => void workspace.reload()} size="sm" variant="ghost">再試行</OcButton>
               </div>
             ) : workspace.loading && !workspace.tasks.length ? <LoadingRows />
               : !shown.length ? (
                 <div className={query || !allStatuses ? "p-2 text-sm text-secondary" : "px-2 py-1 text-sm text-tertiary"} role="status">
-                  {query || !allStatuses ? "No matching triggers" : "No triggers"}
+                  {query || !allStatuses ? "一致するトリガーがありません" : "トリガーがありません"}
                 </div>
               ) : null}
           </OctopusNavSection>
@@ -168,9 +168,9 @@ function TriggerListItem({ now, onNavigate, onOpenRun, task }: {
     <div className="flex flex-col gap-px" data-selected-scheduled-task={selected || undefined} role="listitem">
       <ScheduledTaskRow
         actions={[
-          { glyph: "edit", label: "Edit", disabled: !workspace.canEdit || !task.valid || workspace.pending, onSelect: () => workspace.startEdit(task) },
+          { glyph: "edit", label: "編集", disabled: !workspace.canEdit || !task.valid || workspace.pending, onSelect: () => workspace.startEdit(task) },
           ...(scheduledRowStatus(task) === "completed" ? [] : [{ glyph: paused ? "play" as const : "pause" as const, label: paused ? "Resume" : "Pause", disabled: !workspace.canEdit || !task.valid || workspace.pending, onSelect: () => workspace.toggleTask(task) }]),
-          { glyph: "trash", label: "Delete", disabled: !workspace.canEdit || workspace.pending, tone: "danger", onSelect: () => workspace.requestDelete(task) },
+          { glyph: "trash", label: "削除", disabled: !workspace.canEdit || workspace.pending, tone: "danger", onSelect: () => workspace.requestDelete(task) },
         ]}
         canExpand={canExpand}
         expanded={expanded}
@@ -192,7 +192,7 @@ function TriggerListItem({ now, onNavigate, onOpenRun, task }: {
 function LoadingRows() {
   return (
     <div className="flex flex-col gap-px" role="status">
-      <span className="sr-only">Loading triggers…</span>
+      <span className="sr-only">トリガーを読み込んでいます…</span>
       {[32, 24, 28].map((width) => (
         <div aria-hidden="true" className="flex h-[var(--height-token-row)] w-full items-center gap-3 px-2" key={width}>
           <OcSkeleton size="lg" width={width * 4} />

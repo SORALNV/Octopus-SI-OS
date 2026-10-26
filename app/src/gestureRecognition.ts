@@ -188,7 +188,7 @@ class GestureRecognitionController {
     try {
       const devices = (await navigator.mediaDevices.enumerateDevices())
         .filter((device) => device.kind === "videoinput")
-        .map((device, index) => ({ deviceId: device.deviceId, label: device.label || `Camera ${index + 1}` }));
+        .map((device, index) => ({ deviceId: device.deviceId, label: device.label || `カメラ ${index + 1}` }));
       this.publish({ devices });
     } catch {
       this.publish({ devices: [] });

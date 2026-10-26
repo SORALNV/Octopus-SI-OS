@@ -9,8 +9,8 @@ export function GesturesSection({ accessProfile }: { accessProfile: OctopusClien
   return (
     <section {...settingsTargetProps("gestures.controls")} className="settings-section">
       <SettingsHeading
-        description="Camera-based gesture control. Video is processed locally and never leaves this device."
-        title="Gestures"
+        description="カメラを使ったジェスチャー操作です。映像はローカルで処理され、このデバイスの外には送信されません。"
+        title="ジェスチャー"
       />
       <GestureManager accessProfile={accessProfile} />
     </section>
@@ -23,64 +23,64 @@ export function WorkerEnvironmentSettingsSection() {
   return (
     <section className="settings-section">
       <SettingsHeading
-        description="How projected browser, review, desktop, and custom surfaces open in the shared Worker Environment viewer."
-        title="Worker Environments"
+        description="ブラウザー、レビュー、デスクトップ、カスタム画面を、共通の作業環境ビューアーで開く方法を設定します。"
+        title="作業環境"
       />
 
-      <OcGroup title="Viewer" description="Local tab and preview behavior; Worker Environment lifecycle remains projected read-only state.">
+      <OcGroup title="ビューアー" description="ローカルのタブとプレビューの動作を設定します。作業環境の起動・終了状況は読み取り専用です。">
         <OcCard>
           <OcSettingsRow {...settingsTargetProps("worker-environments.default")}
             control={(
               <OcSelect<WorkerEnvironmentDefaultPanel>
-                label="Default surface"
+                label="既定の画面"
                 onChange={(workerEnvironmentDefaultPanel) => setClientPreferences({ workerEnvironmentDefaultPanel })}
                 options={[
-                  { value: "auto", label: "Best available" },
-                  { value: "browser", label: "Browser" },
-                  { value: "changes", label: "Changes" },
+                  { value: "auto", label: "最適な画面" },
+                  { value: "browser", label: "ブラウザー" },
+                  { value: "changes", label: "変更" },
                 ]}
                 value={preferences.workerEnvironmentDefaultPanel}
               />
             )}
-            description="Used only when no saved layout or explicit deep-link request selects a tab."
-            label="Default surface"
+            description="保存済みのレイアウトやリンクによるタブ指定がない場合に使います。"
+            label="既定の画面"
           />
           <OcSettingsRow {...settingsTargetProps("worker-environments.restore")}
             control={(
               <OcSwitch
                 checked={preferences.restoreWorkerEnvironmentLayouts}
-                label="Restore tabs and layout"
+                label="タブとレイアウトを復元"
                 onCheckedChange={(restoreWorkerEnvironmentLayouts) => setClientPreferences({ restoreWorkerEnvironmentLayouts })}
               />
             )}
-            description="Remember open tabs, active tab, preview state, ordering, and PR split size per Worker Environment."
-            label="Restore tabs and layout"
+            description="作業環境ごとに、開いているタブ、選択中のタブ、プレビュー、並び順、PR の分割幅を記憶します。"
+            label="タブとレイアウトを復元"
           />
           <OcSettingsRow {...settingsTargetProps("worker-environments.preview")}
             control={(
               <OcSwitch
                 checked={preferences.previewWorkerEnvironmentFiles}
-                label="Preview files on single click"
+                label="シングルクリックでファイルをプレビュー"
                 onCheckedChange={(previewWorkerEnvironmentFiles) => setClientPreferences({ previewWorkerEnvironmentFiles })}
               />
             )}
-            description="Single click reuses one italic preview tab; double click pins a permanent file tab."
-            label="File preview tabs"
+            description="シングルクリックでは斜体のプレビュータブを再利用し、ダブルクリックではファイルを固定タブにします。"
+            label="ファイルのプレビュータブ"
           />
         </OcCard>
       </OcGroup>
 
-      <OcGroup title="Safety" description="Live controls remain gated by the exact projected surface descriptor.">
+      <OcGroup title="安全性" description="リアルタイムの操作は、対象画面の記述子で許可された範囲に限られます。">
         <OcCard>
           <OcSettingsRow {...settingsTargetProps("worker-environments.browser-control")}
-            control={<OcStatus label="Always ask" tone="success" />}
-            description="Interactive CDP control requires a deliberate confirmation each time a live browser surface is opened."
-            label="Manual browser control"
+            control={<OcStatus label="毎回確認" tone="success" />}
+            description="CDP によるブラウザー操作には、リアルタイムの画面を開くたびに確認が必要です。"
+            label="ブラウザーの手動操作"
           />
           <OcSettingsRow {...settingsTargetProps("worker-environments.direct-viewers")}
-            control={<OcStatus label="Descriptor bounded" tone="success" />}
-            description="Filesystem reads, terminal sockets, and desktop viewers resolve only from the selected Worker Environment surface."
-            label="Direct viewers"
+            control={<OcStatus label="記述子の範囲内" tone="success" />}
+            description="ファイルの読み取り、ターミナル接続、デスクトップ表示は、選択中の作業環境で許可されたものに限られます。"
+            label="直接表示"
           />
         </OcCard>
       </OcGroup>

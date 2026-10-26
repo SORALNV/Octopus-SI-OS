@@ -36,14 +36,14 @@ export function SavedPermissionsSection() {
   }
 
   return <>
-    <OcGroup title="Saved browser permissions" description="Remove an Always choice to ask again on a future request. Choices for an existing task remain separate.">
+    <OcGroup title="保存済みのブラウザー権限" description="「常に許可」の選択を削除すると、次の要求時に再確認します。既存のタスクでの選択は別に管理されます。">
       <OcCard {...settingsTargetProps("access.browser-permissions")}>
-        {browserLoading && !browser ? <OcLoadingRows label="Loading saved browser permissions…" /> : browserError ? <OcSettingsRow label="Browser permissions unavailable" description={browserError} />
-          : browser?.entries.length === 0 ? <OcSettingsRow label="No saved browser permissions" /> : browser?.entries.map(entry => <OcSettingsRow key={entry.id}
+        {browserLoading && !browser ? <OcLoadingRows label="保存済みのブラウザー権限を読み込んでいます…" /> : browserError ? <OcSettingsRow label="ブラウザー権限を取得できません" description={browserError} />
+          : browser?.entries.length === 0 ? <OcSettingsRow label="保存済みのブラウザー権限はありません" /> : browser?.entries.map(entry => <OcSettingsRow key={entry.id}
             label={entry.subject.type === "upload" ? entry.subject.origin : entry.subject.source.id}
-            description={`${entry.subject.type === "upload" ? "File uploads" : "Browsing history"} · ${entry.decision === "accept" ? "Always allowed" : "Always declined"}`}
-            control={<OcButton disabled={browserBusy || browserLoading} onClick={() => void removeBrowser(entry.id)} variant="ghost">Remove</OcButton>} />)}
-        <OcSettingsRow label="Refresh browser permissions" control={<OcButton disabled={browserBusy || browserLoading} onClick={() => setRevision(value => value + 1)}>Refresh</OcButton>} />
+            description={`${entry.subject.type === "upload" ? "ファイルのアップロード" : "閲覧履歴"} · ${entry.decision === "accept" ? "常に許可" : "常に拒否"}`}
+            control={<OcButton disabled={browserBusy || browserLoading} onClick={() => void removeBrowser(entry.id)} variant="ghost">削除</OcButton>} />)}
+        <OcSettingsRow label="ブラウザー権限を更新" control={<OcButton disabled={browserBusy || browserLoading} onClick={() => setRevision(value => value + 1)}>更新</OcButton>} />
       </OcCard>
     </OcGroup>
   </>;
@@ -83,22 +83,22 @@ export function SavedApplicationPermissionsSection() {
     finally { setApplicationBusy(false); }
   }
   return <>
-    <OcGroup title="Always-allowed apps">
+    <OcGroup title="常に許可するアプリ">
       <OcCard {...settingsTargetProps("access.application-permissions")}>
-        {applicationLoading && !applications ? <OcLoadingRows label="Loading apps…" />
-          : applicationError ? <OcSettingsRow label="Application permissions unavailable" description={<details><summary>Error details</summary>{applicationError}</details>} />
-          : applications?.applications.length === 0 ? <OcSettingsRow label="None yet" />
+        {applicationLoading && !applications ? <OcLoadingRows label="アプリを読み込んでいます…" />
+          : applicationError ? <OcSettingsRow label="アプリの権限を取得できません" description={<details><summary>エラーの詳細</summary>{applicationError}</details>} />
+          : applications?.applications.length === 0 ? <OcSettingsRow label="まだありません" />
           : applications?.applications.map(item => <OcSettingsRow key={item.bundle_id} label={item.display_name}
-            control={<OcButton disabled={applicationBusy || applicationLoading} onClick={() => setRemoving(item)} variant="ghost">Remove</OcButton>} />)}
-        {applicationError ? <OcSettingsRow label="Check saved apps" control={<OcButton disabled={applicationBusy || applicationLoading} onClick={() => setRevision(value => value + 1)}>Refresh</OcButton>} /> : null}
+            control={<OcButton disabled={applicationBusy || applicationLoading} onClick={() => setRemoving(item)} variant="ghost">削除</OcButton>} />)}
+        {applicationError ? <OcSettingsRow label="保存済みのアプリを確認" control={<OcButton disabled={applicationBusy || applicationLoading} onClick={() => setRevision(value => value + 1)}>更新</OcButton>} /> : null}
       </OcCard>
     </OcGroup>
     <OcDialog open={removing !== null} onClose={() => { if (!applicationBusy) setRemoving(null); }} size="compact" busy={applicationBusy}>
-      <OcDialogHeader title={`Remove “${removing?.display_name ?? ""}” from always-allowed apps?`}
-        description={`Octopus will ask to use “${removing?.display_name ?? ""}” in the next computer use task.`} />
+      <OcDialogHeader title={`「${removing?.display_name ?? ""}」を常に許可するアプリから削除しますか？`}
+        description={`次のコンピューター操作タスクでは「${removing?.display_name ?? ""}」の使用を確認します。`} />
       <OcDialogFooter>
-        <OcButton disabled={applicationBusy} onClick={() => setRemoving(null)} variant="ghost">Cancel</OcButton>
-        <OcButton disabled={applicationBusy} onClick={() => void removeApplication()} tone="danger" variant="primary">Remove</OcButton>
+        <OcButton disabled={applicationBusy} onClick={() => setRemoving(null)} variant="ghost">キャンセル</OcButton>
+        <OcButton disabled={applicationBusy} onClick={() => void removeApplication()} tone="danger" variant="primary">削除</OcButton>
       </OcDialogFooter>
     </OcDialog>
   </>;

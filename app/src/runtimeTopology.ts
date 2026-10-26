@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "./locale";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   emptyProjection,
@@ -50,8 +51,8 @@ type ClientRuntimeObservation = {
 // Accent rotation only — the stage lays zones out itself (CSS grid + measured links).
 // There is no fixed number of EEs and no pixel map: every projected zone renders.
 const ACCENTS: Accent[] = ["green", "blue", "purple", "amber"];
-const TIME_FORMATTER = new Intl.DateTimeFormat([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-const DATE_FORMATTER = new Intl.DateTimeFormat([], { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+const TIME_FORMATTER = new Intl.DateTimeFormat(APP_LOCALE, { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+const DATE_FORMATTER = new Intl.DateTimeFormat(APP_LOCALE, { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 
 export type RuntimeTopologyState = TopologySnapshot & {
   loading: boolean;
@@ -116,8 +117,8 @@ export function useRuntimeTopology(
           projection: {
             mode: "offline",
             endpoint: projectionTargetLabel(),
-            label: "Projection idle",
-            detail: "Reads resume when a topology surface is open",
+            label: "表示用データの読み込みは待機中です",
+            detail: "構成図を開くと読み込みを再開します",
           },
         }
         : prev));
@@ -130,8 +131,8 @@ export function useRuntimeTopology(
       setSnapshot(emptySnapshot({
         ...emptyProjection,
         endpoint: projectionTargetLabel(),
-        label: "Projection bridge unavailable",
-        detail: "Open the desktop app so the renderer can read registry and ledger projection files",
+        label: "表示用データの接続を利用できません",
+        detail: "レジストリと台帳の表示用データを読み込むには、デスクトップアプリを開いてください",
       }));
       readerRef.current = null;
       return;
@@ -143,8 +144,8 @@ export function useRuntimeTopology(
         projection: {
           mode: "connecting",
           endpoint: projectionTargetLabel(),
-          label: "Reading projection",
-          detail: "Reading registry descriptors, binding manifests, artifacts, marks, and ledger rows",
+          label: "表示用データを読み込んでいます",
+          detail: "レジストリの記述子、紐付け、成果物、検証記録、台帳を読み込んでいます",
         },
       }));
     }
@@ -171,7 +172,7 @@ export function useRuntimeTopology(
         const failure: ProjectionStatus = {
           mode: "error",
           endpoint: projectionTargetLabel(),
-          label: "Projection read failed",
+          label: "表示用データを読み込めませんでした",
           detail: String((error as Error | undefined)?.message ?? error),
         };
         // A failed re-read keeps the last projected world visible and says so; only a
@@ -332,16 +333,16 @@ function liveProjectionStatus(payload: RuntimePayload): ProjectionStatus {
     return {
       mode: "offline",
       endpoint,
-      label: "Client Lab projection",
-      detail: `${ledgerRows} fixture movements · isolated from live Octopus`,
+      label: "テストラボの表示用データ",
+      detail: `${ledgerRows} 件のテスト用の移動 · 実際の Octopus から分離`,
     };
   }
   if (!runtimeUp && runtimePhase === "degraded") {
     return {
       mode: "error",
       endpoint,
-      label: "Octopus could not start",
-      detail: runtimeError || "Runtime host entered a degraded state",
+      label: "Octopus を起動できませんでした",
+      detail: runtimeError || "実行基盤のホストが一部利用できない状態になりました",
     };
   }
   if (!runtimeUp && runtimePhase && !["idle", "stopped", "unmanaged"].includes(runtimePhase)) {
@@ -357,9 +358,9 @@ function liveProjectionStatus(payload: RuntimePayload): ProjectionStatus {
     return {
       mode: "connecting",
       endpoint,
-      label: phaseLabels[runtimePhase] || "Starting Octopus",
+      label: phaseLabels[runtimePhase] || "Octopus を起動しています",
       detail: [
-        `Home ${source}`,
+        `ホーム ${source}`,
         observation.ownership,
         observation.pid === null ? "" : `pid ${observation.pid}`,
         runtimeError,
@@ -370,10 +371,10 @@ function liveProjectionStatus(payload: RuntimePayload): ProjectionStatus {
     mode: runtimeUp ? "live" : "offline",
     endpoint,
     label: runtimeUp
-      ? warnings.length ? `Client observes runtime socket · ${warnings.length} file warning${warnings.length === 1 ? "" : "s"}` : "Client observes runtime socket"
-      : "Recorded projection · client socket unavailable",
+      ? warnings.length ? `実行基盤のソケットを監視中 · ${warnings.length} ファイルの警告${warnings.length === 1 ? "" : "s"}` : "実行基盤のソケットを監視中"
+      : "記録済みの表示用データ · クライアントのソケットを利用できません",
     detail: [
-      `Home ${source}`,
+      `ホーム ${source}`,
       `${ledgerRows} movements`,
       `last ${latestMovementAt}`,
       runtimeUp ? "non-authoritative client socket observation" : runtimeError || "no client socket observation",
@@ -415,7 +416,7 @@ function projectRuntime(payload: RuntimePayload): TopologySnapshot {
     const status = liveProjectionStatus(payload);
     return emptySnapshot({
       ...status,
-      detail: `No EE rows were present in registry/ledger projection files · ${status.detail}`,
+      detail: `レジストリ・台帳の表示用ファイルに実行環境の情報がありません · ${status.detail}`,
     });
   }
 
@@ -504,14 +505,14 @@ function projectRuntime(payload: RuntimePayload): TopologySnapshot {
     environments,
     summaryStats: [
       `${allEes.length} EEs`,
-      `${runs.length} runs`,
+      `${runs.length} 件の実行`,
       `${workerRefs || 0} worker refs`,
     ],
     artifactStores: [
-      { label: "Last artifact", value: formatTime(timeOf(lastArtifact)) || "none", glyph: "artifact" },
-      { label: "In flight", value: String(inFlight), glyph: "binding" },
-      { label: "Stored artifacts", value: String(artifacts.length), glyph: "descriptor" },
-      { label: "Marks", value: String(marks.length), glyph: "topology" },
+      { label: "最新の成果物", value: formatTime(timeOf(lastArtifact)) || "none", glyph: "artifact" },
+      { label: "転送中", value: String(inFlight), glyph: "binding" },
+      { label: "保存された成果物", value: String(artifacts.length), glyph: "descriptor" },
+      { label: "検証記録", value: String(marks.length), glyph: "topology" },
     ],
     eventLog: recentEvents,
     interfaceIndex,
@@ -631,28 +632,28 @@ function projectEnvironment(args: ProjectEnvironmentArgs): EnvironmentNode {
     parentId: stringValue(ee?.parent_ee_id ?? ee?.parent_id ?? ee?.parent?.ee_id) || undefined,
     worldInterfaces,
     sections: [
-      { kind: "runs", title: "Runs", items: topRunItems(runProjections) },
-      { kind: "workers", title: "Workers", items: topItems(workers, "worker") },
-      { kind: "interfaces", title: "Interfaces", items: topItems(eeInterfaces.map((iface) => stringValue(iface?.rule_id)), "interface") },
-      { kind: "bindings", title: "Bindings", items: topItems(eeBindings.map((binding) => stringValue(binding?.interface_id)), "binding") },
+      { kind: "runs", title: "実行", items: topRunItems(runProjections) },
+      { kind: "workers", title: "ワーカー", items: topItems(workers, "worker") },
+      { kind: "interfaces", title: "インターフェース", items: topItems(eeInterfaces.map((iface) => stringValue(iface?.rule_id)), "interface") },
+      { kind: "bindings", title: "紐付け", items: topItems(eeBindings.map((binding) => stringValue(binding?.interface_id)), "binding") },
     ],
     goal: goal || "No goal text projected by registry/ledger files.",
-    description: `EE scope ${templateName} contains runs, interface bindings, artifact movement, worker environments, and policy data for this goal boundary.`,
+    description: `実行環境の範囲 ${templateName} には、この目標の範囲にある実行、インターフェースの紐付け、成果物の移動、作業環境、ポリシーの情報が含まれます。`,
     stats: [
-      { label: "Status", value: statusLabel(status), tone: statusTone(status) },
-      { label: "Child EEs", value: String(projectionIndex.childCounts.get(eeId)?.length ?? 0) },
-      { label: "Active Runs", value: `${activeRuns} / ${eeRuns.length}` },
-      { label: "Worker Refs", value: compactList(workers) || "none" },
-      { label: "Bound Interfaces", value: compactList(boundInterfaceIds) || "none" },
-      { label: "Declared Interfaces", value: compactList(declaredInterfaceIds) || "none" },
-      { label: "Bindings", value: String(eeBindings.length) },
-      { label: "Policy", value: policyLayer },
-      { label: "Artifact Rows", value: `${inFlight} in flight / ${eeArtifacts.length} projected` },
-      { label: "Last Artifact", value: lastArtifactAt || "none" },
+      { label: "状態", value: statusLabel(status), tone: statusTone(status) },
+      { label: "子の実行環境", value: String(projectionIndex.childCounts.get(eeId)?.length ?? 0) },
+      { label: "実行中のタスク", value: `${activeRuns} / ${eeRuns.length}` },
+      { label: "ワーカーの参照", value: compactList(workers) || "none" },
+      { label: "紐付け済みのインターフェース", value: compactList(boundInterfaceIds) || "none" },
+      { label: "定義済みのインターフェース", value: compactList(declaredInterfaceIds) || "none" },
+      { label: "紐付け", value: String(eeBindings.length) },
+      { label: "ポリシー", value: policyLayer },
+      { label: "成果物の一覧", value: `${inFlight} in flight / ${eeArtifacts.length} projected` },
+      { label: "最新の成果物", value: lastArtifactAt || "none" },
     ],
     workers: workers.map((worker) => ({
       name: worker,
-      description: `${eeRuns.filter((run) => stringValue(run?.worker) === worker).length} run rows`,
+      description: `${eeRuns.filter((run) => stringValue(run?.worker) === worker).length} 件の実行`,
       tag: "WORKER",
       status: "declared",
     })),
@@ -692,7 +693,7 @@ function projectRun(args: ProjectRunArgs): RunProjection {
   const runFull = detail?.run ?? run;
   const runId = stringValue(runFull?.run_id ?? run?.run_id);
   const meta = record(runFull?.meta) ?? record(run?.meta) ?? {};
-  const worker = stringValue(runFull?.worker ?? run?.worker) || "not projected";
+  const worker = stringValue(runFull?.worker ?? run?.worker) || "情報なし";
   const declaredStatus = normalizeStatus(runFull?.status ?? run?.status);
   const detailBindings = array(detail?.bindings);
   const runBindings = detailBindings.length ? detailBindings : (projectionIndex.bindings.byRun.get(runId) ?? []);
@@ -723,7 +724,7 @@ function projectRun(args: ProjectRunArgs): RunProjection {
   if (detailBundle?.error) {
     eventLog.unshift({
       time: "--:--:--",
-      label: "Run detail projection incomplete",
+      label: "実行の詳細情報が不完全です",
       detail: detailBundle.error,
       tone: "amber",
       kind: "projection.error",
@@ -759,15 +760,15 @@ function projectRun(args: ProjectRunArgs): RunProjection {
     workerEnvironment: workerEnvProjection,
     workerEnvironments: projectedWorkerEnvironments,
     stats: [
-      { label: "Status", value: statusLabel(status), tone: statusTone(status) },
+      { label: "状態", value: statusLabel(status), tone: statusTone(status) },
       { label: "EE", value: shortId(eeId) || "none" },
-      { label: "Worker", value: worker },
-      { label: "Worker Environments", value: String(projectedWorkerEnvironments.length) },
-      { label: "Bound Interfaces", value: String(runInterfaceNames.length) },
-      { label: "Checkpoints", value: String(checkpoints.length) },
-      { label: "Artifacts", value: String(runArtifacts.length) },
-      { label: "Marks", value: String(runMarks.length) },
-      { label: "Created", value: formatDate(createdAt) || "unknown" },
+      { label: "ワーカー", value: worker },
+      { label: "作業環境", value: String(projectedWorkerEnvironments.length) },
+      { label: "紐付け済みのインターフェース", value: String(runInterfaceNames.length) },
+      { label: "チェックポイント", value: String(checkpoints.length) },
+      { label: "成果物", value: String(runArtifacts.length) },
+      { label: "検証記録", value: String(runMarks.length) },
+      { label: "作成済み", value: formatDate(createdAt) || "unknown" },
     ],
     // A run's interfaces ARE its checkpoint bindings (interface_binding / outbound_interface
     // _bindings on each checkpoint) — the realized truth, not a declared superset.
@@ -837,7 +838,7 @@ function bindingRow(binding: any): DetailRow {
   const direction = stringValue(binding?.direction).toLowerCase();
   return {
     name: stringValue(binding?.interface_id) || "interface not projected",
-    description: `checkpoint ${shortId(stringValue(binding?.checkpoint_id)) || "unknown"} / run ${shortId(stringValue(binding?.run_id)) || "unbound"}`,
+    description: `チェックポイント ${shortId(stringValue(binding?.checkpoint_id)) || "unknown"} / 実行 ${shortId(stringValue(binding?.run_id)) || "unbound"}`,
     tag: direction === "inbound" ? "IN" : direction === "outbound" ? "OUT" : "BIND",
     status: stringValue(binding?.status) || "projected",
     tone: "blue",
@@ -871,7 +872,7 @@ export function workerEnvironmentProjection(value: any): WorkerEnvironmentProjec
   const id = stringValue(item.worker_environment_id ?? item.id);
   const kind = stringValue(item.worker_environment_kind ?? item.kind ?? item.executor_kind ?? item.meta?.worker_environment_kind) || "worker_environment";
   const lifecycle = stringValue(item.lifecycle);
-  const status = stringValue(item.status) || (id ? "unknown" : "not projected");
+  const status = stringValue(item.status) || (id ? "unknown" : "情報なし");
   const explicitLabel = stringValue(item.display_name ?? item.label ?? item.title ?? item.meta?.display_name ?? item.meta?.label);
   const explicitDetail = stringValue(item.description ?? item.detail ?? item.meta?.description ?? item.meta?.detail);
   const root = stringValue(item.root ?? item.worktree_root ?? item.project_root ?? item.path ?? item.meta?.root ?? item.meta?.project_root);
@@ -883,12 +884,12 @@ export function workerEnvironmentProjection(value: any): WorkerEnvironmentProjec
   const surfaces = workerEnvironmentSurfaceProjections(item);
   const primarySurface = primaryProjectedWorkerEnvironmentSurface(surfaces);
   const cells: StatRow[] = [
-    { label: "Kind", value: kind },
-    { label: "Lifecycle", value: lifecycle || "unknown" },
-    { label: "Status", value: status },
-    { label: "Root", value: root || "none" },
-    { label: "Session", value: session || "none" },
-    { label: "Transport", value: transport || "none" },
+    { label: "種類", value: kind },
+    { label: "ライフサイクル", value: lifecycle || "unknown" },
+    { label: "状態", value: status },
+    { label: "ルート", value: root || "none" },
+    { label: "セッション", value: session || "none" },
+    { label: "転送", value: transport || "none" },
   ];
   return {
     id,
@@ -964,7 +965,7 @@ function workerEnvironmentLabel(
 ): string {
   const kindLabel = kind.replace(/[_-]+/g, " ");
   if (status === "offline" || status === "declared" || status === "registered") return `${kindLabel} kind`;
-  if (!id) return "not projected";
+  if (!id) return "情報なし";
   return surface?.label || kindLabel;
 }
 
@@ -1000,7 +1001,7 @@ function checkpointRows(detail: any, runBindings: any[]): CheckpointRow[] {
   if (checkpoints.length > 0) {
     return checkpoints.map((checkpoint, index) => ({
       id: stringValue(checkpoint?.checkpoint_id ?? checkpoint?.id) || `checkpoint_${index + 1}`,
-      label: stringValue(checkpoint?.label ?? checkpoint?.tool_name ?? checkpoint?.kind) || `checkpoint ${index + 1}`,
+      label: stringValue(checkpoint?.label ?? checkpoint?.tool_name ?? checkpoint?.kind) || `チェックポイント ${index + 1}`,
       status: stringValue(checkpoint?.status) || "projected",
       tool: stringValue(checkpoint?.tool_name ?? checkpoint?.tool),
       interfaceName: stringValue(checkpoint?.template_name ?? checkpoint?.interface ?? checkpoint?.interface_template_name),
@@ -1124,7 +1125,7 @@ function artifactEeId(row: any): string {
 }
 
 function topRunItems(runs: RunProjection[]): TopologyItem[] {
-  if (runs.length === 0) return [{ label: "no run", tone: "gray" }];
+  if (runs.length === 0) return [{ label: "実行なし", tone: "gray" }];
   return runs.slice(0, 2).map((run) => ({
     label: run.worker || run.label,
     tone: statusTone(run.status),
@@ -1219,15 +1220,15 @@ function normalizeStatus(value: unknown): EnvironmentStatus {
 }
 
 function statusLabel(status: EnvironmentStatus): string {
-  if (status === "projected") return "Projected";
-  if (status === "active") return "Active";
-  if (status === "idle") return "Idle";
-  if (status === "settled") return "Settled";
-  if (status === "done") return "Completed";
-  if (status === "blocked") return "Blocked";
-  if (status === "stale") return "Stale";
-  if (status === "offline") return "Offline";
-  return "Unknown";
+  if (status === "projected") return "表示中";
+  if (status === "active") return "有効";
+  if (status === "idle") return "待機中";
+  if (status === "settled") return "処理済み";
+  if (status === "done") return "完了";
+  if (status === "blocked") return "ブロック中";
+  if (status === "stale") return "更新停止";
+  if (status === "offline") return "オフライン";
+  return "不明";
 }
 
 function statusTone(status: EnvironmentStatus): Accent {
@@ -1246,7 +1247,7 @@ function policyLayerLabel(policyProjection: { policy: Record<string, unknown>; s
   const explicit = stringValue(policy.policy_layer ?? policy.layer ?? policy.id);
   if (explicit) return explicit;
   if (Object.keys(policy).length) return `${source} policy`;
-  return "not projected";
+  return "情報なし";
 }
 
 function compactList(values: string[], max = 3): string {

@@ -35,7 +35,7 @@ type Props = {
 };
 
 const TITLEBAR_CLUSTER_GAP = 8;
-const SETTINGS_CONTEXT: TitlebarSurfaceContext = { glyph: "settings", title: "Settings" };
+const SETTINGS_CONTEXT: TitlebarSurfaceContext = { glyph: "settings", title: "設定" };
 
 export type TitlebarSurfaceAction = {
   actionId?: string;
@@ -153,7 +153,7 @@ export function DesktopTitleBar({
 
   return (
     <header
-      aria-label="Window navigation"
+      aria-label="ウィンドウのナビゲーション"
       className={`app-titlebar draggable${isElectron ? " is-electron" : ""}${fullScreen ? " is-fullscreen" : ""}`}
       style={{ "--app-titlebar-safe-left": `${(fullScreen ? 0 : nativeInset) + 6}px` } as CSSProperties}
     >
@@ -163,7 +163,7 @@ export function DesktopTitleBar({
           <TitlebarButton
             disabled={!canNavigateBack}
             glyph="navigateBack"
-            label="Back"
+            label="戻る"
             onClick={onNavigateBack}
             shortcut={formatKeyboardShortcuts(shortcuts.navigate_back ?? [])}
           />
@@ -171,7 +171,7 @@ export function DesktopTitleBar({
             disabled={!canNavigateForward}
             glyph="navigateBack"
             glyphClassName="-scale-x-100"
-            label="Forward"
+            label="進む"
             onClick={onNavigateForward}
             shortcut={formatKeyboardShortcuts(shortcuts.navigate_forward ?? [])}
           />
@@ -179,7 +179,7 @@ export function DesktopTitleBar({
         {!settingsOpen && sidebarAvailable ? <TitlebarButton
           buttonRef={sidebarToggleRef}
           glyph={sidebarOpen ? "sidebarOpen" : "sidebarClosed"}
-          label={`${sidebarOpen ? "Hide" : "Show"} sidebar`}
+          label={`${sidebarOpen ? "非表示" : "表示"} sidebar`}
           onClick={onToggleSidebar}
           shortcut={formatKeyboardShortcuts(shortcuts.toggle_sidebar ?? [])}
         /> : null}
@@ -208,7 +208,7 @@ export function DesktopTitleBar({
             transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
           >
             <button
-              aria-label={onSurfaceTitleClick ? `Close ${surfaceTitle}` : surfaceTitle}
+              aria-label={onSurfaceTitleClick ? `閉じる ${surfaceTitle}` : surfaceTitle}
               className="app-titlebar-surface-title no-drag"
               onClick={onSurfaceTitleClick}
               type="button"
@@ -243,7 +243,7 @@ export function DesktopTitleBar({
         {!settingsOpen && !secondaryPaneOpen && secondaryPaneCollapsed ? (
           <TitlebarButton
             glyph="splitPane"
-            label="Open secondary pane"
+            label="サブペインを開く"
             onClick={onToggleSecondaryPane}
             shortcut={formatKeyboardShortcuts(shortcuts.toggle_split ?? [])}
           />
@@ -251,7 +251,7 @@ export function DesktopTitleBar({
       </motion.div>
       {settingsOpen ? (
         <div className="app-titlebar-secondary-controls no-drag">
-          <ShellTooltip label="Close Settings"><button aria-label="Close Settings" className="app-titlebar-action no-drag" id="settings-window-close" onClick={onCloseSettings} type="button"><Glyph name="close" size={16} /></button></ShellTooltip>
+          <ShellTooltip label="設定を閉じる"><button aria-label="設定を閉じる" className="app-titlebar-action no-drag" id="settings-window-close" onClick={onCloseSettings} type="button"><Glyph name="close" size={16} /></button></ShellTooltip>
         </div>
       ) : secondaryPaneOpen || !secondaryPaneCollapsed ? <motion.div
         className="app-titlebar-secondary-pane"

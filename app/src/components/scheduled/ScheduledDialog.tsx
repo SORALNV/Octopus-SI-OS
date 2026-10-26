@@ -81,7 +81,7 @@ export function ScheduledDialog({
         onSubmit={submit}
       >
         <div className="flex w-full shrink-0 flex-col">
-          <h2 className="m-0 text-form-title text-default" id={titleId}>{creating ? "Create a trigger" : "Edit trigger"}</h2>
+          <h2 className="m-0 text-form-title text-default" id={titleId}>{creating ? "トリガーを作成" : "トリガーを編集"}</h2>
         </div>
         <div className="flex min-h-0 w-full flex-auto flex-col pt-5">
           <div className="hide-scrollbar min-h-0 overflow-y-auto">
@@ -93,10 +93,10 @@ export function ScheduledDialog({
                     if (event.target === event.currentTarget) { event.preventDefault(); instructionsRef.current?.focus(); }
                   }} role="presentation">
                     <textarea
-                      aria-label="Instructions"
+                      aria-label="指示"
                       className="min-h-[calc(var(--text-form-body--line-height)*4)] w-full resize-none border-0 bg-transparent p-0 text-form-body text-default outline-none [field-sizing:content] placeholder:text-tertiary"
                       onChange={(event) => setDraft({ ...draft, instructions: event.target.value })}
-                      placeholder="Instructions…"
+                      placeholder="指示…"
                       ref={instructionsRef}
                       value={draft.instructions}
                     />
@@ -105,18 +105,18 @@ export function ScheduledDialog({
                 <ScheduleSection draft={draft} onChange={setDraft} onEditRule={() => setRuleOpen(true)} scopeOptions={scopeOptions} />
                 <AdvancedSection creating={creating} draft={draft} onChange={setDraft} onChooseTemplate={chooseTemplate} source={source} templates={templates} />
                 {visibleError ? <p className="m-0 text-sm text-danger select-none" role="alert">{visibleError}</p> : null}
-                {creating && !source.cloneEligible ? <p className="m-0 text-sm text-danger select-none" role="alert">This template has no outbound interface binding and cannot create useful work.</p> : null}
+                {creating && !source.cloneEligible ? <p className="m-0 text-sm text-danger select-none" role="alert">このテンプレートには出力先インターフェースの紐付けがないため、実際の作業を開始できません。</p> : null}
               </div>
             </fieldset>
           </div>
         </div>
         <div className="flex w-full shrink-0 flex-col pt-5">
           <div className="flex w-full flex-wrap items-center justify-end gap-3">
-            {creating ? <OcButton className="shrink-0 rounded-full! px-4" disabled={pending} onClick={onCancel} size="md" variant="secondary">Cancel</OcButton> : null}
+            {creating ? <OcButton className="shrink-0 rounded-full! px-4" disabled={pending} onClick={onCancel} size="md" variant="secondary">キャンセル</OcButton> : null}
             <MessageTooltip label={draftError}>
               <span className="inline-flex">
                 <OcButton className="shrink-0 rounded-full! px-4" disabled={blocked} size="md" type="submit" variant="primary">
-                  {pending ? "Saving…" : creating ? "Create" : "Save"}
+                  {pending ? "保存しています…" : creating ? "作成" : "保存"}
                 </OcButton>
               </span>
             </MessageTooltip>
@@ -124,7 +124,7 @@ export function ScheduledDialog({
         </div>
       </form>
       <button
-        aria-label="Close dialog"
+        aria-label="ダイアログを閉じる"
         className="no-drag absolute top-4 right-3.5 flex size-8 cursor-interaction items-center justify-center rounded-full leading-none text-tertiary hover:bg-primary-ghost-hover hover:text-default focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:opacity-40"
         disabled={pending}
         onClick={onCancel}
@@ -147,14 +147,14 @@ function ScheduleSection({ draft, onChange, onEditRule, scopeOptions }: {
   const clock = cronClock(draft);
   const zoneName = timezoneName(draft.timezone);
   const rows: ReactNode[] = [
-    <ScheduleFormRow control={<RepeatSwitch checked={mode !== "once"} onChange={(repeat) => onChange(withRepeat(draft, repeat))} />} key="repeat-task" label="Repeat task" />,
+    <ScheduleFormRow control={<RepeatSwitch checked={mode !== "once"} onChange={(repeat) => onChange(withRepeat(draft, repeat))} />} key="repeat-task" label="タスクを繰り返す" />,
   ];
   if (mode === "once") {
     const at = draft.dueAt ? new Date(draft.dueAt) : new Date();
     const date = localDate(at);
     rows.push(
-      <ScheduleFormRow control={<ScheduleFormDate ariaLabel="Scheduled date" onChange={(value) => onChange({ ...draft, dueAt: localInstant(value, at.getHours(), at.getMinutes()) })} value={date} />} key="date" label="Date" />,
-      <ScheduleFormRow control={<TimeMenu hour={at.getHours()} minute={at.getMinutes()} onSelect={(hour, minute) => onChange({ ...draft, dueAt: localInstant(date, hour, minute) })} zone={timezoneName("local", at.getTime())} />} key="start" label="Start time" />,
+      <ScheduleFormRow control={<ScheduleFormDate ariaLabel="Scheduled date" onChange={(value) => onChange({ ...draft, dueAt: localInstant(value, at.getHours(), at.getMinutes()) })} value={date} />} key="date" label="日付" />,
+      <ScheduleFormRow control={<TimeMenu hour={at.getHours()} minute={at.getMinutes()} onSelect={(hour, minute) => onChange({ ...draft, dueAt: localInstant(date, hour, minute) })} zone={timezoneName("local", at.getTime())} />} key="start" label="開始時刻" />,
     );
   } else {
     rows.push(<ScheduleFormRow control={(
@@ -164,15 +164,15 @@ function ScheduleSection({ draft, onChange, onEditRule, scopeOptions }: {
         options={REPEAT_OPTIONS}
         value={mode}
       />
-    )} key="repeat" label="Repeat" />);
+    )} key="repeat" label="繰り返し" />);
     if (mode === "weekly") {
-      rows.push(<ScheduleFormRow control={<ScheduleFormMenu<number> ariaLabel="Day of the week" onSelect={(weekday) => onChange(withCronClock(draft, { weekday }))} options={WEEKDAY_OPTIONS} value={clock.weekday} />} key="day" label="On" labelSizing="content" />);
+      rows.push(<ScheduleFormRow control={<ScheduleFormMenu<number> ariaLabel="Day of the week" onSelect={(weekday) => onChange(withCronClock(draft, { weekday }))} options={WEEKDAY_OPTIONS} value={clock.weekday} />} key="day" label="実行日" labelSizing="content" />);
     }
     if (mode === "daily" || mode === "weekdays" || mode === "weekly") {
-      rows.push(<ScheduleFormRow control={<TimeMenu hour={clock.hour} minute={clock.minute} onSelect={(hour, minute) => onChange(withCronClock(draft, { hour, minute }))} zone={zoneName} />} key="time" label="Time" />);
+      rows.push(<ScheduleFormRow control={<TimeMenu hour={clock.hour} minute={clock.minute} onSelect={(hour, minute) => onChange(withCronClock(draft, { hour, minute }))} zone={zoneName} />} key="time" label="時刻" />);
     }
     if (mode === "hourly") {
-      rows.push(<ScheduleFormRow control={<ScheduleFormNumber ariaLabel="Minute past the hour" min={0} onChange={(minute) => onChange(withCronClock(draft, { minute: Math.min(59, minute) }))} value={clock.minute} />} key="minute" label="At minute" />);
+      rows.push(<ScheduleFormRow control={<ScheduleFormNumber ariaLabel="Minute past the hour" min={0} onChange={(minute) => onChange(withCronClock(draft, { minute: Math.min(59, minute) }))} value={clock.minute} />} key="minute" label="毎時の実行分" />);
     }
     if (mode === "interval") {
       const seconds = draft.intervalSeconds ?? 3600;
@@ -187,11 +187,11 @@ function ScheduleSection({ draft, onChange, onEditRule, scopeOptions }: {
           suffix={<ScheduleFormMenu<IntervalUnit> ariaLabel="Interval unit" onSelect={(next) => onChange({ ...draft, intervalSeconds: seconds / unitSeconds * (INTERVAL_UNITS.find((entry) => entry.value === next)?.seconds ?? 1) })} options={INTERVAL_UNITS.map((entry) => ({ id: entry.value, label: unitLabel(entry.label, seconds / unitSeconds) }))} value={unit} />}
           value={seconds / unitSeconds}
         />
-      )} key="every" label="Every" />);
+      )} key="every" label="間隔" />);
     }
     if (mode === "inactivity") rows.push(...inactivityRows(draft, onChange, scopeOptions));
     if (mode === "custom") {
-      rows.push(<ScheduleFormRow control={<OcButton className="rounded-full!" onClick={onEditRule} size="xs" variant="ghost">Edit rule</OcButton>} key="rule" label={validCron(draft.cron ?? "") ? describeCron(draft.cron ?? "") : "Advanced schedule"} />);
+      rows.push(<ScheduleFormRow control={<OcButton className="rounded-full!" onClick={onEditRule} size="xs" variant="ghost">ルールを編集</OcButton>} key="rule" label={validCron(draft.cron ?? "") ? describeCron(draft.cron ?? "") : "スケジュールの詳細設定"} />);
     }
   }
   return <ScheduleFormGroup variant="input">{rows}</ScheduleFormGroup>;
@@ -201,7 +201,7 @@ function inactivityRows(draft: ScheduledEditorDraft, onChange: (draft: Scheduled
   const inactivity = draft.inactivity ?? { seconds: 3600, interface_match: {} };
   const unit = quietPeriodUnit(inactivity.seconds);
   const unitSeconds = QUIET_PERIOD_UNITS.find((entry) => entry.value === unit)?.seconds ?? 60;
-  const scopes = [{ id: "", label: "All work" }, ...scopeOptions.map((option) => ({ id: option.eeId, label: option.name })),
+  const scopes = [{ id: "", label: "すべての作業" }, ...scopeOptions.map((option) => ({ id: option.eeId, label: option.name })),
     ...(inactivity.within_ee && !scopeOptions.some((option) => option.eeId === inactivity.within_ee) ? [{ id: inactivity.within_ee, label: inactivity.within_ee }] : [])];
   return [
     <ScheduleFormRow control={(
@@ -212,7 +212,7 @@ function inactivityRows(draft: ScheduledEditorDraft, onChange: (draft: Scheduled
         suffix={<ScheduleFormMenu<QuietPeriodUnit> ariaLabel="Quiet period unit" onSelect={(next) => onChange({ ...draft, inactivity: { ...inactivity, seconds: inactivity.seconds / unitSeconds * (QUIET_PERIOD_UNITS.find((entry) => entry.value === next)?.seconds ?? 60) } })} options={QUIET_PERIOD_UNITS.map((entry) => ({ id: entry.value, label: unitLabel(entry.label.toLocaleLowerCase(), inactivity.seconds / unitSeconds) }))} value={unit} />}
         value={inactivity.seconds / unitSeconds}
       />
-    )} key="quiet" label="Quiet for" />,
+    )} key="quiet" label="動きがない時間" />,
     <ScheduleFormRow control={(
       <ScheduleFormMenu<string>
         ariaLabel="Scope"
@@ -220,7 +220,7 @@ function inactivityRows(draft: ScheduledEditorDraft, onChange: (draft: Scheduled
         options={scopes}
         value={inactivity.within_ee ?? ""}
       />
-    )} key="scope" label="Counts work in" />,
+    )} key="scope" label="対象の作業範囲" />,
   ];
 }
 
@@ -247,7 +247,7 @@ function AdvancedSection({ creating, draft, onChange, onChooseTemplate, source, 
         onClick={() => setExpanded(!expanded)}
         type="button"
       >
-        Advanced
+        詳細設定
         <span className={cx("inline-flex motion-safe:transition-transform motion-safe:duration-basic motion-safe:ease-enter-snappy", expanded && "-rotate-180")}>
           <Glyph className="icon-xs" name="chevronDown" size={16} />
         </span>
@@ -256,39 +256,39 @@ function AdvancedSection({ creating, draft, onChange, onChooseTemplate, source, 
         <div aria-labelledby={`${regionId}-trigger`} className="grid overflow-hidden" id={regionId} role="region">
           <div className="min-h-0 overflow-hidden">
             <div className="flex flex-col gap-3 pt-3 [&>*]:rounded-2xl [&>*]:border [&>*]:border-default">
-              {creating ? <ScheduleFormRow control={<ScheduleFormMenu<string> ariaLabel="Trigger template" onSelect={onChooseTemplate} options={templateOptions} value={source.interfaceId} />} label="Template" /> : null}
+              {creating ? <ScheduleFormRow control={<ScheduleFormMenu<string> ariaLabel="Trigger template" onSelect={onChooseTemplate} options={templateOptions} value={source.interfaceId} />} label="テンプレート" /> : null}
               <ScheduleFormRow control={creating ? (
                 <input
-                  aria-label="Interface id"
+                  aria-label="インターフェース ID"
                   className="min-w-0 flex-1 bg-transparent text-end text-form-body text-secondary outline-none placeholder:text-tertiary focus:text-default"
                   onChange={(event) => onChange({ ...draft, interfaceId: event.target.value.trim().toLowerCase() })}
                   placeholder="world_daily_brief"
                   spellCheck={false}
                   value={draft.interfaceId}
                 />
-              ) : <ScheduleFormValue>{draft.interfaceId}</ScheduleFormValue>} label="Interface" />
+              ) : <ScheduleFormValue>{draft.interfaceId}</ScheduleFormValue>} label="インターフェース" />
               {timeBased ? (
                 <ScheduleFormRow control={(
                   <input
-                    aria-label="Time zone"
+                    aria-label="タイムゾーン"
                     className="min-w-0 flex-1 bg-transparent text-end text-form-body text-secondary outline-none placeholder:text-tertiary focus:text-default"
                     onChange={(event) => onChange({ ...draft, timezone: event.target.value })}
-                    placeholder="local, UTC, or Europe/Kyiv"
+                    placeholder="local、UTC、Asia/Tokyo など"
                     spellCheck={false}
                     value={draft.timezone}
                   />
-                )} label="Time zone" />
+                )} label="タイムゾーン" />
               ) : null}
-              {timeBased ? <ScheduleFormRow control={<RepeatSwitch checked={draft.fireOnStart} label="Run once on start" onChange={(fireOnStart) => onChange({ ...draft, fireOnStart })} />} label="Run once on start" labelSizing="content" /> : null}
+              {timeBased ? <ScheduleFormRow control={<RepeatSwitch checked={draft.fireOnStart} label="起動時に一度実行" onChange={(fireOnStart) => onChange({ ...draft, fireOnStart })} />} label="起動時に一度実行" labelSizing="content" /> : null}
               <div className="flex flex-col [&>*:not(:last-child)]:relative [&>*:not(:last-child)]:after:pointer-events-none [&>*:not(:last-child)]:after:absolute [&>*:not(:last-child)]:after:inset-x-5 [&>*:not(:last-child)]:after:bottom-0 [&>*:not(:last-child)]:after:h-px [&>*:not(:last-child)]:after:bg-[var(--color-border-subtle)] [&>*:not(:last-child)]:after:content-['']">
                 {topology ? <>
-                  <ScheduleFormRow control={<ScheduleFormValue>{topology.eeId}</ScheduleFormValue>} label="Runs in" />
-                  <ScheduleFormRow control={<ScheduleFormValue>{topology.workerInterfaceId}</ScheduleFormValue>} label="Worker" />
-                  <ScheduleFormRow control={<ScheduleFormValue>{topology.outboundInterfaceIds.length ? topology.outboundInterfaceIds.join(", ") : "None"}</ScheduleFormValue>} label="Delivers to" />
-                  <ScheduleFormRow control={<ScheduleFormValue>{`${topology.artifactBindingCount} artifacts · ${topology.checkpointCount} checkpoints`}</ScheduleFormValue>} label="Bindings" />
-                  <ScheduleFormRow control={<ScheduleFormValue>{topology.runId}</ScheduleFormValue>} label="Run" />
-                </> : <ScheduleFormRow control={<ScheduleFormValue>Not projectable</ScheduleFormValue>} label="Run template" />}
-                {source.reminderEnv ? <ScheduleFormRow control={<ScheduleFormValue>{source.reminderEnv}</ScheduleFormValue>} label="Environment override" /> : null}
+                  <ScheduleFormRow control={<ScheduleFormValue>{topology.eeId}</ScheduleFormValue>} label="実行先" />
+                  <ScheduleFormRow control={<ScheduleFormValue>{topology.workerInterfaceId}</ScheduleFormValue>} label="ワーカー" />
+                  <ScheduleFormRow control={<ScheduleFormValue>{topology.outboundInterfaceIds.length ? topology.outboundInterfaceIds.join(", ") : "なし"}</ScheduleFormValue>} label="配信先" />
+                  <ScheduleFormRow control={<ScheduleFormValue>{`${topology.artifactBindingCount} 件の成果物 · ${topology.checkpointCount} checkpoints`}</ScheduleFormValue>} label="紐付け" />
+                  <ScheduleFormRow control={<ScheduleFormValue>{topology.runId}</ScheduleFormValue>} label="実行" />
+                </> : <ScheduleFormRow control={<ScheduleFormValue>表示用データなし</ScheduleFormValue>} label="実行テンプレート" />}
+                {source.reminderEnv ? <ScheduleFormRow control={<ScheduleFormValue>{source.reminderEnv}</ScheduleFormValue>} label="環境の上書き" /> : null}
               </div>
             </div>
           </div>
@@ -298,7 +298,7 @@ function AdvancedSection({ creating, draft, onChange, onChooseTemplate, source, 
   );
 }
 
-function RepeatSwitch({ checked, label = "Repeat task", onChange }: { checked: boolean; label?: string; onChange: (checked: boolean) => void }) {
+function RepeatSwitch({ checked, label = "タスクを繰り返す", onChange }: { checked: boolean; label?: string; onChange: (checked: boolean) => void }) {
   return <OcSwitch checked={checked} label={label} onCheckedChange={onChange} />;
 }
 
@@ -318,7 +318,7 @@ function CronRuleDialog({ cron, onClose, onSave }: { cron: string; onClose: () =
   return (
     <OcDialog ariaLabelledBy={titleId} onClose={onClose} open size="compact">
       <form onSubmit={(event) => { event.preventDefault(); if (valid) onSave(value.trim()); }}>
-        <OcDialogHeader description="Use a cron expression to define a custom schedule" title="Edit schedule rule" titleId={titleId} />
+        <OcDialogHeader description="cron 式でスケジュールを指定します" title="スケジュールのルールを編集" titleId={titleId} />
         <div className="px-6 pb-4">
           <OcTextField
             autoFocus
@@ -332,8 +332,8 @@ function CronRuleDialog({ cron, onClose, onSave }: { cron: string; onClose: () =
           />
         </div>
         <OcDialogFooter>
-          <OcButton onClick={onClose} variant="ghost">Cancel</OcButton>
-          <OcButton disabled={!valid} type="submit" variant="primary">Save</OcButton>
+          <OcButton onClick={onClose} variant="ghost">キャンセル</OcButton>
+          <OcButton disabled={!valid} type="submit" variant="primary">保存</OcButton>
         </OcDialogFooter>
       </form>
     </OcDialog>

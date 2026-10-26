@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../../locale";
 import { useRef, useState } from "react";
 import { OcMenuItem } from "../../design-system/components";
 import { OcDropdown } from "../../design-system/OcDropdown";
@@ -26,7 +27,7 @@ export function ScheduledDetail({ task, pending, canEdit, scopeOptions, onDelete
                 <div className="bg-token-foreground/5 max-w-[77%] min-w-0 overflow-hidden break-words rounded-2xl px-3 py-2 text-left" data-user-message-bubble="true">
                   <div className="flex flex-col items-end gap-1">
                     <div className="text-size-chat relative w-full min-w-0">
-                      <div className="text-size-chat whitespace-pre-wrap select-text">{task.instructions || "No instructions. This trigger may use its configured environment override."}</div>
+                      <div className="text-size-chat whitespace-pre-wrap select-text">{task.instructions || "指示がありません。このトリガーは設定済みの環境の上書きを使う場合があります。"}</div>
                     </div>
                   </div>
                 </div>
@@ -55,13 +56,13 @@ function SummaryCard({ canEdit, onDelete, onEdit, onToggle, pending, status, tas
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement>(null);
   const editable = canEdit && task.valid && !pending;
-  const subtitle = status === "paused" ? "Paused" : status === "invalid" ? "Needs attention" : formatSchedule(task);
+  const subtitle = status === "paused" ? "Paused" : status === "invalid" ? "確認が必要" : formatSchedule(task);
   return (
     <span className="mt-3 flex w-full max-w-[536px] flex-col self-start overflow-hidden rounded-2xl border border-token-border-default bg-token-main-surface-primary shadow-[0_2px_6px_-1px_rgba(0,0,0,0.03)] select-none" data-automation-card="">
       <span className="group/resource-card relative flex min-h-16 w-full min-w-0 items-center gap-4 p-4">
         <button
           aria-describedby={`${task.interfaceId}-summary`}
-          aria-label={`Edit ${task.displayName}`}
+          aria-label={`編集 ${task.displayName}`}
           className="peer/resource-card absolute inset-0 cursor-interaction border-0 bg-transparent group-hover/resource-card:bg-token-list-hover-background/30 focus-visible:ring-1 focus-visible:ring-token-focus-border focus-visible:outline-none focus-visible:ring-inset disabled:cursor-default"
           disabled={!editable}
           onClick={onEdit}
@@ -80,21 +81,21 @@ function SummaryCard({ canEdit, onDelete, onEdit, onToggle, pending, status, tas
             disabled={!editable}
             onClick={onEdit}
             type="button"
-          >Open</button>
+          >開く</button>
           <button
             aria-expanded={menuOpen}
             aria-haspopup="menu"
-            aria-label="Trigger actions"
+            aria-label="トリガーの操作"
             className="flex size-token-button-composer-sm cursor-interaction items-center justify-center rounded-lg border border-transparent text-token-foreground/50 hover:bg-token-list-hover-background hover:text-token-foreground data-[state=open]:bg-token-list-hover-background"
             data-state={menuOpen ? "open" : "closed"}
             onClick={() => setMenuOpen(!menuOpen)}
             ref={menuRef}
             type="button"
           ><Glyph name="more" size={16} /></button>
-          <OcDropdown align="end" anchorRef={menuRef} aria-label="Trigger actions" onOpenChange={setMenuOpen} open={menuOpen} sideOffset={4} style={{ width: 208 }}>
-            <OcMenuItem disabled={!editable} label="Edit" leadingIcon="edit" onClick={() => { setMenuOpen(false); onEdit(); }} role="menuitem" />
-            {status === "completed" ? null : <OcMenuItem disabled={!editable} label={task.status === "disabled" ? "Resume" : "Pause"} leadingIcon={task.status === "disabled" ? "play" : "pause"} onClick={() => { setMenuOpen(false); onToggle(); }} role="menuitem" />}
-            <OcMenuItem disabled={!canEdit || pending} label="Delete" leadingIcon="trash" onClick={() => { setMenuOpen(false); onDelete(); }} role="menuitem" tone="danger" />
+          <OcDropdown align="end" anchorRef={menuRef} aria-label="トリガーの操作" onOpenChange={setMenuOpen} open={menuOpen} sideOffset={4} style={{ width: 208 }}>
+            <OcMenuItem disabled={!editable} label="編集" leadingIcon="edit" onClick={() => { setMenuOpen(false); onEdit(); }} role="menuitem" />
+            {status === "completed" ? null : <OcMenuItem disabled={!editable} label={task.status === "disabled" ? "再開" : "一時停止"} leadingIcon={task.status === "disabled" ? "play" : "pause"} onClick={() => { setMenuOpen(false); onToggle(); }} role="menuitem" />}
+            <OcMenuItem disabled={!canEdit || pending} label="削除" leadingIcon="trash" onClick={() => { setMenuOpen(false); onDelete(); }} role="menuitem" tone="danger" />
           </OcDropdown>
         </span>
       </span>
@@ -117,9 +118,9 @@ function confirmation(task: ScheduledInterfaceProjection, status: ReturnType<typ
   const zone = task.schedule?.type === "once" ? undefined : resolvedTimezone(task.timezone);
   let time: string;
   try {
-    time = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short", timeZone: zone }).format(new Date(next));
+    time = new Intl.DateTimeFormat(APP_LOCALE, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short", timeZone: zone }).format(new Date(next));
   } catch {
-    time = new Date(next).toLocaleString();
+    time = new Date(next).toLocaleString(APP_LOCALE);
   }
   return `Your trigger is scheduled. Its next run is ${time}${next !== task.nextRunAtMs || task.nextRunSource === "" ? " (estimated)" : ""}.`;
 }

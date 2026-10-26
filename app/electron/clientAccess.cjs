@@ -27,10 +27,10 @@ function createClientAccessController(options = {}) {
   let failedUnlocks = 0;
   let unlockBlockedUntil = 0;
   if (environmentAdministratorSecret && environmentAdministratorSecret.length < MIN_PASSWORD_LENGTH) {
-    throw new Error(`OCTOPUS_CLIENT_ADMIN_SECRET must contain at least ${MIN_PASSWORD_LENGTH} characters`);
+    throw new Error(`OCTOPUS_CLIENT_ADMIN_SECRET must contain at least ${MIN_PASSWORD_LENGTH} 文字`);
   }
   if (environmentLabSecret && environmentLabSecret.length < MIN_LAB_SECRET_LENGTH) {
-    throw new Error(`OCTOPUS_CLIENT_LAB_SECRET must contain at least ${MIN_LAB_SECRET_LENGTH} characters`);
+    throw new Error(`OCTOPUS_CLIENT_LAB_SECRET must contain at least ${MIN_LAB_SECRET_LENGTH} 文字`);
   }
   if (defaultLabSecret.length < MIN_LAB_SECRET_LENGTH) throw new Error("Default client test password is invalid");
   if (environmentAdministratorSecret && verifyLabSecret(environmentAdministratorSecret)) {
@@ -168,7 +168,7 @@ function createClientAccessController(options = {}) {
     if (environmentLabSecret) throw new Error("Test password is managed by OCTOPUS_CLIENT_LAB_SECRET.");
     const value = String(password ?? "");
     if (value.trim().length < MIN_LAB_SECRET_LENGTH) {
-      throw new Error(`Use at least ${MIN_LAB_SECRET_LENGTH} characters for the Test password.`);
+      throw new Error(`最低文字数： ${MIN_LAB_SECRET_LENGTH} characters for the Test password.`);
     }
     const administrator = readCredential();
     if (administrator && verify(value, administrator)) {
@@ -285,7 +285,7 @@ function defaultCredentialPath() {
 
 function requiredPassword(value) {
   const text = String(value ?? "");
-  if (text.trim().length < MIN_PASSWORD_LENGTH) throw new Error(`Use at least ${MIN_PASSWORD_LENGTH} characters.`);
+  if (text.trim().length < MIN_PASSWORD_LENGTH) throw new Error(`最低文字数： ${MIN_PASSWORD_LENGTH} characters.`);
   return text;
 }
 

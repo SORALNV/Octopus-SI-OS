@@ -258,7 +258,7 @@ export function TaskHoverCard({ children, details, disabled = false, title, age 
           <span>{details.project.name}</span>
         </div> : null}
         {environment?.data?.folders.map((folder) => <div className="task-hover-card-row task-hover-card-folder" key={folder.id}>
-          <span aria-label={folder.worktree ? "Git working tree" : "Folder"} role="img"><Glyph name={folder.worktree ? "worktree" : "folder"} size={16} /></span>
+          <span aria-label={folder.worktree ? "Git の作業ツリー" : "フォルダー"} role="img"><Glyph name={folder.worktree ? "worktree" : "folder"} size={16} /></span>
           <span dir="auto">{folder.path}</span>
         </div>)}
         {details.agent ? <div className="task-hover-card-row">
@@ -266,7 +266,7 @@ export function TaskHoverCard({ children, details, disabled = false, title, age 
           <span>{details.agent.name}</span>
         </div> : null}
         {!environment || environment.failed || environment.data?.folders.length === 0 ? <div className="task-hover-card-notice">
-          {environment?.failed ? "Environment details unavailable" : environment?.data ? "No workspace attached to this task" : <OcLoadingText label="Loading environment…" />}
+          {environment?.failed ? "環境の詳細を取得できません" : environment?.data ? "このタスクにワークスペースは接続されていません" : <OcLoadingText label="環境を読み込んでいます…" />}
         </div> : null}
       </div>, document.body,
     ) : null}

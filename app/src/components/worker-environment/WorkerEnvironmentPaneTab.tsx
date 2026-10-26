@@ -31,9 +31,9 @@ export function WorkerEnvironmentPaneTab({ accessProfile, assistantCodeComments 
           className="h-full min-h-0 flex-1 select-none"
           description={snapshot.projection.mode === "connecting"
             ? snapshot.projection.detail
-            : "This room is no longer projected by the runtime. Its tab stays until you close it."}
+            : "実行基盤からこの作業環境の情報が提供されなくなりました。タブは閉じるまで残ります。"}
           icon={<Glyph name="ee" size={32} />}
-          title={snapshot.projection.mode === "connecting" ? "Connecting to Octopus" : "Worker Environment is not projected"}
+          title={snapshot.projection.mode === "connecting" ? "Octopus に接続しています" : "作業環境の情報がありません"}
         />
       </div>
     );
@@ -44,9 +44,9 @@ export function WorkerEnvironmentPaneTab({ accessProfile, assistantCodeComments 
       <div className="flex h-full min-h-0 flex-1 flex-col bg-token-main-surface-primary" role="status">
         <OctopusEmptyState
           className="h-full min-h-0 flex-1 select-none"
-          description="The exact admitted client-surface revision behind this tab is no longer projected. Close the tab and reopen the current revision."
+          description="このタブの画面のリビジョンは、現在は提供されていません。タブを閉じて、最新のリビジョンを開き直してください。"
           icon={<Glyph name="plugins" size={32} />}
-          title="Worker Environment surface changed"
+          title="作業環境の画面が変更されました"
         />
       </div>
     );
@@ -57,9 +57,9 @@ export function WorkerEnvironmentPaneTab({ accessProfile, assistantCodeComments 
       <div className="flex h-full min-h-0 flex-1 flex-col bg-token-main-surface-primary" role="status">
         <OctopusEmptyState
           className="h-full min-h-0 flex-1 select-none"
-          description="The exact projected surface behind this tab is no longer available. Close the tab and reopen a surface from the current room projection."
+          description="このタブの画面は利用できなくなりました。タブを閉じて、現在の作業環境から画面を開き直してください。"
           icon={<Glyph name="ee" size={32} />}
-          title="Worker Environment surface changed"
+          title="作業環境の画面が変更されました"
         />
       </div>
     );

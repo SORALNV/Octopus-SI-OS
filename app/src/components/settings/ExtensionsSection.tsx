@@ -43,20 +43,20 @@ import { SettingsHeading } from "./SettingsHeading";
 
 const CATEGORY_COPY: Record<ClientExtensionCategory, { title: string; description: string }> = {
   widget: {
-    title: "Widgets",
-    description: "Useful at-a-glance information on Home.",
+    title: "ウィジェット",
+    description: "ホームでひと目で確認できる便利な情報です。",
   },
   tab: {
-    title: "Tabs & panels",
-    description: "Dedicated spaces for tools and information.",
+    title: "タブとパネル",
+    description: "ツールや情報を表示する専用の場所です。",
   },
   repair: {
-    title: "Repairs",
-    description: "Guided fixes offered when Octopus recognizes a problem.",
+    title: "修復",
+    description: "Octopus が問題を検出したとき、手順に沿って修復できます。",
   },
   input: {
-    title: "Input",
-    description: "New ways to control the client with your hands or voice.",
+    title: "入力",
+    description: "手や声でアプリを操作できます。",
   },
 };
 
@@ -325,7 +325,7 @@ export function ExtensionsSection({
             appToast.info(`${removed.manifest.name} removed`, 8, {
               dedupeKey: `extension-uninstall:${removed.manifest.id}`,
               action: {
-                label: "Undo",
+                label: "元に戻す",
                 onSelect: () => {
                   void perform(removed.manifest.id, async () => {
                     await registry.install(removed.manifest.id);
@@ -410,28 +410,28 @@ function ExtensionBrowseView({
             size="sm"
             variant="ghost"
           >
-            Open folder
+            フォルダーを開く
           </OcButton>
         )}
-        description="Add focused capabilities to Home and other parts of Octopus. Extensions stay local to this app."
-        title="Extensions"
+        description="ホームなどに必要な機能を追加します。拡張機能はこのアプリ内だけで動作します。"
+        title="拡張機能"
       />
       <ExtensionCatalogSearch
         id="extensions-settings-search"
         inputRef={searchRef}
         onChange={onQueryChange}
         onKeyDown={onSearchKeyDown}
-        placeholder="Search extensions"
+        placeholder="拡張機能を検索"
         value={query}
       />
       <div className="flex flex-col gap-8 pt-3">
         {!registry.mutable ? <ExtensionReadOnlyNotice /> : null}
         {registry.loading ? (
-          <CatalogLoadingState label="Loading extensions…" />
+          <CatalogLoadingState label="拡張機能を読み込んでいます…" />
         ) : registry.errors.length && registry.extensions.length === 0 ? (
-          <OcEmptyState detail={registry.errors.join("\n")} glyph="warning" size="compact" title="Extensions could not be loaded" tone="danger" />
+          <OcEmptyState detail={registry.errors.join("\n")} glyph="warning" size="compact" title="拡張機能を読み込めませんでした" tone="danger" />
         ) : extensions.length === 0 ? (
-          <OcEmptyState glyph="search" size="compact" title="No extensions found" />
+          <OcEmptyState glyph="search" size="compact" title="拡張機能が見つかりません" />
         ) : (
           <>
             {installed.length ? (
@@ -521,7 +521,7 @@ function ExtensionManageView({
     <div>
       <button className="mb-5 flex w-fit cursor-interaction items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-token-text-secondary hover:bg-token-list-hover-background hover:text-token-foreground" onClick={onBack} type="button">
         <Glyph name="arrowLeft" size={14} />
-        <span>Extensions</span>
+        <span>拡張機能</span>
       </button>
       <SettingsHeading
         actions={(
@@ -531,38 +531,38 @@ function ExtensionManageView({
             size="sm"
             variant="ghost"
           >
-            Open folder
+            フォルダーを開く
           </OcButton>
         )}
-        description="Set up or remove extensions already installed in this client."
-        title="Manage extensions"
+        description="このアプリにインストール済みの拡張機能を設定・削除します。"
+        title="拡張機能を管理"
       />
       <ExtensionCatalogSearch
         id="extensions-manage-search"
         inputRef={searchRef}
         onChange={onQueryChange}
         onKeyDown={onSearchKeyDown}
-        placeholder="Search installed extensions"
+        placeholder="インストール済みの拡張機能を検索"
         value={query}
       />
       <div className="flex flex-col gap-8 pt-3">
         {!registry.mutable ? <ExtensionReadOnlyNotice /> : null}
         {registry.loading ? (
-          <OctopusLoadingState>Loading installed extensions…</OctopusLoadingState>
+          <OctopusLoadingState>インストール済みの拡張機能を読み込んでいます…</OctopusLoadingState>
         ) : registry.errors.length && registry.extensions.length === 0 ? (
-          <OcEmptyState detail={registry.errors.join("\n")} glyph="warning" size="compact" title="Extensions could not be loaded" tone="danger" />
+          <OcEmptyState detail={registry.errors.join("\n")} glyph="warning" size="compact" title="拡張機能を読み込めませんでした" tone="danger" />
         ) : extensions.length === 0 ? (
           <OcEmptyState
             glyph={query ? "search" : "plugins"}
             size="compact"
-            title={query && hasInstalledExtensions ? "No installed extensions found" : "No extensions installed"}
+            title={query && hasInstalledExtensions ? "インストール済みの拡張機能が見つかりません" : "拡張機能はインストールされていません"}
           />
         ) : (
           <>
             <div className="[&_.oc-catalog-grid]:!grid-cols-1">
               <CatalogSection
                 batchSize={12}
-                description="Open an extension to review its setup, sources, or removal options."
+                description="拡張機能を開くと、設定、ソース、削除の方法を確認できます。"
                 getItemKey={extensionKey}
                 getItemLabel={extensionName}
                 items={extensions}
@@ -580,7 +580,7 @@ function ExtensionManageView({
                 renderItemPreview={(extension) => <Glyph name={extension.manifest.glyph} size={8} />}
                 resetKey={`manage:${query}`}
                 showCount
-                title="Installed"
+                title="インストール済み"
                 visibleItemLimit={12}
               />
             </div>
@@ -622,7 +622,7 @@ function ExtensionReadOnlyNotice() {
   return (
     <div className="flex items-start gap-2 rounded-xl border border-token-border/40 bg-token-foreground/3 px-3 py-2.5 text-sm text-token-text-secondary">
       <Glyph className="mt-0.5 shrink-0" name="lock" size={14} />
-      <span>Extensions are read-only in the Test profile. Switch to Administrator to install, remove, or configure them.</span>
+      <span>テスト用プロフィールでは拡張機能は読み取り専用です。インストール、削除、設定には管理者に切り替えてください。</span>
     </div>
   );
 }
@@ -697,7 +697,7 @@ function ExtensionCard({
         <div className="line-clamp-2 text-sm leading-relaxed text-text-description">{extension.manifest.description}</div>
         {extension.lifecycle.receiptState === "invalid" ? (
           <div className="mt-1 line-clamp-2 text-xs leading-4 text-token-error-foreground" title={extension.lifecycle.error}>
-            {extension.lifecycle.error || "The installation receipt could not be verified."}
+            {extension.lifecycle.error || "インストール記録を確認できませんでした。"}
           </div>
         ) : null}
       </div>
@@ -712,7 +712,7 @@ function ExtensionCard({
                 onInstall();
               }}
               size="xs"
-              title={extension.lifecycle.receiptState === "invalid" ? extension.lifecycle.error || "The installation receipt could not be verified." : undefined}
+              title={extension.lifecycle.receiptState === "invalid" ? extension.lifecycle.error || "インストール記録を確認できませんでした。" : undefined}
               variant="secondary"
             >
               {extensionInstallActionLabel(extension, busy)}
@@ -726,26 +726,26 @@ function ExtensionCard({
 
 function ExtensionStateStatus({ busy = false, extension }: { busy?: boolean; extension: ClientExtensionRecord }) {
   if (busy && !extension.installed) {
-    return <OcStatus className="shrink-0" label={extensionNeedsUpdate(extension) ? "Updating" : "Installing"} />;
+    return <OcStatus className="shrink-0" label={extensionNeedsUpdate(extension) ? "更新中" : "インストール中"} />;
   }
   if (extension.lifecycle.receiptState === "invalid") {
-    return <OcStatus className="shrink-0" label="Installation issue" tone="danger" />;
+    return <OcStatus className="shrink-0" label="インストールの問題" tone="danger" />;
   }
   if (extension.installed) {
     return (
       <span className="flex shrink-0 flex-wrap justify-end gap-1">
-        <OcStatus label="Installed" tone="success" />
-        {!extension.configured ? <OcStatus label="Needs setup" tone="warning" /> : null}
+        <OcStatus label="インストール済み" tone="success" />
+        {!extension.configured ? <OcStatus label="設定が必要" tone="warning" /> : null}
       </span>
     );
   }
   if (extension.admission === "pending") {
-    return <OcStatus className="shrink-0" label={extensionNeedsUpdate(extension) ? "Review update" : "Review required"} tone="warning" />;
+    return <OcStatus className="shrink-0" label={extensionNeedsUpdate(extension) ? "更新内容を確認" : "確認が必要"} tone="warning" />;
   }
   if (extensionNeedsUpdate(extension)) {
-    return <OcStatus className="shrink-0" label="Update available" tone="warning" />;
+    return <OcStatus className="shrink-0" label="更新あり" tone="warning" />;
   }
-  return <OcStatus className="shrink-0" label="Available" />;
+  return <OcStatus className="shrink-0" label="利用可能" />;
 }
 
 function extensionNeedsUpdate(extension: ClientExtensionRecord): boolean {
@@ -753,9 +753,9 @@ function extensionNeedsUpdate(extension: ClientExtensionRecord): boolean {
 }
 
 function extensionInstallActionLabel(extension: ClientExtensionRecord, busy: boolean): string {
-  if (busy) return extensionNeedsUpdate(extension) ? "Updating…" : "Installing…";
-  if (extension.admission === "pending") return "Review";
-  return extensionNeedsUpdate(extension) ? "Update" : "Install";
+  if (busy) return extensionNeedsUpdate(extension) ? "更新しています…" : "インストールしています…";
+  if (extension.admission === "pending") return "レビュー";
+  return extensionNeedsUpdate(extension) ? "更新" : "インストール";
 }
 
 function ExtensionDetail({ busy, extension, mutable, onBack, onInstall, onSetup, onUninstall }: {
@@ -772,7 +772,7 @@ function ExtensionDetail({ busy, extension, mutable, onBack, onInstall, onSetup,
     <div className="@container mx-auto flex w-full max-w-[var(--thread-content-max-width)] flex-col gap-[var(--detail-page-section-gap)] [--detail-page-inline-inset:var(--padding-row-x)] [--detail-page-section-gap:calc(var(--spacing)*6)]">
       <button className="flex w-fit cursor-interaction items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-secondary hover:bg-primary-ghost-hover hover:text-default" onClick={onBack} type="button">
         <Glyph name="arrowLeft" size={14} />
-        <span>Extensions</span>
+        <span>拡張機能</span>
       </button>
       <header className="flex flex-col gap-4 px-[var(--detail-page-inline-inset,0px)]">
         <ExtensionVisual className="size-[60px] rounded-2xl border border-default bg-transparent" extension={extension} size={28} />
@@ -790,17 +790,17 @@ function ExtensionDetail({ busy, extension, mutable, onBack, onInstall, onSetup,
                 size="sm"
                 variant={extension.installed && !extension.configured ? "primary" : "secondary"}
               >
-                {extension.configured ? "Edit setup" : "Set up"}
+                {extension.configured ? "設定を編集" : "設定する"}
               </OcButton>
             ) : null}
             {extension.installed ? (
-              <OcButton disabled={busy || !mutable} onClick={onUninstall} size="sm" tone="danger" variant="ghost">Uninstall</OcButton>
+              <OcButton disabled={busy || !mutable} onClick={onUninstall} size="sm" tone="danger" variant="ghost">アンインストール</OcButton>
             ) : (
               <OcButton
                 disabled={busy || !mutable || extension.lifecycle.receiptState === "invalid"}
                 onClick={onInstall}
                 size="sm"
-                title={extension.lifecycle.receiptState === "invalid" ? extension.lifecycle.error || "The installation receipt could not be verified." : undefined}
+                title={extension.lifecycle.receiptState === "invalid" ? extension.lifecycle.error || "インストール記録を確認できませんでした。" : undefined}
                 variant="primary"
               >
                 {extensionInstallActionLabel(extension, busy)}
@@ -811,17 +811,17 @@ function ExtensionDetail({ busy, extension, mutable, onBack, onInstall, onSetup,
       </header>
       {extension.lifecycle.receiptState === "invalid" ? (
         <div className="mx-2 rounded-xl border border-token-error-foreground/25 bg-token-error-background px-4 py-3 text-sm text-token-error-foreground" role="alert">
-          <div className="font-medium">Installation issue</div>
-          <div className="mt-1 whitespace-pre-wrap text-xs opacity-90">{extension.lifecycle.error || "The installation receipt could not be verified."}</div>
+          <div className="font-medium">インストールの問題</div>
+          <div className="mt-1 whitespace-pre-wrap text-xs opacity-90">{extension.lifecycle.error || "インストール記録を確認できませんでした。"}</div>
         </div>
       ) : null}
-      <DetailSection title="About">
-        <DetailRow label="Type" value={extensionCategoryLabel(extension.manifest.category)} />
-        <DetailRow label="Adds" value={extensionDestinationLabel(extension.manifest.category)} />
-        <DetailRow label="Sources" value={sourceCount ? `${sourceCount} local source${sourceCount === 1 ? "" : "s"}` : "No setup needed"} />
+      <DetailSection title="アプリ情報">
+        <DetailRow label="種類" value={extensionCategoryLabel(extension.manifest.category)} />
+        <DetailRow label="追加される内容" value={extensionDestinationLabel(extension.manifest.category)} />
+        <DetailRow label="出典" value={sourceCount ? `${sourceCount} local source${sourceCount === 1 ? "" : "s"}` : "No setup needed"} />
       </DetailSection>
       {(extension.manifest.sources?.length ?? 0) > 0 ? (
-        <DetailSection title="Sources">
+        <DetailSection title="出典">
           {extension.manifest.sources?.map((source) => {
             const configuration = extension.sourceConfiguration[source.id];
             return (
@@ -841,9 +841,9 @@ function ExtensionDetail({ busy, extension, mutable, onBack, onInstall, onSetup,
           })}
         </DetailSection>
       ) : null}
-      <DetailSection title="Information">
-        <DetailRow label="Developer" value={extension.manifest.developer} />
-        <DetailRow label="Version" value={extension.manifest.version} mono />
+      <DetailSection title="情報">
+        <DetailRow label="開発者" value={extension.manifest.developer} />
+        <DetailRow label="バージョン" value={extension.manifest.version} mono />
       </DetailSection>
     </div>
   );
@@ -894,7 +894,7 @@ function ExtensionSetupDialog({
       return;
     }
     try {
-      const result = await select({ mode, title: `Choose ${label}`, buttonLabel: "Choose" });
+      const result = await select({ mode, title: `選択 ${label}`, buttonLabel: "選択" });
       if (!result.canceled) setDraft((current) => ({ ...current, [sourceId]: { ...current[sourceId], path: result.path } }));
       setLocalError("");
     } catch (error) {
@@ -916,7 +916,7 @@ function ExtensionSetupDialog({
   }
 
   async function checkCredential(sourceId: string, host: string) {
-    setChecks((current) => ({ ...current, [sourceId]: { pending: true, message: "Checking…", ok: false } }));
+    setChecks((current) => ({ ...current, [sourceId]: { pending: true, message: "確認しています…", ok: false } }));
     try {
       const result = await onCheckCredential(sourceId);
       const message = !result.checked
@@ -951,17 +951,17 @@ function ExtensionSetupDialog({
           <div className="flex items-start gap-4 px-6 pt-8 pb-6">
             <ExtensionVisual className="size-[60px] rounded-2xl" extension={extension} size={28} />
             <div className="min-w-0 flex-1">
-              <h2 className="heading-lg text-token-foreground">Set up {extension.manifest.name}</h2>
-              <p className="mt-1 text-sm leading-5 text-token-text-secondary">These sources stay on this device and are available only to {extension.manifest.name}.</p>
+              <h2 className="heading-lg text-token-foreground">設定する {extension.manifest.name}</h2>
+              <p className="mt-1 text-sm leading-5 text-token-text-secondary">これらのソースはこのデバイスに保存され、次の拡張機能だけが使用できます： {extension.manifest.name}.</p>
             </div>
-            <OcIconButton disabled={busy} glyph="close" label="Close" onClick={onCancel} variant="ghost" />
+            <OcIconButton disabled={busy} glyph="close" label="閉じる" onClick={onCancel} variant="ghost" />
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
             <div className="flex flex-col gap-5">
               {extension.manifest.sources?.map((source) => source.kind === "filesystem" ? (
                 <div className="flex flex-col gap-2" key={source.id}>
                   <div>
-                    <div className="text-sm font-medium text-token-foreground">{source.label}{source.required ? " · Required" : ""}</div>
+                    <div className="text-sm font-medium text-token-foreground">{source.label}{source.required ? " · 必須" : ""}</div>
                     <div className="mt-0.5 text-sm text-token-description-foreground">{source.description}</div>
                   </div>
                   <div className="flex items-start gap-2">
@@ -975,13 +975,13 @@ function ExtensionSetupDialog({
                       showLabel={false}
                       value={draft[source.id]?.path ?? ""}
                     />
-                    <OcButton disabled={busy || accessProfile !== "live"} onClick={() => void choosePath(source.id, source.selection, source.label)} size="sm" variant="secondary">Choose</OcButton>
+                    <OcButton disabled={busy || accessProfile !== "live"} onClick={() => void choosePath(source.id, source.selection, source.label)} size="sm" variant="secondary">選択</OcButton>
                   </div>
                 </div>
               ) : source.kind === "credential" ? (
                 <div className="flex flex-col gap-2" key={source.id}>
                   <div>
-                    <div className="text-sm font-medium text-token-foreground">{source.label}{source.required ? " · Required" : ""}</div>
+                    <div className="text-sm font-medium text-token-foreground">{source.label}{source.required ? " · 必須" : ""}</div>
                     <div className="mt-0.5 text-sm text-token-description-foreground">{source.description}</div>
                   </div>
                   <div className="flex items-start gap-2">
@@ -991,7 +991,7 @@ function ExtensionSetupDialog({
                       disabled={busy}
                       label={source.label}
                       onChange={(event) => setSecrets((current) => ({ ...current, [source.id]: event.currentTarget.value }))}
-                      placeholder={extension.credentials[source.id] ? "Saved · paste a new key to replace it" : "Paste key"}
+                      placeholder={extension.credentials[source.id] ? "保存済み · 変更するには新しいキーを貼り付けてください" : "キーを貼り付け"}
                       showLabel={false}
                       spellCheck={false}
                       type="password"
@@ -1006,7 +1006,7 @@ function ExtensionSetupDialog({
                             size="sm"
                             variant="secondary"
                           >
-                            Check
+                            確認
                           </OcButton>
                         ) : null}
                         <OcButton
@@ -1016,7 +1016,7 @@ function ExtensionSetupDialog({
                           tone="danger"
                           variant="ghost"
                         >
-                          Remove
+                          削除
                         </OcButton>
                       </>
                     ) : null}
@@ -1030,7 +1030,7 @@ function ExtensionSetupDialog({
               ) : (
                 <div className="flex flex-col gap-2" key={source.id}>
                   <div>
-                    <div className="text-sm font-medium text-token-foreground">{source.label}{source.required ? " · Required" : ""}</div>
+                    <div className="text-sm font-medium text-token-foreground">{source.label}{source.required ? " · 必須" : ""}</div>
                     <div className="mt-0.5 text-sm text-token-description-foreground">{source.description}</div>
                   </div>
                   <div className="flex items-start gap-2">
@@ -1039,12 +1039,12 @@ function ExtensionSetupDialog({
                       label={source.label}
                       onChange={(deviceId) => setDraft((current) => ({ ...current, [source.id]: { ...current[source.id], device_id: deviceId } }))}
                       options={(devices[source.id] ?? []).map((device, index) => ({ value: device.deviceId, label: device.label || `${source.device} ${index + 1}` }))}
-                      placeholder={`Choose ${source.device}`}
+                      placeholder={`選択 ${source.device}`}
                       showLabel={false}
                       stretch
                       value={draft[source.id]?.device_id ?? ""}
                     />
-                    <OcButton disabled={busy || accessProfile !== "live"} onClick={() => void requestDevice(source.id, source.device)} size="sm" variant="secondary">Allow</OcButton>
+                    <OcButton disabled={busy || accessProfile !== "live"} onClick={() => void requestDevice(source.id, source.device)} size="sm" variant="secondary">許可</OcButton>
                   </div>
                 </div>
               ))}
@@ -1052,8 +1052,8 @@ function ExtensionSetupDialog({
             </div>
           </div>
           <OcDialogFooter>
-            <OcButton disabled={busy} onClick={onCancel} variant="ghost">Cancel</OcButton>
-            <OcButton disabled={busy || accessProfile !== "live" || missingRequired || invalidFilesystem} onClick={() => onSave(draft, secrets)} variant="primary">{busy ? "Saving…" : installAfterSave ? "Save and install" : "Save"}</OcButton>
+            <OcButton disabled={busy} onClick={onCancel} variant="ghost">キャンセル</OcButton>
+            <OcButton disabled={busy || accessProfile !== "live" || missingRequired || invalidFilesystem} onClick={() => onSave(draft, secrets)} variant="primary">{busy ? "保存しています…" : installAfterSave ? "保存してインストール" : "保存"}</OcButton>
           </OcDialogFooter>
         </>
       ) : null}
@@ -1072,12 +1072,12 @@ function ExtensionUninstallDialog({ busy, extension, onCancel, onConfirm }: {
       {extension ? (
         <>
           <div className="px-6 pt-8 pb-6">
-            <h2 className="heading-lg text-token-foreground">Uninstall {extension.manifest.name}?</h2>
-            <p className="mt-2 text-sm leading-5 text-token-text-secondary">This removes the extension from Octopus. Its setup is kept so you can install it again later.</p>
+            <h2 className="heading-lg text-token-foreground">アンインストール {extension.manifest.name}?</h2>
+            <p className="mt-2 text-sm leading-5 text-token-text-secondary">Octopus から拡張機能を削除します。あとで再インストールできるように設定は保持します。</p>
           </div>
           <OcDialogFooter>
-            <OcButton disabled={busy} onClick={onCancel} variant="ghost">Cancel</OcButton>
-            <OcButton disabled={busy} onClick={onConfirm} tone="danger" variant="secondary">{busy ? "Uninstalling…" : "Uninstall"}</OcButton>
+            <OcButton disabled={busy} onClick={onCancel} variant="ghost">キャンセル</OcButton>
+            <OcButton disabled={busy} onClick={onConfirm} tone="danger" variant="secondary">{busy ? "アンインストールしています…" : "アンインストール"}</OcButton>
           </OcDialogFooter>
         </>
       ) : null}
@@ -1100,38 +1100,38 @@ function ExtensionInstallDialog({ busy, extension, onCancel, onConfirm }: {
           <div className="px-6 pt-8 pb-6">
             <h2 className="heading-lg text-token-foreground">
               {invalid
-                ? `Installation issue with ${extension.manifest.name}`
+                ? `インストールの問題： ${extension.manifest.name}`
                 : extension.admission === "pending"
-                  ? `Review ${extension.manifest.name}${updating ? " update" : ""}?`
+                  ? `レビュー ${extension.manifest.name}${updating ? " update" : ""}?`
                   : updating
-                    ? `Update ${extension.manifest.name}?`
-                    : `Install ${extension.manifest.name}?`}
+                    ? `更新 ${extension.manifest.name}?`
+                    : `インストール ${extension.manifest.name}?`}
             </h2>
             <p className="mt-2 text-sm leading-5 text-token-text-secondary">
               {invalid
-                ? extension.lifecycle.error || "The installation receipt could not be verified."
+                ? extension.lifecycle.error || "インストール記録を確認できませんでした。"
                 : extension.admission === "pending"
-                ? "Octopus found a new local package revision. Review this exact version before installing it."
+                ? "ローカルパッケージの新しいリビジョンがあります。インストール前に、このバージョンの内容を確認してください。"
                 : extension.manifest.category === "repair"
-                  ? "This adds a guided repair that appears only when Octopus recognizes the matching problem and still waits for your confirmation."
-                  : `This adds ${extensionDestinationLabel(extension.manifest.category).toLowerCase()} and uses only the sources shown in its setup.`}
+                  ? "対応する問題を Octopus が検出したときに表示する修復ガイドを追加します。実行には引き続き確認が必要です。"
+                  : `追加する内容： ${extensionDestinationLabel(extension.manifest.category).toLowerCase()} 。設定画面に表示したソースだけを使います。`}
             </p>
             {extension.admission === "pending" ? (
               <dl className="mt-5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 rounded-xl border border-token-border/50 bg-token-foreground/3 px-3 py-3 text-sm">
-                <dt className="text-token-text-secondary">Version</dt><dd className="min-w-0 truncate font-mono text-xs text-token-foreground" title={extension.manifest.version}>{extension.manifest.version}</dd>
-                <dt className="text-token-text-secondary">Package fingerprint</dt><dd className="min-w-0 truncate font-mono text-xs text-token-foreground" title={extension.sourceDigest}>{extension.sourceDigest}</dd>
-                <dt className="text-token-text-secondary">Adds</dt><dd className="min-w-0 truncate text-token-foreground">{extensionDestinationLabel(extension.manifest.category)}</dd>
+                <dt className="text-token-text-secondary">バージョン</dt><dd className="min-w-0 truncate font-mono text-xs text-token-foreground" title={extension.manifest.version}>{extension.manifest.version}</dd>
+                <dt className="text-token-text-secondary">パッケージのフィンガープリント</dt><dd className="min-w-0 truncate font-mono text-xs text-token-foreground" title={extension.sourceDigest}>{extension.sourceDigest}</dd>
+                <dt className="text-token-text-secondary">追加される内容</dt><dd className="min-w-0 truncate text-token-foreground">{extensionDestinationLabel(extension.manifest.category)}</dd>
               </dl>
             ) : null}
           </div>
           <OcDialogFooter>
-            <OcButton disabled={busy} onClick={onCancel} variant="ghost">{invalid ? "Close" : extension.admission === "pending" ? "Dismiss" : "Cancel"}</OcButton>
+            <OcButton disabled={busy} onClick={onCancel} variant="ghost">{invalid ? "閉じる" : extension.admission === "pending" ? "閉じる" : "キャンセル"}</OcButton>
             <OcButton disabled={busy || invalid} onClick={onConfirm} variant="primary">
               {busy
-                ? updating ? "Updating…" : "Installing…"
+                ? updating ? "更新しています…" : "インストールしています…"
                 : extension.admission === "pending"
-                  ? updating ? "Review & update" : "Review & install"
-                  : updating ? "Update" : "Install"}
+                  ? updating ? "確認して更新" : "確認してインストール"
+                  : updating ? "更新" : "インストール"}
             </OcButton>
           </OcDialogFooter>
         </>
@@ -1230,10 +1230,10 @@ function revealInstalledTab(
 }
 
 function extensionCategoryLabel(category: ClientExtensionCategory): string {
-  if (category === "widget") return "Widget";
+  if (category === "widget") return "ウィジェット";
   if (category === "tab") return "Tab or panel";
-  if (category === "input") return "Input";
-  return "Repair";
+  if (category === "input") return "入力";
+  return "修復";
 }
 
 function extensionDestinationLabel(category: ClientExtensionCategory): string {

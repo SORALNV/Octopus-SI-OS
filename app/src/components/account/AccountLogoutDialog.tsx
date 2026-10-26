@@ -15,18 +15,18 @@ export function AccountLogoutDialog({ account, open, busy, onClose, onConfirm }:
       onConfirm();
     }}>
       <header className="account-logout-header">
-        <h2 id={titleId}>Log out?</h2>
-        {account?.email ? <p title={account.email}>Signed in as {account.email}</p> : null}
-        <OcIconButton className="account-logout-close" glyph="close" label="Close dialog" onClick={onClose} disabled={busy} variant="ghost" />
+        <h2 id={titleId}>ログアウトしますか？</h2>
+        {account?.email ? <p title={account.email}>ログイン中のアカウント {account.email}</p> : null}
+        <OcIconButton className="account-logout-close" glyph="close" label="ダイアログを閉じる" onClick={onClose} disabled={busy} variant="ghost" />
       </header>
       <div className="account-logout-description">
-        <p>You’ll need to sign in again to keep using ChatGPT in Octopus.</p>
-        <p>Applications and Homes using <code>{account?.credentialHome ?? "this native credential location"}</code> share this sign-in. Logging out removes the saved sign-in there; new ChatGPT requests need sign-in again.</p>
-        <p>Your Octopus Home and local Administrator access are kept.</p>
+        <p>Octopus で ChatGPT を使い続けるには、もう一度ログインする必要があります。</p>
+        <p>次の場所を使うアプリケーションとホームは <code>{account?.credentialHome ?? "このネイティブの認証情報の保存先"}</code> このログインを共有しています。ログアウトすると保存済みのログイン情報が削除され、ChatGPT に新たにリクエストする際に再ログインが必要になります。</p>
+        <p>Octopus のホームとローカルの管理者アクセスは保持されます。</p>
       </div>
       <footer className="account-logout-actions">
-        <OcButton buttonRef={cancelRef} variant="ghost" onClick={onClose} disabled={busy}>Cancel</OcButton>
-        <OcButton type="submit" tone="danger" disabled={busy || !account?.signedIn}>Log out</OcButton>
+        <OcButton buttonRef={cancelRef} variant="ghost" onClick={onClose} disabled={busy}>キャンセル</OcButton>
+        <OcButton type="submit" tone="danger" disabled={busy || !account?.signedIn}>ログアウト</OcButton>
       </footer>
     </form>
   </OcDialog>;

@@ -210,7 +210,7 @@ function ComposerLinkPopover({ activeLink, formRef, onClose, onSave }: {
   const [error, setError] = useState("");
   return (
     <form
-      aria-label="Link options"
+      aria-label="リンクの設定"
       className="fixed z-[120] grid w-[min(28rem,calc(100vw-2rem))] grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_auto] items-end gap-2 rounded-xl border border-token-border bg-token-dropdown-background/95 p-2 shadow-xl backdrop-blur-xl"
       onKeyDown={(event) => {
         if (event.key !== "Escape") return;
@@ -235,7 +235,7 @@ function ComposerLinkPopover({ activeLink, formRef, onClose, onSave }: {
       style={{ left: activeLink.left, top: activeLink.top, transform: "translateY(-100%)" }}
     >
       <label className="flex min-w-0 flex-col gap-1 text-[10px] text-token-description-foreground">
-        Text
+        テキスト
         <input
           autoFocus
           className="h-8 min-w-0 rounded-lg border border-token-border bg-token-input-background px-2 text-xs text-token-foreground outline-none focus:border-token-focus-border"
@@ -264,11 +264,11 @@ function ComposerLinkPopover({ activeLink, formRef, onClose, onSave }: {
           className="h-8 rounded-lg px-2 text-xs text-token-text-secondary hover:bg-token-list-hover-background focus-visible:outline focus-visible:outline-1 focus-visible:outline-token-focus-border"
           onClick={() => onSave(displayText.trim() || activeLink.displayText, null)}
           type="button"
-        >Remove</button>
+        >削除</button>
         <button
           className="h-8 rounded-lg bg-token-foreground px-2.5 text-xs text-token-dropdown-background focus-visible:outline focus-visible:outline-2 focus-visible:outline-token-focus-border"
           type="submit"
-        >Save</button>
+        >保存</button>
       </div>
       {error ? <span className="col-span-3 text-[10px] text-token-error-foreground" role="alert">{error}</span> : null}
     </form>

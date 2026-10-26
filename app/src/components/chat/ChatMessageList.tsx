@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../../locale";
 import { OcLoadingRows } from "../../design-system/LoadingSkeleton";
 import { Fragment, lazy, memo, Suspense, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent, type ReactNode } from "react";
 import { flushSync } from "react-dom";
@@ -531,7 +532,7 @@ export function ChatMessageList({
       && message.text
       && (activityPresentation === "ledger" || conversationSearchVisible(message, toolPresentations))
     ));
-    return [{ id: prompt.id, label: prompt.text || "(No content)", preview: response?.text || "" }];
+    return [{ id: prompt.id, label: prompt.text || "（内容なし）", preview: response?.text || "" }];
   });
 
   useLayoutEffect(() => {
@@ -614,7 +615,7 @@ export function ChatMessageList({
           >
             {footer ? <InteractiveHeroMark /> : <Glyph className="text-token-text-tertiary" name="chat" size={22} />}
             <h1 className="heading-xl font-normal whitespace-pre-wrap text-token-foreground">
-              {emptyLabel || "What should Octopus work on?"}
+              {emptyLabel || "Octopus に何を頼みますか？"}
             </h1>
           </div>
           {footer ? (
@@ -810,9 +811,9 @@ export function ChatMessageList({
                 turns={turns}
                 renderTurn={(turn, turnIndex) => (
                   <ChatRenderBoundary
-                    detail="The rest of the projected task is still available. Retry this local render or copy the details for diagnosis."
+                    detail="タスクの他の部分は引き続き利用できます。表示を再試行するか、診断用に詳細をコピーしてください。"
                     resetKey={turnRenderResetKey(turn)}
-                    title="This turn couldn't render"
+                    title="このやり取りを表示できませんでした"
                   >
                     <MemoizedChatTurn
                       activityPresentation={activityPresentation}
@@ -843,7 +844,7 @@ export function ChatMessageList({
               {presentationMessageCount === 0 && emptyState === "loading-task" ? (
                 <OctopusLoadingState
                   className="flex min-h-28 flex-1 items-center justify-center"
-                  label="Loading task"
+                  label="タスクを読み込んでいます"
                 />
               ) : null}
               {presentationMessageCount === 0 && emptyState !== "loading-task" && emptyLabel ? (
@@ -877,7 +878,7 @@ export function ChatMessageList({
               <div className="relative h-0">
                 <button
                   aria-hidden={!showScrollToLatest}
-                  aria-label={unseenMessageCount ? `Scroll to bottom · ${unseenMessageCount} new ${unseenMessageCount === 1 ? "message" : "messages"}` : "Scroll to bottom"}
+                  aria-label={unseenMessageCount ? `一番下に移動 · ${unseenMessageCount} new ${unseenMessageCount === 1 ? "件のメッセージ" : "件のメッセージ"}` : "一番下に移動"}
                   className={`cursor-interaction absolute z-30 flex h-8 w-8 translate-x-1/2 items-center justify-center rounded-full border border-token-border-default bg-token-main-surface-primary bg-clip-padding text-token-text-secondary transition-opacity duration-basic ease-in-out end-1/2 print:hidden bottom-[calc(100%+6*var(--spacing))] ${showScrollToLatest ? "opacity-100" : "pointer-events-none opacity-0"}`}
                   onClick={showScrollToLatest ? scrollToLatest : undefined}
                   tabIndex={showScrollToLatest ? undefined : -1}
@@ -1301,7 +1302,7 @@ function UserMessageNavigationRail({ activeId, items, onReveal }: {
   }
 
   return (
-    <nav aria-label="User message navigation" className="thread-user-navigation absolute top-1/2 left-4 z-20 -translate-y-1/2">
+    <nav aria-label="自分のメッセージへの移動" className="thread-user-navigation absolute top-1/2 left-4 z-20 -translate-y-1/2">
       <div
         className="thread-user-navigation-list vertical-scroll-fade-mask hide-scrollbar flex max-h-[min(70vh,40rem)] flex-col overflow-y-auto overscroll-contain"
         data-scrubbing={scrubbing || undefined}
@@ -1331,7 +1332,7 @@ function UserMessageNavigationRail({ activeId, items, onReveal }: {
           return (
             <button
               aria-current={item.id === activeId ? "true" : undefined}
-              aria-label={`Jump to user message ${index + 1}`}
+              aria-label={`自分のメッセージに移動 ${index + 1}`}
               className="thread-user-navigation-row group flex h-2.5 w-9 shrink-0 cursor-interaction items-center outline-none"
               data-user-navigation-index={index}
               key={item.id}
@@ -1780,7 +1781,7 @@ function UserMessage({ find, message, onEditUserMessage, onSteerUserMessage, ste
       <div className="group flex w-full flex-col items-end justify-end gap-1">
         <div className="chat-user-message-editor">
           <textarea
-            aria-label="Edit operator message"
+            aria-label="自分のメッセージを編集"
             autoFocus
             readOnly={editPending}
             onChange={(event) => setEditText(event.target.value)}
@@ -1800,15 +1801,15 @@ function UserMessage({ find, message, onEditUserMessage, onSteerUserMessage, ste
             value={editText}
           />
           {unavailable || editError ? <div className="chat-user-message-editor-note" role="alert">
-            {unavailable ? "This reply is no longer accepting edits. Your text has been kept." : editError}
+            {unavailable ? "この応答は編集を受け付けていません。入力した文章は保持されています。" : editError}
           </div> : null}
           <div className="chat-user-message-editor-actions">
             <OcButton disabled={editPending} onClick={() => {
               setEditIntent(null);
               setEditText(message.text);
-            }} size="xs" variant="ghost">Cancel</OcButton>
+            }} size="xs" variant="ghost">キャンセル</OcButton>
             <OcButton disabled={!editText.trim() || editPending || unavailable} onClick={() => void submitEdit()} size="xs" variant="primary">
-              {editPending ? "Sending…" : editIntent === "steer" ? "Send to current reply" : "Save and send"}
+              {editPending ? "送信しています…" : editIntent === "steer" ? "現在の応答に送信" : "保存して送信"}
             </OcButton>
           </div>
         </div>
@@ -1962,7 +1963,7 @@ function SelectableMessageText({ children, message, onPinMessageExcerpt, taskAct
 
   const items: Array<{ label: string; glyph: "copy" | "pinOff"; onClick: () => void }> = [
     {
-      label: "Copy",
+      label: "コピー",
       glyph: "copy",
       onClick: () => {
         void copyText(menu?.text ?? "");
@@ -1974,7 +1975,7 @@ function SelectableMessageText({ children, message, onPinMessageExcerpt, taskAct
   if (taskActionsEnabled && message.artifactId && menu) {
     const selection = menu;
     items.push({
-      label: "Pin selection",
+      label: "選択範囲を固定",
       glyph: "pinOff",
       onClick: () => {
         window.getSelection()?.removeAllRanges();
@@ -2147,14 +2148,14 @@ function AssistantEventContent({ find, message, onOpenAssistantReview, onOpenAss
       const active = lifecycle === "active";
       const label = dynamicToolReadLabel(presentation, lifecycle === "active");
       const action = presentation.kind === "search"
-        ? active ? "Searching" : "Searched"
+        ? active ? "検索中" : "検索済み"
         : presentation.kind === "list"
-          ? active ? "Listing" : "Listed"
-          : active ? "Reading" : "Read";
+          ? active ? "一覧を取得中" : "一覧を取得済み"
+          : active ? "読み込み中" : "読み取り";
       const detail = label.slice(action.length).trim();
       const copy = presentation.kind === "read" && presentation.target && presentation.pathLabel ? (
         <CadencedShimmerText active={active} highlight={label}>
-          <span className="octopus-activity-action">{action}</span>{presentation.targetKind === "artifact" ? " artifact " : " "}
+          <span className="octopus-activity-action">{action}</span>{presentation.targetKind === "artifact" ? " 成果物 " : " "}
           <TraceReadTarget message={message} presentation={presentation} onOpenFile={onOpenFile} />
         </CadencedShimmerText>
       ) : (
@@ -2179,7 +2180,7 @@ function AssistantEventContent({ find, message, onOpenAssistantReview, onOpenAss
         <div className="flex w-full min-w-0 flex-col items-stretch">
           <FileActivity message={dynamicToolFileMessage(message, presentation)} onOpenFile={(path) => onOpenFile(path, presentation.exactToolId)} />
           {activityLifecycle(message, eventString(data.status)) === "error"
-            ? <ActivityCodeBlock label="Error" text={dynamicToolResult(data)} />
+            ? <ActivityCodeBlock label="エラー" text={dynamicToolResult(data)} />
             : null}
         </div>
       );
@@ -2189,20 +2190,20 @@ function AssistantEventContent({ find, message, onOpenAssistantReview, onOpenAss
     return (
       <StructuredActivity
         glyph={dynamicToolGlyph(presentation)}
-        label={label || "Tool"}
+        label={label || "ツール"}
         status={lifecycle === "active" ? "running" : lifecycle}
         danger={lifecycle === "error"}
         relatedRuns={message.relatedRuns}
         details={presentation.operation ? [
           ...presentation.operation.details,
-          ["Details", eventRecord(data._payload_projection).truncated === true
-            && eventRecord(data._payload_projection).resolved !== true ? "Partial artifact preview" : ""],
+          ["詳細", eventRecord(data._payload_projection).truncated === true
+            && eventRecord(data._payload_projection).resolved !== true ? "成果物の一部をプレビュー" : ""],
         ] : [
-          ["Operation", [eventString(data.namespace), presentation.exactToolId].filter(Boolean).join(".")],
-          ["Details", eventRecord(data._payload_projection).truncated === true
-            && eventRecord(data._payload_projection).resolved !== true ? "Partial artifact preview" : ""],
-          ["Arguments", eventJson(data.arguments)],
-          [lifecycle === "error" ? "Error" : "Result", dynamicToolResult(data)],
+          ["操作", [eventString(data.namespace), presentation.exactToolId].filter(Boolean).join(".")],
+          ["詳細", eventRecord(data._payload_projection).truncated === true
+            && eventRecord(data._payload_projection).resolved !== true ? "成果物の一部をプレビュー" : ""],
+          ["引数", eventJson(data.arguments)],
+          [lifecycle === "error" ? "エラー" : "結果", dynamicToolResult(data)],
         ]}
       />
     );
@@ -2213,11 +2214,11 @@ function AssistantEventContent({ find, message, onOpenAssistantReview, onOpenAss
   if (kind === "image_view" || kind === "image_generation") {
     const path = eventString(data.path);
     const revisedPrompt = eventString(data.revisedPrompt) || eventString(data.revised_prompt);
-    return <StructuredActivity glyph="image" label={kind === "image_generation" ? "Image generation" : "Viewed image"} status={eventString(data.status)} details={[["Path", path], ["Prompt", revisedPrompt], ["Result", eventJson(data.result)]]} />;
+    return <StructuredActivity glyph="image" label={kind === "image_generation" ? "画像生成" : "画像を確認しました"} status={eventString(data.status)} details={[["パス", path], ["プロンプト", revisedPrompt], ["結果", eventJson(data.result)]]} />;
   }
   if (kind === "sleep") {
     const duration = eventNumber(data.durationMs ?? data.duration_ms);
-    return <StructuredActivity glyph="scheduled" label="Waiting" status={duration ? formatLatency(duration) : ""} details={[]} />;
+    return <StructuredActivity glyph="scheduled" label="待機中" status={duration ? formatLatency(duration) : ""} details={[]} />;
   }
   if (kind === "review_entered" || kind === "review_exited" || kind === "auto_review_started" || kind === "auto_review_completed") {
     const label = kind === "review_entered"
@@ -2225,7 +2226,7 @@ function AssistantEventContent({ find, message, onOpenAssistantReview, onOpenAss
       : kind === "review_exited"
         ? "Exited review mode"
         : kind === "auto_review_started"
-          ? "Reviewing changes"
+          ? "変更をレビューしています"
           : "Reviewed changes";
     return <StructuredActivity glyph="changes" label={label} status={eventString(data.status)} details={[["Review", message.text || eventString(data.review)], ["Decision", eventJson(data.decision)]]} />;
   }
@@ -2235,7 +2236,7 @@ function AssistantEventContent({ find, message, onOpenAssistantReview, onOpenAss
     const active = data.completed === false || activityLifecycle(message, eventString(data.status)) === "active";
     const label = active
       ? automatic ? "Context automatically compacting" : "Compacting context"
-      : automatic ? "Context automatically compacted" : "Context compacted";
+      : automatic ? "コンテキストを自動で整理しました" : "コンテキストを整理しました";
     return (
       <div className="octopus-inline-activity min-w-0">
         <Glyph aria-hidden="true" className="icon-xs shrink-0" name="compact" />
@@ -2246,11 +2247,11 @@ function AssistantEventContent({ find, message, onOpenAssistantReview, onOpenAss
   if (kind === "model_rerouted" || kind === "model_verification") {
     const from = eventString(data.fromModel) || eventString(data.from_model);
     const to = eventString(data.toModel) || eventString(data.to_model);
-    return <ConversationNotice glyph="pulse" title={kind === "model_rerouted" ? "Model rerouted" : "Model route verified"} detail={[from, to].filter(Boolean).join(" → ") || message.text} />;
+    return <ConversationNotice glyph="pulse" title={kind === "model_rerouted" ? "モデルの接続先を変更しました" : "モデルの接続経路を確認しました"} detail={[from, to].filter(Boolean).join(" → ") || message.text} />;
   }
   if (kind === "auth_recovery_started" || kind === "auth_recovery_completed") {
     const completed = kind === "auth_recovery_completed";
-    return <ConversationNotice glyph={completed ? "check" : "pulse"} title={message.text || (completed ? "Authentication recovered" : "Recovering authentication")} detail={eventString(data.provider)} />;
+    return <ConversationNotice glyph={completed ? "check" : "pulse"} title={message.text || (completed ? "認証が復旧しました" : "認証を復旧しています")} detail={eventString(data.provider)} />;
   }
   if (kind === "warning") {
     if (eventString(data.source) === "model_safety_buffering") {
@@ -2258,24 +2259,24 @@ function AssistantEventContent({ find, message, onOpenAssistantReview, onOpenAss
       return (
         <ConversationNotice
           glyph="pulse"
-          title={eventString(data.message) || message.text || (visible ? "The model is taking extra time to review this request before responding." : "The model's additional review period has ended.")}
-          detail={visible ? "No action is required. Octopus will keep waiting for the response." : ""}
+          title={eventString(data.message) || message.text || (visible ? "モデルが応答前にリクエストを確認しており、通常より時間がかかっています。" : "モデルによる追加の確認期間が終了しました。")}
+          detail={visible ? "操作は不要です。Octopus は応答を待ち続けます。" : ""}
         />
       );
     }
-    return <ConversationNotice danger glyph="warning" title={eventString(data.message) || message.text || "Warning"} detail={eventString(data.detail)} />;
+    return <ConversationNotice danger glyph="warning" title={eventString(data.message) || message.text || "警告"} detail={eventString(data.detail)} />;
   }
   if (kind === "rate_limits") {
-    return <StructuredActivity glyph="pulse" label="Rate limits updated" status="" details={rateLimitDetails(data)} />;
+    return <StructuredActivity glyph="pulse" label="使用上限を更新しました" status="" details={rateLimitDetails(data)} />;
   }
   if (kind === "turn_started" || kind === "turn_completed" || kind === "item_started") {
     return <LifecycleEvidence kind={kind} message={message} />;
   }
   if (kind === "operator_request_resolved") {
-    return <ConversationNotice glyph="check" title="Operator request resolved" detail={message.text} />;
+    return <ConversationNotice glyph="check" title="ユーザーへのリクエストが解決しました" detail={message.text} />;
   }
   if (kind === "usage") {
-    return <StructuredActivity glyph="pulse" label="Usage recorded" status="complete" details={usageDetails(data)} />;
+    return <StructuredActivity glyph="pulse" label="使用状況を記録しました" status="complete" details={usageDetails(data)} />;
   }
   if (kind === "hook" || kind === "hook_prompt") {
     const outputs = Array.isArray(data.outputs)
@@ -2405,7 +2406,7 @@ function traceReadArtifactReference(message: ChatRenderMessage, presentation: Dy
   }
   return {
     artifactId, runId: message.runId, interfaceId,
-    label: `${presentation.pathLabel}${offset !== 0 || body.truncated ? " (read excerpt)" : ""}`,
+    label: `${presentation.pathLabel}${offset !== 0 || body.truncated ? " （抜粋を読み取り）" : ""}`,
     source: "message", inlinePayload: body.text,
   };
 }
@@ -2416,8 +2417,8 @@ function WebSearchActivity({ active, detail }: { active: boolean; detail: string
     <div className="octopus-inline-activity min-w-0">
       <Glyph className="icon-xs shrink-0" name="search" />
       <CadencedShimmerText active={active} className="min-w-0 truncate" highlight={label}>
-        <span className="octopus-activity-action">{active ? "Searching the web" : "Searched the web"}</span>
-        {detail ? <>{" "}<span className="octopus-activity-detail">for {detail}</span></> : null}
+        <span className="octopus-activity-action">{active ? "ウェブを検索しています" : "ウェブを検索しました"}</span>
+        {detail ? <>{" "}<span className="octopus-activity-detail">対象 {detail}</span></> : null}
       </CadencedShimmerText>
     </div>
   );
@@ -2436,19 +2437,19 @@ function ExecActivity({ message, onOpenFile }: { message: ChatRenderMessage; onO
   if (parsedType === "read" || parsedType === "search" || parsedType === "list_files") {
     const displayTarget = parsedType === "read" ? activityPathLabel(target) : target;
     const action = parsedType === "read"
-      ? active ? "Reading" : "Read"
+      ? active ? "読み込み中" : "読み取り"
       : parsedType === "search"
-        ? active ? "Searching" : "Searched"
-        : active ? "Listing" : "Listed";
+        ? active ? "検索中" : "検索済み"
+        : active ? "一覧を取得中" : "一覧を取得済み";
     const label = parsedType === "read"
       ? [action, displayTarget || command].filter(Boolean).join(" ")
       : parsedType === "search"
         ? query
-          ? `${action} for ${query}${target ? ` in ${target}` : ""}`
+          ? `${action} 対象 ${query}${target ? ` in ${target}` : ""}`
           : active && target
             ? `${action} files in ${activityPathLabel(target)} folder`
             : `${action} for files`
-        : `${action} files${target ? ` in ${target}` : ""}`;
+        : `${action} ファイル${target ? ` in ${target}` : ""}`;
     const detail = label.slice(action.length).trim();
     const copy = parsedType === "read" && target ? (
       <CadencedShimmerText active={active} highlight={label}>
@@ -2529,8 +2530,8 @@ function CommandActivity({ command, isCode = false, message }: {
   const summaryCommand = expanded ? "" : command;
   const operation = isCode ? "code" : "command";
   const summary = observedRunning ? `${isCode ? "Code" : "Command"} running at last check` : model.phase === "running"
-    ? `${model.yielded ? `${isCode ? "Code" : "Command"} still running` : `Running ${operation}`}${elapsed ? ` for ${elapsed}` : ""}`
-    : `${model.phase === "interrupted" ? "Stopped" : model.phase === "timed_out" ? "Timed out" : model.phase === "failed" ? "Failed" : model.phase === "unknown" ? "Outcome unknown for" : "Ran"}${summaryCommand ? ` ${summaryCommand}` : ` ${operation}`}${elapsed ? ` for ${elapsed}` : ""}`;
+    ? `${model.yielded ? `${isCode ? "Code" : "Command"} still running` : `実行中 ${operation}`}${elapsed ? ` 対象 ${elapsed}` : ""}`
+    : `${model.phase === "interrupted" ? "Stopped" : model.phase === "timed_out" ? "タイムアウト" : model.phase === "failed" ? "Failed" : model.phase === "unknown" ? "Outcome unknown for" : "Ran"}${summaryCommand ? ` ${summaryCommand}` : ` ${operation}`}${elapsed ? ` 対象 ${elapsed}` : ""}`;
   const success = model.phase === "exited" && model.exitCode === 0;
   const shellCommand = command;
   const outputSections = model.sections.map((section) => ({ ...section, text: normalizeTerminalControl(section.text) }));
@@ -2566,7 +2567,7 @@ function CommandActivity({ command, isCode = false, message }: {
       >
         <div className="octopus-exec-activity-body-inner" ref={bodyRef}>
           <div className="octopus-exec-shell">
-            <div className="octopus-exec-shell-label">{isCode ? "Code" : "Shell"}</div>
+            <div className="octopus-exec-shell-label">{isCode ? "コード" : "シェル"}</div>
             {shellCommand ? <div className="octopus-exec-shell-command-row group/command">
               <button
                 aria-label={isCode ? shellCommand : `$ ${shellCommand}`}
@@ -2578,8 +2579,8 @@ function CommandActivity({ command, isCode = false, message }: {
                 {isCode ? null : <span aria-hidden="true">$</span>}
                 <code>{shellCommand}</code>
               </button>
-              <ShellCopyButton label={isCode ? "Copy code" : "Copy command"} value={shellCommand} />
-            </div> : <div className="octopus-exec-shell-no-output" role="status">Command unavailable</div>}
+              <ShellCopyButton label={isCode ? "コードをコピー" : "コマンドをコピー"} value={shellCommand} />
+            </div> : <div className="octopus-exec-shell-no-output" role="status">コマンドを利用できません</div>}
             {terminalInputs.map((input, index) => (
               <pre className="octopus-exec-shell-input" key={`${input}:${index}`}><span aria-hidden="true">&gt; </span>{input}</pre>
             ))}
@@ -2587,14 +2588,14 @@ function CommandActivity({ command, isCode = false, message }: {
               <pre className="octopus-exec-shell-output vertical-scroll-fade-mask">
                 <span className="octopus-exec-shell-output-content">
                   {section.stream ? <span className="octopus-exec-shell-label">{section.stream}{"\n"}</span> : null}
-                  {section.text ? <TerminalAnsiText text={section.text} /> : lifecycle === "active" ? null : <span className="octopus-exec-shell-no-output">{model.notices.length || model.phase === "unknown" ? "No output available" : "No output"}</span>}
+                  {section.text ? <TerminalAnsiText text={section.text} /> : lifecycle === "active" ? null : <span className="octopus-exec-shell-no-output">{model.notices.length || model.phase === "unknown" ? "取得できる出力がありません" : "出力なし"}</span>}
                 </span>
               </pre>
-              <ShellCopyButton label={section.stream ? `Copy ${section.stream}` : "Copy output"} value={section.text} />
+              <ShellCopyButton label={section.stream ? `コピー ${section.stream}` : "出力をコピー"} value={section.text} />
             </div>)}
             <div className="octopus-exec-shell-footer">
               {success ? (
-                <span className="octopus-exec-shell-success"><Glyph aria-hidden="true" name="check" size={10} />Success</span>
+                <span className="octopus-exec-shell-success"><Glyph aria-hidden="true" name="check" size={10} />成功</span>
               ) : (
                 <span>{commandOutcomeLabel(model, isCode)}</span>
               )}
@@ -2634,8 +2635,8 @@ function ShellCopyButton({ label, value }: { label: string; value: string }) {
 
   return (
     <span className="octopus-exec-shell-copy-anchor">
-      <MessageTooltip label={copied ? "Copied" : label}>
-        <button aria-label={copied ? "Copied" : label} className="octopus-exec-shell-copy" onClick={copied ? undefined : onCopy} type="button">
+      <MessageTooltip label={copied ? "コピーしました" : label}>
+        <button aria-label={copied ? "コピーしました" : label} className="octopus-exec-shell-copy" onClick={copied ? undefined : onCopy} type="button">
           <Glyph aria-hidden="true" name={copied ? "check" : "copy"} size={14} />
         </button>
       </MessageTooltip>
@@ -2812,7 +2813,7 @@ function DynamicToolExecActivity({ message, onOpenFile }: {
   return (
     <>
       <ExecActivity message={dynamicToolExecMessage({ ...message, eventData: data })} onOpenFile={onOpenFile} />
-      {payloadError ? <div className="activity-command-error">Full command output unavailable · {payloadError}</div> : null}
+      {payloadError ? <div className="activity-command-error">コマンドの全出力を取得できません · {payloadError}</div> : null}
     </>
   );
 }
@@ -2959,7 +2960,7 @@ function FileActivity({ message, onOpenFile }: { message: ChatRenderMessage; onO
     return (
       <div className="octopus-inline-activity min-w-0">
         <Glyph aria-hidden="true" className="icon-xs shrink-0" name="edit" />
-        <CadencedShimmerText>Editing files</CadencedShimmerText>
+        <CadencedShimmerText>ファイルを編集中</CadencedShimmerText>
       </div>
     );
   }
@@ -2984,7 +2985,7 @@ function FileActivity({ message, onOpenFile }: { message: ChatRenderMessage; onO
   return (
     <div className="activity-file-list">
       {changes.map((change, index) => {
-        const path = change.path || `File ${index + 1}`;
+        const path = change.path || `ファイル ${index + 1}`;
         const changeKind = change.kind || "edit";
         return (
           <FileChangeActivity
@@ -3000,7 +3001,7 @@ function FileActivity({ message, onOpenFile }: { message: ChatRenderMessage; onO
           />
         );
       })}
-      {payloadError ? <div className="activity-file-error">Full diff unavailable · {payloadError}</div> : null}
+      {payloadError ? <div className="activity-file-error">差分の全体を取得できません · {payloadError}</div> : null}
     </div>
   );
 }
@@ -3065,7 +3066,7 @@ function FileChangeActivity({ added, changeKind, deleted, detailsLoading = false
       <div className="activity-file-header group/activity-header">
         <button
           aria-expanded={expanded}
-          aria-label={`Toggle diff for ${activityPathLabel(path)}`}
+          aria-label={`差分表示を切り替え： ${activityPathLabel(path)}`}
           className="activity-file-disclosure-button cursor-interaction"
           onClick={() => setExpanded((current) => !current)}
           type="button"
@@ -3080,11 +3081,11 @@ function FileChangeActivity({ added, changeKind, deleted, detailsLoading = false
         transition={{ duration: reducedMotion ? 0 : 0.3, ease: [0.19, 1, 0.22, 1] }}
       >
         {detailsLoading ? (
-          <OcLoadingRows className="activity-file-empty-detail" label="Loading full diff…" />
+          <OcLoadingRows className="activity-file-empty-detail" label="差分の全体を読み込んでいます…" />
         ) : diff.trim() ? (
           <InlineUnifiedDiff added={added} changeKind={changeKind} deleted={deleted} diff={diff} path={path} />
         ) : (
-          <div className="activity-file-empty-detail">{verifiedNoContentChange ? "No changes" : "Diff unavailable"}</div>
+          <div className="activity-file-empty-detail">{verifiedNoContentChange ? "変更なし" : "差分を取得できません"}</div>
         )}
       </motion.div>
     </div>
@@ -3152,7 +3153,7 @@ function projectedActivityFileChanges(
       deleted: optionalEventNumber(change.deleted ?? change.lines_removed ?? change.linesRemoved),
       diff: eventString(change.diff ?? change.unified_diff ?? change.unifiedDiff),
       kind: activityFileChangeKind(change.kind ?? change.type),
-      path: activityFileChangePath(change) || `File ${index + 1}`,
+      path: activityFileChangePath(change) || `ファイル ${index + 1}`,
     }))
     : changedPaths.map((path) => ({ kind: "update" as const, path }));
   if (!base.length) return parsed;
@@ -3180,7 +3181,7 @@ function unifiedDiffFileChanges(diff: string): ProjectedActivityFileChange[] {
     ? starts.map((start, index) => diff.slice(start, starts[index + 1] ?? diff.length))
     : [diff];
   return sections.flatMap((section, index) => {
-    const path = unifiedDiffFilePath(section) || (sections.length === 1 ? "files" : `File ${index + 1}`);
+    const path = unifiedDiffFilePath(section) || (sections.length === 1 ? "files" : `ファイル ${index + 1}`);
     let added = 0;
     let deleted = 0;
     let inHunk = false;
@@ -3217,7 +3218,7 @@ function InlineUnifiedDiff({ added, changeKind, deleted, diff, path }: {
   path: string;
 }) {
   return (
-    <Suspense fallback={<OcLoadingRows className="activity-file-diff-loading" label="Loading diff…" />}>
+    <Suspense fallback={<OcLoadingRows className="activity-file-diff-loading" label="差分を読み込んでいます…" />}>
       <WorkingPatchDiff added={added} changeKind={changeKind} deleted={deleted} patch={diff} path={path} />
     </Suspense>
   );
@@ -3236,7 +3237,7 @@ function CollaborationActivity({ message }: { message: ChatRenderMessage }) {
         ? `${humanizeStatus(kind || "activity")} ${agentPath || "subagent"}`
         : `${humanizeStatus(tool || "collaboration")} ${receivers.length ? receivers.join(", ") : agentPath}`.trim()}
       status={eventString(data.status)}
-      details={[["Prompt", eventString(data.prompt)], ["Model", eventString(data.model)], ["Reasoning", eventString(data.reasoningEffort ?? data.reasoning_effort)]]}
+      details={[["プロンプト", eventString(data.prompt)], ["Model", eventString(data.model)], ["Reasoning", eventString(data.reasoningEffort ?? data.reasoning_effort)]]}
     />
   );
 }
@@ -3436,7 +3437,7 @@ function MessageActions({
   isLatestTurn = true,
   onContinueInNewTask,
   onEditUserMessage,
-  editLabel = "Edit message",
+  editLabel = "メッセージを編集",
   onTogglePinnedMessage,
   pinned,
   pinning,
@@ -3463,7 +3464,7 @@ function MessageActions({
   const buttons = (
     <div className="flex items-center gap-0.5">
       {message.text ? (
-        <CopyActionButton label={user ? "Copy message" : "Copy"} value={message.text} />
+        <CopyActionButton label={user ? "メッセージをコピー" : "コピー"} value={message.text} />
       ) : null}
       {taskActionsEnabled && user && onEditUserMessage && message.eventKind !== "steering" && !message.pending ? (
         <MessageActionButton
@@ -3478,7 +3479,7 @@ function MessageActions({
           active={pinned}
           disabled={pinning}
           glyph={pinned ? "pin" : "pinOff"}
-          label={pinned ? "Unpin message" : "Pin message for future turns"}
+          label={pinned ? "メッセージの固定を解除" : "今後のやり取りのためにメッセージを固定"}
           onClick={() => void onTogglePinnedMessage(message)}
         />
       ) : null}
@@ -3513,7 +3514,7 @@ function MessageActions({
         {buttons}
       </div>
       {typeof message.eventData?._client_text_edit === "object" && message.eventData._client_text_edit ? (
-        <span className="ml-1.5 text-xs text-tertiary" title={`Edited display text. Original: ${String((message.eventData._client_text_edit as Record<string, unknown>).original_text ?? "")}`}>Edited</span>
+        <span className="ml-1.5 text-xs text-tertiary" title={`表示文を編集済み。原文： ${String((message.eventData._client_text_edit as Record<string, unknown>).original_text ?? "")}`}>編集済み</span>
       ) : null}
       <span className="ml-1.5 flex h-full items-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100" data-assistant-message-sent-time="true">
         <time className="text-xs text-tertiary" dateTime={new Date(message.createdAtMs).toISOString()}>
@@ -3539,7 +3540,7 @@ function ContinueTaskAction({ isLatestTurn, message, onContinue }: {
     <>
       <MessageActionButton
         glyph="worktree"
-        label="Save and send"
+        label="保存して送信"
         onClick={() => isLatestTurn ? continueTask() : setConfirmOpen(true)}
       />
       <OcDialog
@@ -3551,17 +3552,17 @@ function ContinueTaskAction({ isLatestTurn, message, onContinue }: {
         panelClassName="continue-task-dialog"
       >
             <OcDialogHeader
-              description="Later artifacts and external changes remain in the current task, so the new task may not match its latest projected state."
+              description="これより後の成果物や外部での変更は現在のタスクに残るため、新しいタスクは最新の状態とは一致しない場合があります。"
               leading={<Glyph name="worktree" size={18} />}
-              title="Continue from this message?"
+              title="このメッセージから続けますか？"
               titleId="continue-task-dialog-title"
             />
             <button autoFocus className="continue-task-dialog-choice" onClick={continueTask} ref={choiceRef} type="button">
               <Glyph name="newTask" size={16} />
-              <span><strong>New task</strong><small>Continue from this message in a new Octopus task</small></span>
+              <span><strong>新しいタスク</strong><small>このメッセージから新しい Octopus タスクで続ける</small></span>
             </button>
             <OcDialogFooter>
-              <OcButton onClick={() => setConfirmOpen(false)} size="sm" variant="secondary">Cancel</OcButton>
+              <OcButton onClick={() => setConfirmOpen(false)} size="sm" variant="secondary">キャンセル</OcButton>
             </OcDialogFooter>
       </OcDialog>
     </>
@@ -3627,7 +3628,7 @@ function ReadAloudActionButton({ messageId, text }: { messageId: string; text: s
     <MessageActionButton
       active={speaking}
       glyph={speaking ? "stop" : "volume"}
-      label={speaking ? "Stop reading" : "Read aloud"}
+      label={speaking ? "読み上げを停止" : "読み上げ"}
       onClick={() => {
         if (speaking) {
           window.speechSynthesis.cancel();
@@ -3683,9 +3684,9 @@ function CopyActionButton({
   }
 
   return (
-    <MessageTooltip label={copied ? "Copied" : title}>
+    <MessageTooltip label={copied ? "コピーしました" : title}>
       <button
-        aria-label={copied ? "Copied" : label}
+        aria-label={copied ? "コピーしました" : label}
         className={ACTION_BUTTON}
         onClick={onCopy}
         type="button"
@@ -3720,16 +3721,16 @@ function formatMessageTime(value: number): string {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const dayDelta = Math.round((sentDay.getTime() - today.getTime()) / 86_400_000);
   if (dayDelta === 0) {
-    return new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(sent);
+    return new Intl.DateTimeFormat(APP_LOCALE, { hour: "numeric", minute: "2-digit" }).format(sent);
   }
   if (dayDelta < 0 && dayDelta > -7) {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat(APP_LOCALE, {
       weekday: "long",
       hour: "numeric",
       minute: "2-digit",
     }).format(sent);
   }
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(APP_LOCALE, {
     month: "short",
     day: "numeric",
     hour: "numeric",

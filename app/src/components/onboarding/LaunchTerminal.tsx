@@ -32,7 +32,7 @@ export function LaunchTerminal({
   const exitVisible = leaving && phase !== "greeting";
 
   return (
-    <main aria-label="Octopus launch" className="launch-scene" data-leaving={exitVisible || undefined} data-phase={phase}>
+    <main aria-label="Octopus の起動" className="launch-scene" data-leaving={exitVisible || undefined} data-phase={phase}>
       <div className="launch-scene-terminal">
         <OctopusTerminal id="terminal-panel-launch" session={session} />
       </div>

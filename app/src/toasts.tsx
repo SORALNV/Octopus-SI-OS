@@ -203,7 +203,7 @@ function AppToastItem({ toast }: { toast: AppToast }) {
         )}
         <div className="app-toast-content">
           <span>{toast.title}</span>
-          {toast.count > 1 ? <span aria-label={`Repeated ${toast.count} times`} className="app-toast-count">{toast.count}</span> : null}
+          {toast.count > 1 ? <span aria-label={`繰り返し ${toast.count}回`} className="app-toast-count">{toast.count}</span> : null}
         </div>
         {toast.action ? (
           <button
@@ -217,7 +217,7 @@ function AppToastItem({ toast }: { toast: AppToast }) {
             {toast.action.label}
           </button>
         ) : null}
-        <button aria-label="Close" className="app-toast-close" onClick={() => closeToast(toast.id)} type="button">
+        <button aria-label="閉じる" className="app-toast-close" onClick={() => closeToast(toast.id)} type="button">
           <Glyph name="close" size={16} />
         </button>
       </div>

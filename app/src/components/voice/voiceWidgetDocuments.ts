@@ -49,7 +49,7 @@ export function buildVoiceWidgetDocuments(input: {
       release_channel: "lab",
       id: "builtin.voice.live-context",
       revision: 4,
-      title: "Live context",
+      title: "現在の状況",
       glyph: "layers",
       target: {
         kind: "voice.widget",
@@ -89,7 +89,7 @@ export function buildVoiceWidgetDocuments(input: {
       release_channel: "lab",
       id: "builtin.voice.insights",
       revision: 4,
-      title: "Insights",
+      title: "気づき",
       glyph: "insights",
       target: {
         kind: "voice.widget",
@@ -142,7 +142,7 @@ export function buildVoiceWidgetDocuments(input: {
       release_channel: "lab",
       id: "builtin.voice.task-progress",
       revision: 3,
-      title: "Task progress",
+      title: "タスクの進捗",
       glyph: "progress",
       header: { show_glyph: true, tone: "accent" },
       target: {
@@ -171,13 +171,13 @@ export function buildVoiceWidgetDocuments(input: {
             : [{
             type: "donut",
             value: input.taskProgress.completion,
-            label: "Complete",
+            label: "完了",
             segments: [
-              { label: "Done", value: input.taskProgress.unseenDone, tone: "positive" },
-              { label: "Running", value: input.taskProgress.running, tone: "accent" },
-              { label: "Waiting", value: input.taskProgress.waiting, tone: "warning" },
-              { label: "Failed", value: input.taskProgress.failed, tone: "danger" },
-              { label: "Scheduled", value: input.taskProgress.scheduled, tone: "muted" },
+              { label: "完了", value: input.taskProgress.unseenDone, tone: "positive" },
+              { label: "実行中", value: input.taskProgress.running, tone: "accent" },
+              { label: "待機中", value: input.taskProgress.waiting, tone: "warning" },
+              { label: "失敗", value: input.taskProgress.failed, tone: "danger" },
+              { label: "スケジュール済み", value: input.taskProgress.scheduled, tone: "muted" },
             ],
           }],
         },
@@ -189,7 +189,7 @@ export function buildVoiceWidgetDocuments(input: {
       release_channel: "lab",
       id: "builtin.voice.upcoming-scheduled",
       revision: 2,
-      title: "Upcoming scheduled",
+      title: "今後の予定",
       glyph: "scheduled",
       header: { show_glyph: true, tone: "accent" },
       target: {
@@ -228,7 +228,7 @@ export function buildVoiceWidgetDocuments(input: {
       release_channel: "lab",
       id: "builtin.voice.active-tools",
       revision: 5,
-      title: "Active tools",
+      title: "実行中のツール",
       glyph: "plugins",
       target: {
         kind: "voice.widget",
@@ -270,7 +270,7 @@ export function buildVoiceWidgetDocuments(input: {
       release_channel: "lab",
       id: "builtin.voice.current-goals",
       revision: 4,
-      title: "Current goals",
+      title: "現在の目標",
       glyph: "target",
       target: {
         kind: "voice.widget",
@@ -295,7 +295,7 @@ export function buildVoiceWidgetDocuments(input: {
           children: [
             ...input.goals.slice(0, 3).map((item, index): ClientSurfaceNode => ({
               type: "key_value",
-              label: `Goal ${index + 1}`,
+              label: `目標 ${index + 1}`,
               tone: item.tone,
               value: item.label,
             })),
@@ -310,7 +310,7 @@ export function buildVoiceWidgetDocuments(input: {
       release_channel: "lab",
       id: "builtin.voice.memory",
       revision: 5,
-      title: "Memory",
+      title: "メモリ",
       glyph: "memory",
       target: {
         kind: "voice.widget",
@@ -333,9 +333,9 @@ export function buildVoiceWidgetDocuments(input: {
           type: "stack",
           gap: "xs",
           children: [
-            { type: "key_value", label: "Files", value: { path: "sources.vault.files", fallback: memorySummary(input.memory), format: "number" } },
-            { type: "key_value", label: "Recent", value: { path: "sources.vault.entries.0.path", fallback: input.memory[0]?.label || "Nothing available" } },
-            { type: "key_value", label: "Source", value: { path: "sources.vault.name", fallback: input.memory.length ? "Bound artifacts" : "Not configured" } },
+            { type: "key_value", label: "ファイル", value: { path: "sources.vault.files", fallback: memorySummary(input.memory), format: "number" } },
+            { type: "key_value", label: "最近", value: { path: "sources.vault.entries.0.path", fallback: input.memory[0]?.label || "Nothing available" } },
+            { type: "key_value", label: "ソース", value: { path: "sources.vault.name", fallback: input.memory.length ? "Bound artifacts" : "Not configured" } },
             footer("View memory", "voice.open-detail", "memory"),
           ],
         },

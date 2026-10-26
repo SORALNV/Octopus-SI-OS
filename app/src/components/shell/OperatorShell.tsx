@@ -898,23 +898,23 @@ export function OperatorShell({ accessProfile, clientWindow, onLogOut, runtimeHo
   const secondaryPaneTabs = useMemo<WorkspacePaneTab[]>(() => secondaryTabs.map((tab) => {
     const target = tab.target;
     if (target.kind === "launcher") {
-      return { glyph: "browser" as const, id: tab.id, launcher: true, showWhenSingle: true, title: "New tab" };
+      return { glyph: "browser" as const, id: tab.id, launcher: true, showWhenSingle: true, title: "新しいタブ" };
     }
     if (target.kind === "files") {
-      return { glyph: "folder" as const, id: tab.id, showWhenSingle: true, title: "Files" };
+      return { glyph: "folder" as const, id: tab.id, showWhenSingle: true, title: "ファイル" };
     }
     if (target.kind === "terminal") {
       const terminals = secondaryTabs.filter((candidate) => candidate.target.kind === "terminal");
       const terminalIndex = terminals.findIndex((candidate) => candidate.id === tab.id);
-      const fallback = terminals.length > 1 ? `Terminal ${terminalIndex + 1}` : "Terminal";
+      const fallback = terminals.length > 1 ? `ターミナル ${terminalIndex + 1}` : "Terminal";
       return { glyph: "terminal" as const, id: tab.id, showWhenSingle: true, title: target.title || fallback };
     }
     if (target.kind === "task_sources") {
-      return { glyph: "viewAll" as const, id: tab.id, showWhenSingle: true, title: "Sources" };
+      return { glyph: "viewAll" as const, id: tab.id, showWhenSingle: true, title: "出典" };
     }
     if (target.kind === "worker_environment") {
       const resolved = resolveWorkerEnvironment(topology, target.target.workerEnvironmentId);
-      if (!resolved) return { glyph: "ee" as const, id: tab.id, showWhenSingle: true, title: "Worker Environment" };
+      if (!resolved) return { glyph: "ee" as const, id: tab.id, showWhenSingle: true, title: "作業環境" };
       const named = paneTargetTitle(
         resolved.workerEnvironment,
         target.target,
@@ -934,8 +934,8 @@ export function OperatorShell({ accessProfile, clientWindow, onLogOut, runtimeHo
       id: tab.id,
       showWhenSingle: true,
       title: target.surfaceId === "chat"
-        ? activeRunIdentityPending ? "Opening task"
-          : target.runId ? clientTaskTitle(target.runId, run?.title ?? "", taskOrganization) : "New task"
+        ? activeRunIdentityPending ? "タスクを開いています"
+          : target.runId ? clientTaskTitle(target.runId, run?.title ?? "", taskOrganization) : "新しいタスク"
         : surface?.label || target.surfaceId,
     };
   }), [activeSecondaryTabId, secondaryChatWorkspace.runs, secondaryRunIdentityReady, secondaryTabs, surfaceRegistry.workerEnvironmentSurfaces, taskOrganization, topology, visibleSurfaces]);
@@ -1042,14 +1042,14 @@ export function OperatorShell({ accessProfile, clientWindow, onLogOut, runtimeHo
   }, [accessProfile, activateSecondaryTab, activeClientSurfaceIdentity, activeSecondaryTab, browserPresentationGeneration, runtimeHost.home, runtimeHost.ready, setSecondaryTabs, sourceFinalizationPendingCount, sourceHandoffPending, topology, workerEnvironmentActionRunIds]);
 
   const secondaryPaneAddActions = useMemo<WorkspacePaneAddAction[]>(() => [
-    { glyph: "terminal" as const, id: "operator:terminal", section: "workspace", shortcut: paneShortcut("open_terminal"), title: "Terminal" },
-    { glyph: "folder" as const, id: "operator:files", section: "workspace", title: "Files" },
+    { glyph: "terminal" as const, id: "operator:terminal", section: "workspace", shortcut: paneShortcut("open_terminal"), title: "ターミナル" },
+    { glyph: "folder" as const, id: "operator:files", section: "workspace", title: "ファイル" },
     ...workerEnvironmentActions.map((action) => ({
       description: action.description,
       glyph: action.glyph,
-      group: action.panelKind === "files" ? { id: "task-files", title: "Task files", glyph: "folder" as const }
+      group: action.panelKind === "files" ? { id: "task-files", title: "タスクのファイル", glyph: "folder" as const }
         : ["connection", "runtime", "container", "worktree", "overview"].includes(action.panelKind)
-          ? { id: "environment-details", title: "Environment details", glyph: "ee" as const } : undefined,
+          ? { id: "environment-details", title: "環境の詳細", glyph: "ee" as const } : undefined,
       id: `we:${action.id}`,
       moreOnly: ["connection", "runtime", "container", "worktree", "overview", "custom"].includes(action.panelKind),
       section: "environment",
@@ -1058,8 +1058,8 @@ export function OperatorShell({ accessProfile, clientWindow, onLogOut, runtimeHo
           : undefined,
       title: action.title,
     })),
-    ...(workerEnvironmentActionRunIds.length ? [{ glyph: "chat" as const, id: "chat:side", section: "tasks", shortcut: paneShortcut("open_side_task"), title: "Side task" }] : []),
-    { glyph: "newTask" as const, id: "chat:new", section: "tasks", title: "New task" },
+    ...(workerEnvironmentActionRunIds.length ? [{ glyph: "chat" as const, id: "chat:side", section: "tasks", shortcut: paneShortcut("open_side_task"), title: "サブペインのタスク" }] : []),
+    { glyph: "newTask" as const, id: "chat:new", section: "tasks", title: "新しいタスク" },
     ...(["dashboard", "octopus-os"] as const).flatMap((workspaceKey) => visibleSurfaces
       .filter((surface) => (
         surface.id !== "chat"
@@ -1141,9 +1141,9 @@ export function OperatorShell({ accessProfile, clientWindow, onLogOut, runtimeHo
     if (reportedVoiceFailure.current === failure) return;
     reportedVoiceFailure.current = failure;
     if (!failure || homeCallControlsVisible) return;
-    appToast.danger(voiceSession.error ? "Voice call failed." : "Check your audio devices.", 5, {
+    appToast.danger(voiceSession.error ? "音声通話に失敗しました。" : "音声デバイスを確認してください。", 5, {
       action: {
-        label: "Open Home",
+        label: "ホームを開く",
         onSelect: () => { openVoice(); setHomeViewMode("voice"); },
       },
     });
@@ -1765,8 +1765,8 @@ export function OperatorShell({ accessProfile, clientWindow, onLogOut, runtimeHo
     const state = secondaryTabs.find((candidate) => candidate.id === tab.id);
     if (!state || state.id === activeSecondaryTabId && !secondaryRunIdentityReady || !transferableWorkspacePaneTarget(state.target)) return [];
     return [
-      { glyph: "openExternal" as const, id: "move_to_new_window", label: "Move to New Window" },
-      ...(clientWindow.reattachWindowId ? [{ glyph: "restore" as const, id: "reattach_to_source", label: "Return to Original Window" }] : []),
+      { glyph: "openExternal" as const, id: "move_to_new_window", label: "新しいウィンドウに移動" },
+      ...(clientWindow.reattachWindowId ? [{ glyph: "restore" as const, id: "reattach_to_source", label: "元のウィンドウに戻す" }] : []),
     ];
   }, [activeSecondaryTabId, clientWindow.reattachWindowId, secondaryRunIdentityReady, secondaryTabs]);
 
@@ -2219,7 +2219,7 @@ export function OperatorShell({ accessProfile, clientWindow, onLogOut, runtimeHo
 
   useEffect(() => {
     const surface = visibleSurfaces.find((candidate) => candidate.id === activeClientSurfaceIdentity.surfaceId);
-    document.title = settingsOpen ? "Settings — Octopus" : surface
+    document.title = settingsOpen ? "設定 — Octopus" : surface
       ? `${surface.label} — Octopus`
       : "Octopus";
   }, [activeClientSurfaceIdentity, settingsOpen, visibleSurfaces]);
@@ -2342,11 +2342,11 @@ export function OperatorShell({ accessProfile, clientWindow, onLogOut, runtimeHo
         surfaces={surfaceRegistry.workerEnvironmentSurfaces}
         tabs={secondaryTabs}
       />
-      <Suspense fallback={<SurfaceLoadingState label={`Loading ${activeSecondaryPanePresentation?.title || "tab"}…`} />}>
+      <Suspense fallback={<SurfaceLoadingState label={`読み込み中 ${activeSecondaryPanePresentation?.title || "tab"}…`} />}>
       {activeSecondaryTab?.target.kind === "terminal" || activeSecondaryTab?.target.kind === "files" || activeSecondaryTab?.target.kind === "worker_environment" ? null : activeSecondaryTab?.target.kind === "task_sources" ? (
         <TaskSourcesPaneTab sources={activeTaskSources} />
       ) : !secondarySurface ? null : secondarySurface.rendererKind === "builtin.chat" && !secondaryRunIdentityReady ? (
-        <SurfaceLoadingState label="Opening task…" />
+        <SurfaceLoadingState label="タスクを開いています…" />
       ) : (
         <SurfacePage>
           {secondarySurface.chrome.topbar !== "none" && secondarySurface.rendererKind !== "builtin.event_log" ? (
@@ -2355,7 +2355,7 @@ export function OperatorShell({ accessProfile, clientWindow, onLogOut, runtimeHo
               title={secondarySurface.label}
               query={secondaryQuery}
               onQueryChange={setSecondaryQuery}
-              placeholder={secondarySurface.chrome.searchPlaceholder ?? "Search surface..."}
+              placeholder={secondarySurface.chrome.searchPlaceholder ?? "画面を検索…"}
               mode={secondarySurface.chrome.topbar === "dashboard" ? "dashboard" : "wide"}
               dashboardScope={secondaryDashboardScope}
               onDashboardScopeChange={setSecondaryDashboardScope}
@@ -2429,7 +2429,7 @@ export function OperatorShell({ accessProfile, clientWindow, onLogOut, runtimeHo
         interactionDisabled={settingsOpen}
         onCloseSettings={() => setSettingsOpen(false)}
         settingsSurface={settingsOpen ? (
-          <Suspense fallback={<SurfaceLoadingState label="Loading settings…" />}>
+          <Suspense fallback={<SurfaceLoadingState label="設定を読み込んでいます…" />}>
             <SettingsPage
               accessProfile={accessProfile}
               documentRoot={surfaceRegistry.documentRoot}
@@ -2487,7 +2487,7 @@ export function OperatorShell({ accessProfile, clientWindow, onLogOut, runtimeHo
             title={activeSurface.label}
             query={query}
             onQueryChange={(value) => { setActivitySelection(null); setQuery(value); }}
-            placeholder={activeSurface.chrome.searchPlaceholder ?? "Search surface..."}
+            placeholder={activeSurface.chrome.searchPlaceholder ?? "画面を検索…"}
             mode={activeSurface.chrome.topbar === "dashboard" ? "dashboard" : "wide"}
             dashboardScope={dashboardScope}
             onDashboardScopeChange={setDashboardScope}
@@ -2503,7 +2503,7 @@ export function OperatorShell({ accessProfile, clientWindow, onLogOut, runtimeHo
         ) : null}
         <SurfaceRenderBoundary resetKey={activeSurface.rendererKind === "builtin.chat" ? `chat:${primarySurfaceTarget.runId || "new"}` : activeSurface.id}>
           {activeSurface.rendererKind === "builtin.chat" && !primaryRunIdentityReady ? (
-            <SurfaceLoadingState label="Opening task…" />
+            <SurfaceLoadingState label="タスクを開いています…" />
           ) : <SurfaceHost
             accessProfile={accessProfile}
             commandsActive={primaryCommandsActive}

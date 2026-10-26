@@ -52,7 +52,7 @@ export function providerReasoningEfforts(
 
 export function providerServiceTiers(provider: OctopusProviderInterface, model: string) {
   return [
-    { id: "default", name: "Standard", description: "Default speed" },
+    { id: "default", name: "Standard", description: "既定の速度" },
     ...(providerSelectedModel(provider, model)?.serviceTiers ?? []),
   ];
 }

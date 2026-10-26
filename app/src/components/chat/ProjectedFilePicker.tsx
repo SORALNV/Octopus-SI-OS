@@ -106,22 +106,22 @@ export function ProjectedFilePicker({ onAttach, onClose, source }: {
 
   const parentPath = currentPath.includes("/") ? currentPath.slice(0, currentPath.lastIndexOf("/")) : "";
   return (
-    <div className="projected-file-picker" role="dialog" aria-label="Attach projected file">
+    <div className="projected-file-picker" role="dialog" aria-label="作業環境のファイルを添付">
       <header className="projected-file-picker-header">
-        <button aria-label="Back" disabled={!currentPath || Boolean(attachingPath)} onClick={() => {
+        <button aria-label="戻る" disabled={!currentPath || Boolean(attachingPath)} onClick={() => {
           setCurrentPath(parentPath);
           setQuery("");
         }} type="button"><Glyph name="arrowLeft" size={14} /></button>
-        <div><strong>Attach from Worker Environment</strong><span>{source.label}</span></div>
-        <button aria-label="Close projected file picker" onClick={onClose} type="button"><Glyph name="close" size={14} /></button>
+        <div><strong>作業環境から添付</strong><span>{source.label}</span></div>
+        <button aria-label="作業環境のファイル選択を閉じる" onClick={onClose} type="button"><Glyph name="close" size={14} /></button>
       </header>
-      <div className="projected-file-picker-path" title={currentPath || "Root"}>
+      <div className="projected-file-picker-path" title={currentPath || "ルート"}>
         <Glyph name="folder" size={13} />
-        <span>{currentPath || "Root"}</span>
+        <span>{currentPath || "ルート"}</span>
       </div>
       <label className="projected-file-picker-search">
         <Glyph name="search" size={14} />
-        <span className="sr-only">Search current directory</span>
+        <span className="sr-only">現在のディレクトリを検索</span>
         <input
           onChange={(event) => {
             setQuery(event.currentTarget.value);
@@ -146,16 +146,16 @@ export function ProjectedFilePicker({ onAttach, onClose, source }: {
               if (entry) choose(entry);
             }
           }}
-          placeholder="Search this folder"
+          placeholder="このフォルダーを検索"
           ref={searchRef}
           type="text"
           value={query}
         />
       </label>
       <div className="projected-file-picker-list" role="listbox">
-        {loading ? <div className="projected-file-picker-state"><span className="composer-spinner" />Reading projected files…</div> : null}
+        {loading ? <div className="projected-file-picker-state"><span className="composer-spinner" />作業環境のファイルを読み込んでいます…</div> : null}
         {!loading && error ? <div className="projected-file-picker-state is-error"><Glyph name="warning" size={15} />{error}</div> : null}
-        {!loading && !error && !filteredEntries.length ? <div className="projected-file-picker-state">No matching files in this directory.</div> : null}
+        {!loading && !error && !filteredEntries.length ? <div className="projected-file-picker-state">このディレクトリに一致するファイルはありません。</div> : null}
         {!loading && !error ? filteredEntries.map((entry, index) => {
           const disabled = entry.kind !== "directory" && entry.kind !== "file";
           return (
@@ -177,7 +177,7 @@ export function ProjectedFilePicker({ onAttach, onClose, source }: {
           );
         }) : null}
       </div>
-      <footer>Selected bytes are attached through the ordinary operator message hand-in.</footer>
+      <footer>選択したファイルは通常のメッセージ送信を通じて添付されます。</footer>
     </div>
   );
 }

@@ -286,8 +286,8 @@ export function RunEnvironmentView({ accessProfile, assistantCodeComments = [], 
   if (!environment) {
     return (
       <EnvironmentUnavailable
-        detail="The client has no formed Worker Environment projection to resolve."
-        title="No Worker Environment"
+        detail="表示できる作業環境の情報がありません。"
+        title="作業環境がありません"
       />
     );
   }
@@ -299,7 +299,7 @@ export function RunEnvironmentView({ accessProfile, assistantCodeComments = [], 
     <section className="run-environment-view" ref={viewRef}>
       <header className="run-environment-tabbar">
         <button
-          aria-label="Worker Environment overview"
+          aria-label="作業環境の概要"
           className="run-environment-context"
           disabled={availableEnvironments.length < 2}
           onClick={(event) => {
@@ -307,11 +307,11 @@ export function RunEnvironmentView({ accessProfile, assistantCodeComments = [], 
             const rect = event.currentTarget.getBoundingClientRect();
             setEnvironmentMenu((current) => current ? null : { x: rect.left, y: rect.bottom + 4 });
           }}
-          title={projected ? environment.detail : "Not projected for this run"}
+          title={projected ? environment.detail : "この実行には情報がありません"}
           type="button"
         >
           <Glyph name={workerEnvironmentGlyph(environment)} size={15} />
-          <span>{projected ? environment.label : "Worker Environment"}</span>
+          <span>{projected ? environment.label : "作業環境"}</span>
           <i className={`run-environment-state-dot is-${environment.live ? "active" : normalizeStatus(environment.status)}`} />
           {availableEnvironments.length > 1 ? <Glyph className="run-environment-context-chevron" name="chevronDown" size={12} /> : null}
         </button>
@@ -332,7 +332,7 @@ export function RunEnvironmentView({ accessProfile, assistantCodeComments = [], 
           <OcIconButton
             aria-pressed={newTabOpen}
             glyph="plus"
-            label="New Worker Environment tab"
+            label="作業環境の新しいタブ"
             onClick={() => panelTabs.selectTab("")}
             selected={newTabOpen}
             size="sm"
@@ -343,13 +343,13 @@ export function RunEnvironmentView({ accessProfile, assistantCodeComments = [], 
               <OcIconButton
                 aria-pressed={maximized}
                 glyph="expand"
-                label={maximized ? "Restore panel width" : "Expand panel"}
+                label={maximized ? "パネルの幅を元に戻す" : "パネルを展開"}
                 onClick={() => onMaximizedChange(!maximized)}
                 selected={maximized}
                 size="sm"
                 variant="ghost"
               />
-              <OcIconButton glyph="close" label="Close Worker Environment" onClick={onClose} size="sm" variant="ghost" />
+              <OcIconButton glyph="close" label="作業環境を閉じる" onClick={onClose} size="sm" variant="ghost" />
             </>
           ) : null}
         </div>
@@ -357,7 +357,7 @@ export function RunEnvironmentView({ accessProfile, assistantCodeComments = [], 
 
       {environmentMenu ? createPortal((
         <OcMenuSurface
-          aria-label="Worker Environments"
+          aria-label="作業環境"
           data-settings-layer="true"
           className="run-environment-context-menu"
           role="menu"
@@ -440,7 +440,7 @@ export function WorkerEnvironmentSurfacePanel({ accessProfile, assistantCodeComm
     ? { id: filePanelId(surface.id, filePath), kind: "file", label: basename(filePath), glyph: "file", filePath, surface }
     : surface
       ? environmentPanelFromSurface(environment, surface)
-      : { id: "overview", kind: "overview", label: "Overview", glyph: "ee" };
+      : { id: "overview", kind: "overview", label: "概要", glyph: "ee" };
   return (
     <EnvironmentPanelErrorBoundary resetKey={`${environment.id}:${panel.id}`}>
       <EnvironmentPanelContent
@@ -476,8 +476,8 @@ class EnvironmentPanelErrorBoundary extends Component<{
     if (!this.state.failed) return this.props.children;
     return (
       <div className="we-panel-render-error" role="alert">
-        <strong>Tab content couldn&apos;t render</strong>
-        <OcButton onClick={() => this.setState({ failed: false })} size="sm" variant="secondary">Try again</OcButton>
+        <strong>タブの内容を表示できませんでした</strong>
+        <OcButton onClick={() => this.setState({ failed: false })} size="sm" variant="secondary">再試行</OcButton>
       </div>
     );
   }
@@ -495,9 +495,9 @@ function EnvironmentPanelContent({ accessProfile, active, assistantCodeComments 
   if (accessProfile === "live" && panel.surface?.mode === "fixture") {
     return (
       <LiveSurfaceEmpty
-        detail="Fixture surfaces belong to the isolated Test profile and cannot be opened by Administrator."
+        detail="サンプル画面は分離されたテスト用プロフィール専用です。管理者では開けません。"
         glyph="ee"
-        title="Test-only surface refused"
+        title="テスト専用画面へのアクセスが拒否されました"
       />
     );
   }
@@ -536,8 +536,8 @@ function EnvironmentLauncher({ panels, refusedFixtureSurfaceCount, onOpen }: {
         {panels.length > 6 ? (
           <label className="we-new-tab-search">
             <Glyph name="search" size={14} />
-            <input aria-label="Search Worker Environment tools" autoFocus onChange={(event) => setQuery(event.currentTarget.value)} placeholder="Search tools" value={query} />
-            {query ? <button aria-label="Clear surface search" onClick={() => setQuery("")} type="button"><Glyph name="close" size={12} /></button> : null}
+            <input aria-label="作業環境のツールを検索" autoFocus onChange={(event) => setQuery(event.currentTarget.value)} placeholder="ツールを検索" value={query} />
+            {query ? <button aria-label="画面の検索を解除" onClick={() => setQuery("")} type="button"><Glyph name="close" size={12} /></button> : null}
           </label>
         ) : null}
         {visiblePanels.length ? (
@@ -549,11 +549,11 @@ function EnvironmentLauncher({ panels, refusedFixtureSurfaceCount, onOpen }: {
             ))}
           </motion.ul>
         ) : (
-          <OcMenuMessage className="we-new-tab-empty">{panels.length ? "No surfaces match this search." : "No surfaces are available for this Worker Environment."}</OcMenuMessage>
+          <OcMenuMessage className="we-new-tab-empty">{panels.length ? "検索に一致する画面がありません。" : "この作業環境で利用できる画面がありません。"}</OcMenuMessage>
         )}
         {refusedFixtureSurfaceCount > 0 ? (
           <OcMenuMessage className="we-new-tab-empty">
-            {refusedFixtureSurfaceCount} Test-only {refusedFixtureSurfaceCount === 1 ? "surface was" : "surfaces were"} refused.
+            {refusedFixtureSurfaceCount} テスト専用 {refusedFixtureSurfaceCount === 1 ? "件の画面が" : "件の画面が"} 拒否されました。
           </OcMenuMessage>
         ) : null}
       </div>
@@ -563,13 +563,13 @@ function EnvironmentLauncher({ panels, refusedFixtureSurfaceCount, onOpen }: {
 
 function environmentPanelDescription(panel: EnvironmentPanel): string {
   const surface = panel.surface;
-  if (!surface) return panel.kind === "overview" ? "Door, capabilities, tools, roots, and room state" : "Open";
+  if (!surface) return panel.kind === "overview" ? "Door, capabilities, tools, roots, and room state" : "開く";
   if (panel.kind === "changes") return "Review project changes";
   if (panel.kind === "terminal") return "Run commands in this environment";
   if (panel.kind === "files") return surface.readOnly ? "Browse projected files" : "Browse and edit projected files";
-  if (panel.kind === "browser") return workerEnvironmentSurfaceIsPreview(surface) ? "Open preview" : "Open browser";
+  if (panel.kind === "browser") return workerEnvironmentSurfaceIsPreview(surface) ? "プレビューを開く" : "Open browser";
   if (panel.kind === "desktop") return "Open desktop";
-  return "Open";
+  return "開く";
 }
 
 const newTabPageMotion = {
@@ -602,8 +602,8 @@ function environmentPanels(
   accessProfile: OctopusClientAccessProfile,
   clientSurfaces: AdmittedClientSurfaceDocument[],
 ): EnvironmentPanel[] {
-  if (!environment) return [{ id: "overview", kind: "overview", label: "Overview", glyph: "ee" }];
-  const panels: EnvironmentPanel[] = [{ id: "overview", kind: "overview", label: "Overview", glyph: "ee" }];
+  if (!environment) return [{ id: "overview", kind: "overview", label: "概要", glyph: "ee" }];
+  const panels: EnvironmentPanel[] = [{ id: "overview", kind: "overview", label: "概要", glyph: "ee" }];
   panels.push(...workerEnvironmentProductSurfaces(environment.surfaces)
     .filter((surface) => accessProfile === "lab" || surface.mode !== "fixture")
     .map((surface) => environmentPanelFromSurface(environment, surface)));

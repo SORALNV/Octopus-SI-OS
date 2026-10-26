@@ -19,8 +19,8 @@ export function TerminalTab({ accessProfile, active, cwd, onNewTerminalTab, onTi
     return (
       <div className="terminal-unavailable" role="status">
         <Glyph name="terminal" size={20} />
-        <strong>Terminal unavailable</strong>
-        <span>A host shell is disabled in the isolated Test profile.</span>
+        <strong>ターミナルを利用できません</strong>
+        <span>分離されたテスト用プロフィールでは、ホストのシェルは無効です。</span>
       </div>
     );
   }

@@ -57,9 +57,9 @@ export function Inspector({ snapshot, selection, onSelect, onClose, surfaces = [
                 type="button"
                 aria-pressed={tab === activeTab}
                 onClick={() => setActiveTab(tab)}
-                key={tab}
+                key={({ Overview: "概要", Runs: "実行", Environments: "環境", Interfaces: "インターフェース", Policy: "ポリシー", "Event Log": "イベントログ" })[tab]}
               >
-                {tab}
+                {({ Overview: "概要", Runs: "実行", Environments: "環境", Interfaces: "インターフェース", Policy: "ポリシー", "Event Log": "イベントログ" })[tab]}
               </button>
             ))}
           </div>
@@ -101,7 +101,7 @@ function InspectorHead({ resolved, onClose }: { resolved: ResolvedSelection; onC
         </span>
       </div>
       <div className="inspector-actions">
-        <button className="chat-rail-icon" type="button" onClick={onClose} aria-label="Reset selection" title="Reset selection">
+        <button className="chat-rail-icon" type="button" onClick={onClose} aria-label="選択を解除" title="選択を解除">
           <Glyph name="close" size={14} />
         </button>
       </div>
@@ -146,7 +146,7 @@ function InspectorPanel({
   if (activeTab === "Policy") {
     return (
       <PanelScroll>
-        <JsonBlock title="Policy JSON" data={resolved.kind === "environment" ? resolved.environment.policyJson : resolved.run.policyJson} />
+        <JsonBlock title="ポリシー JSON" data={resolved.kind === "environment" ? resolved.environment.policyJson : resolved.run.policyJson} />
       </PanelScroll>
     );
   }
@@ -180,19 +180,19 @@ function EnvironmentOverview({
   return (
     <PanelScroll>
       <section className="inspector-section">
-        <h2>Goal</h2>
+        <h2>目標</h2>
         <p>{environment.goal}</p>
         <StatsTable rows={environment.stats} />
       </section>
 
       <section className="inspector-section">
-        <h2>Runs</h2>
+        <h2>実行</h2>
         <RunList runs={environment.runs} onSelect={onSelect} />
       </section>
 
       {childEnvironments.length > 0 ? (
         <section className="inspector-section">
-          <h2>Child environments</h2>
+          <h2>子環境</h2>
           <div className="child-env-list">
             {childEnvironments.map((child) => (
               <button
@@ -204,7 +204,7 @@ function EnvironmentOverview({
                 <Glyph name="ee" size={13} />
                 <span>
                   <strong>{child.name}</strong>
-                  <small> · {child.runs.length} run{child.runs.length === 1 ? "" : "s"}</small>
+                  <small> · {child.runs.length} 実行{child.runs.length === 1 ? "" : "s"}</small>
                 </span>
                 <i className="chevron">›</i>
               </button>
@@ -213,19 +213,19 @@ function EnvironmentOverview({
         </section>
       ) : null}
 
-      <JsonBlock title="Projection JSON" data={environment.runtimeJson} />
+      <JsonBlock title="表示用データの JSON" data={environment.runtimeJson} />
 
       <section className="inspector-section">
-        <h2>Interfaces</h2>
+        <h2>インターフェース</h2>
         <DetailList rows={environment.interfaces} empty="no interfaces projected for this EE" onSelect={onSelect} />
       </section>
 
       <section className="inspector-section">
-        <h2>Workers / bindings</h2>
+        <h2>ワーカー / 紐付け</h2>
         <TokenRows
           groups={[
-            { label: "Workers", rows: environment.workers },
-            { label: "Bindings", rows: environment.bindings },
+            { label: "ワーカー", rows: environment.workers },
+            { label: "紐付け", rows: environment.bindings },
           ]}
         />
       </section>
@@ -239,22 +239,22 @@ function RunOverview({ environment, run, onSelect }: { environment: EnvironmentN
   return (
     <PanelScroll>
       <section className="inspector-section">
-        <h2>Goal</h2>
+        <h2>目標</h2>
         <p>{run.goal}</p>
         <StatsTable rows={run.stats} />
       </section>
 
       <section className="inspector-section">
-        <h2>Checkpoints</h2>
+        <h2>チェックポイント</h2>
         <CheckpointList run={run} />
       </section>
 
       <section className="inspector-section">
-        <h2>Interfaces</h2>
+        <h2>インターフェース</h2>
         <DetailList rows={run.interfaces} empty="no bound interfaces projected for this run" onSelect={onSelect} />
       </section>
 
-      <JsonBlock title="Projection JSON" data={{ ...run.runtimeJson, environment: environment.name }} />
+      <JsonBlock title="表示用データの JSON" data={{ ...run.runtimeJson, environment: environment.name }} />
     </PanelScroll>
   );
 }
@@ -263,7 +263,7 @@ function EnvironmentRuns({ environment, onSelect }: { environment: EnvironmentNo
   return (
     <PanelScroll>
       <section className="inspector-section">
-        <h2>Active runs</h2>
+        <h2>実行中のタスク</h2>
         <RunList runs={environment.runs} onSelect={onSelect} />
       </section>
     </PanelScroll>
@@ -274,7 +274,7 @@ function RunCheckpoints({ run }: { run: RunProjection }) {
   return (
     <PanelScroll>
       <section className="inspector-section">
-        <h2>Checkpoints</h2>
+        <h2>チェックポイント</h2>
         <CheckpointList run={run} />
       </section>
     </PanelScroll>
@@ -290,14 +290,14 @@ function WorkerEnvironmentsPanel({ projections, surfaces }: {
     <PanelScroll>
       <section className="inspector-section">
         <header className="inspector-section-title">
-          <h2>Worker environments</h2>
+          <h2>作業環境</h2>
           {projections.length ? <span>{activeCount ? `${activeCount} active` : `${projections.length} projected`}</span> : null}
         </header>
         {projections.length ? (
           <div className="inspector-worker-environment-previews">
             {projections.map((projection) => (
               <button
-                aria-label={`Open ${projection.label || projection.id} in the side panel`}
+                aria-label={`開く ${projection.label || projection.id} をサイドパネルに表示`}
                 className="inspector-worker-environment-open"
                 key={projection.id}
                 onClick={() => dispatchOpenWorkerEnvironmentPane(defaultWorkerEnvironmentPaneTarget(projection, surfaces))}
@@ -307,7 +307,7 @@ function WorkerEnvironmentsPanel({ projections, surfaces }: {
               </button>
             ))}
           </div>
-        ) : <EmptyRow>no formed Worker Environment projected</EmptyRow>}
+        ) : <EmptyRow>作業環境の情報がありません</EmptyRow>}
       </section>
     </PanelScroll>
   );
@@ -317,15 +317,15 @@ function InterfacesPanel({ rows, bindings, artifacts, onSelect }: { rows: Detail
   return (
     <PanelScroll>
       <section className="inspector-section">
-        <h2>Interfaces</h2>
+        <h2>インターフェース</h2>
         <DetailList rows={rows} empty="no interfaces projected" onSelect={onSelect} />
       </section>
       <section className="inspector-section">
-        <h2>Bindings</h2>
+        <h2>紐付け</h2>
         <DetailList rows={bindings} empty="no bindings projected" />
       </section>
       <section className="inspector-section">
-        <h2>Artifacts</h2>
+        <h2>成果物</h2>
         <DetailList rows={artifacts} empty="no artifacts projected" />
       </section>
     </PanelScroll>
@@ -337,7 +337,7 @@ function EventLogPanel({ events, marks }: { events: EventLogRow[]; marks: Detail
     <PanelScroll>
       <EventLogCompact events={events} />
       <section className="inspector-section">
-        <h2>Marks</h2>
+        <h2>検証記録</h2>
         <DetailList rows={marks} empty="no marks projected" />
       </section>
     </PanelScroll>
@@ -345,7 +345,7 @@ function EventLogPanel({ events, marks }: { events: EventLogRow[]; marks: Detail
 }
 
 function CheckpointList({ run }: { run: RunProjection }) {
-  if (run.checkpoints.length === 0) return <EmptyRow>no checkpoint rows projected for this run</EmptyRow>;
+  if (run.checkpoints.length === 0) return <EmptyRow>この実行にはチェックポイントの情報がありません</EmptyRow>;
   return (
     <div className="checkpoint-cards">
       {run.checkpoints.map((checkpoint) => {
@@ -355,7 +355,7 @@ function CheckpointList({ run }: { run: RunProjection }) {
           <div className="checkpoint-card" key={checkpoint.id}>
             <div className="checkpoint-card-head">
               <strong>{checkpoint.label}</strong>
-              <small className="checkpoint-io">Input ↔ Output</small>
+              <small className="checkpoint-io">入力 ↔ 出力</small>
               <span className="checkpoint-when">
                 {checkpoint.time ? <span>{checkpoint.time}</span> : null}
                 <i className={`status-dot ${checkpointAccent(checkpoint.status)}`} />
@@ -363,12 +363,12 @@ function CheckpointList({ run }: { run: RunProjection }) {
             </div>
             <div className="checkpoint-bindings">
               <div>
-                <span className="group">Artifact Bindings</span>
-                {artifactChips.length ? artifactChips.map((chip) => <i title={chip} key={chip}>{chip}</i>) : <em>none projected</em>}
+                <span className="group">成果物の紐付け</span>
+                {artifactChips.length ? artifactChips.map((chip) => <i title={chip} key={chip}>{chip}</i>) : <em>情報がありません</em>}
               </div>
               <div>
-                <span className="group">Interface Bindings</span>
-                {interfaceChips.length ? interfaceChips.map((chip) => <i title={chip} key={chip}>{chip}</i>) : <em>none projected</em>}
+                <span className="group">インターフェースの紐付け</span>
+                {interfaceChips.length ? interfaceChips.map((chip) => <i title={chip} key={chip}>{chip}</i>) : <em>情報がありません</em>}
               </div>
             </div>
           </div>
@@ -389,7 +389,7 @@ function dedupeChips(values: Array<string | undefined>): string[] {
 }
 
 function RunList({ runs, onSelect }: { runs: RunProjection[]; onSelect: (selection: SelectionRef) => void }) {
-  if (runs.length === 0) return <EmptyRow>no active runs projected for this EE</EmptyRow>;
+  if (runs.length === 0) return <EmptyRow>この実行環境に実行中のタスクはありません</EmptyRow>;
   return (
     <div className="run-list">
       {runs.map((run) => (
@@ -398,7 +398,7 @@ function RunList({ runs, onSelect }: { runs: RunProjection[]; onSelect: (selecti
             <strong>{run.worker}</strong>
             <small>{run.goal}</small>
             <small className="run-counts">
-              {run.checkpoints.length} checkpoint{run.checkpoints.length === 1 ? "" : "s"} · {run.bindings.length} interface binding{run.bindings.length === 1 ? "" : "s"} · {run.artifacts.length} artifact{run.artifacts.length === 1 ? "" : "s"}
+              {run.checkpoints.length} チェックポイント{run.checkpoints.length === 1 ? "" : "s"} · {run.bindings.length} インターフェースの紐付け{run.bindings.length === 1 ? "" : "s"} · {run.artifacts.length} 成果物{run.artifacts.length === 1 ? "" : "s"}
             </small>
           </span>
           <em>{run.statusLabel.toLowerCase()} {run.runningFor}</em>
@@ -415,7 +415,7 @@ function TokenRows({ groups }: { groups: Array<{ label: string; rows: DetailRow[
         <div className="token-group" key={group.label}>
           <span>{group.label}</span>
           <div className="token-line">
-            {group.rows.length === 0 ? <em>none</em> : group.rows.map((row) => <span key={`${group.label}:${row.name}`}>{row.name}</span>)}
+            {group.rows.length === 0 ? <em>なし</em> : group.rows.map((row) => <span key={`${group.label}:${row.name}`}>{row.name}</span>)}
           </div>
         </div>
       ))}
@@ -463,24 +463,24 @@ function InterfaceOverview({ summary, snapshot, onSelect }: { summary: Interface
   return (
     <PanelScroll>
       <section className="inspector-section">
-        <h2>Interface</h2>
+        <h2>インターフェース</h2>
         <StatsTable rows={[
-          { label: "Type", value: summary.type },
-          { label: "Source", value: summary.source },
-          ...(summary.status ? [{ label: "Mode", value: summary.status }] : []),
+          { label: "種類", value: summary.type },
+          { label: "ソース", value: summary.source },
+          ...(summary.status ? [{ label: "モード", value: summary.status }] : []),
           ...(summary.artifactTransfer && summary.artifactTransfer.status !== "not_declared"
             ? [{
-              label: "Artifact hand-in",
+              label: "成果物の提出",
               value: interfaceArtifactTransferValue(summary.artifactTransfer),
               tone: interfaceArtifactTransferTone(summary.artifactTransfer),
             }]
             : []),
-          { label: "Bound in", value: summary.boundIn.length ? String(summary.boundIn.length) : "not bound" },
+          { label: "紐付け先", value: summary.boundIn.length ? String(summary.boundIn.length) : "not bound" },
         ]} />
       </section>
       {summary.boundIn.length ? (
         <section className="inspector-section">
-          <h2>Bound in zones</h2>
+          <h2>紐付け先の領域</h2>
           <div className="child-env-list">
             {summary.boundIn.map((name) => {
               const environment = snapshot.environments.find((env) => env.name === name);
@@ -501,7 +501,7 @@ function InterfaceOverview({ summary, snapshot, onSelect }: { summary: Interface
           </div>
         </section>
       ) : null}
-      <JsonBlock title="Descriptor" data={summary.descriptor} />
+      <JsonBlock title="記述子" data={summary.descriptor} />
     </PanelScroll>
   );
 }
@@ -552,8 +552,8 @@ function JsonBlock({ title, data }: { title: string; data: Record<string, unknow
 function EventLogCompact({ events }: { events: EventLogRow[] }) {
   return (
     <section className="inspector-section event-log-section">
-      <h2>Recent events</h2>
-      {events.length === 0 ? <EmptyRow>no event log rows projected</EmptyRow> : (
+      <h2>最近のイベント</h2>
+      {events.length === 0 ? <EmptyRow>イベントログがありません</EmptyRow> : (
         <div className="event-list">
           {events.map((event, index) => (
             <div className="event-row" key={`${event.time}:${event.label}:${index}`}>
@@ -607,8 +607,8 @@ function resolveSelection(snapshot: TopologySnapshot, selection: SelectionRef | 
 function statusAccent(statusLabel: string): string {
   const status = statusLabel.toLowerCase();
   if (status.includes("online")) return "green";
-  if (status.includes("idle")) return "blue";
-  if (status.includes("blocked")) return "amber";
+  if (status.includes("idle") || status === "待機中") return "blue";
+  if (status.includes("blocked") || status === "ブロック中") return "amber";
   return "gray";
 }
 

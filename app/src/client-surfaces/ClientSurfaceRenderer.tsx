@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../locale";
 import { ClientSurfaceVideo } from "./ClientSurfaceVideo";
 import { motion } from "motion/react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -106,9 +107,9 @@ export function ClientSurfaceRenderer({ accessProfile, admitted, onAction, onDis
     return true;
   }, [admitted, document.revision, onAction]);
   const body = dataState.loading ? (
-    <ClientSurfaceState title="Reading source" detail="Waiting for declared client data" />
+    <ClientSurfaceState title="ソースを読み込んでいます" detail="クライアント用データを待っています" />
   ) : dataState.error ? (
-    <ClientSurfaceState title="Source unavailable" detail={dataState.error} />
+    <ClientSurfaceState title="ソースを利用できません" detail={dataState.error} />
   ) : document.render.kind === "native" ? (
     <NativeNode
       context={context}
@@ -141,7 +142,7 @@ export function ClientSurfaceRenderer({ accessProfile, admitted, onAction, onDis
         transition={voiceLeaving ? HOME_SURFACE_LEAVING : voiceForming ? HOME_SURFACE_FORMING : { duration: 0.16, ease: [0.19, 1, 0.22, 1] }}
       >
         <button
-          aria-label={`Move ${document.title}`}
+          aria-label={`移動 ${document.title}`}
           className="voice-widget-drag-handle"
           onLostPointerCapture={widgetResize.onPointerEnd}
           onPointerCancel={widgetResize.onPointerEnd}
@@ -157,7 +158,7 @@ export function ClientSurfaceRenderer({ accessProfile, admitted, onAction, onDis
               <strong>{document.title}</strong>
             </span>
             {onDismiss ? (
-              <button aria-label={`Hide ${document.title}`} className="client-surface-dismiss" onClick={onDismiss} type="button">
+              <button aria-label={`非表示 ${document.title}`} className="client-surface-dismiss" onClick={onDismiss} type="button">
                 <Glyph name="close" size={14} />
               </button>
             ) : null}
@@ -200,7 +201,7 @@ export function ClientSurfaceRenderer({ accessProfile, admitted, onAction, onDis
         transition={voiceLeaving ? HOME_SURFACE_LEAVING : voiceForming ? HOME_SURFACE_FORMING : { duration: 0.2, ease: [0.19, 1, 0.22, 1] }}
       >
         <button
-          aria-label={`Move ${document.title}`}
+          aria-label={`移動 ${document.title}`}
           className="voice-widget-drag-handle"
           onLostPointerCapture={widgetResize.onPointerEnd}
           onPointerCancel={widgetResize.onPointerEnd}
@@ -212,7 +213,7 @@ export function ClientSurfaceRenderer({ accessProfile, admitted, onAction, onDis
         <header>
           <span><strong>{document.title}</strong></span>
           {onDismiss ? (
-            <button aria-label={`Hide ${document.title}`} onClick={onDismiss} type="button">
+            <button aria-label={`非表示 ${document.title}`} onClick={onDismiss} type="button">
               <Glyph className="icon-xs" name="close" size={16} />
             </button>
           ) : null}
@@ -1127,7 +1128,7 @@ function NativeNode({ context, documentId, node, onAction, path }: {
   if (node.type === "donut") {
     return (
       <DonutChart
-        label={node.label ? resolveText(node.label, context) : "Complete"}
+        label={node.label ? resolveText(node.label, context) : "完了"}
         segments={node.segments.map((segment) => ({
           label: resolveText(segment.label, context),
           tone: segment.tone ?? "default",
@@ -1143,7 +1144,7 @@ function NativeNode({ context, documentId, node, onAction, path }: {
   if (node.type === "list") {
     const items = resolveCollection(node.items.path, node.items.limit, context);
     if (!items.length) {
-      return <div className="client-surface-collection-empty">{node.empty ? resolveText(node.empty, context) : "No items"}</div>;
+      return <div className="client-surface-collection-empty">{node.empty ? resolveText(node.empty, context) : "項目がありません"}</div>;
     }
     return (
       <div className={`client-surface-list${node.divided ? " is-divided" : ""}`} role="list">
@@ -1170,7 +1171,7 @@ function NativeNode({ context, documentId, node, onAction, path }: {
   if (node.type === "table") {
     const rows = resolveCollection(node.rows.path, node.rows.limit, context);
     if (!rows.length) {
-      return <div className="client-surface-collection-empty">{node.empty ? resolveText(node.empty, context) : "No rows"}</div>;
+      return <div className="client-surface-collection-empty">{node.empty ? resolveText(node.empty, context) : "データがありません"}</div>;
     }
     return (
       <div className="client-surface-table-wrap">
@@ -1205,7 +1206,7 @@ function NativeNode({ context, documentId, node, onAction, path }: {
     const source = resolveText(node.source, context);
     const alt = node.alt ? resolveText(node.alt, context) : "";
     if (!isSafeClientSurfaceImageSource(source)) {
-      return <ClientSurfaceState title="Image unavailable" detail="The source is not an admitted embedded image" />;
+      return <ClientSurfaceState title="画像を表示できません" detail="このソースは表示が許可された埋め込み画像ではありません" />;
     }
     return (
       <div className={`client-surface-image ratio-${node.ratio ?? "landscape"}`}>
@@ -1264,7 +1265,7 @@ function NativeInput({ context, documentId, node, onAction, path }: {
     <label className="client-surface-input">
       {label ? <span>{label}</span> : null}
       <input
-        aria-label={label || placeholder || "Extension input"}
+        aria-label={label || placeholder || "拡張機能の入力"}
         onChange={(event) => setValue(event.currentTarget.value)}
         onKeyDown={(event) => {
           if (event.key !== "Enter" || !node.action) return;
@@ -1349,7 +1350,7 @@ function Sparkline({ label, tone = "default", values }: { label: string; tone?: 
           <path className="client-surface-sparkline__area" d={paths.area} />
           <path className="client-surface-sparkline__line" d={paths.line} />
         </svg>
-      ) : <small>No series</small>}
+      ) : <small>データ系列がありません</small>}
     </div>
   );
 }
@@ -1460,12 +1461,12 @@ function resolveValue(value: ClientSurfaceValue, context: Record<string, unknown
   const resolved = readPath(context, value.path);
   const actual = resolved == null ? value.fallback : resolved;
   if (actual == null) return "";
-  if (value.format === "number" && typeof actual === "number") return new Intl.NumberFormat().format(actual);
-  if (value.format === "percent" && typeof actual === "number") return new Intl.NumberFormat(undefined, { style: "percent", maximumFractionDigits: 1 }).format(actual);
+  if (value.format === "number" && typeof actual === "number") return new Intl.NumberFormat(APP_LOCALE).format(actual);
+  if (value.format === "percent" && typeof actual === "number") return new Intl.NumberFormat(APP_LOCALE, { style: "percent", maximumFractionDigits: 1 }).format(actual);
   if ((value.format === "date" || value.format === "time") && (typeof actual === "string" || typeof actual === "number")) {
     const date = new Date(actual);
     if (!Number.isNaN(date.valueOf())) {
-      return value.format === "date" ? date.toLocaleDateString() : date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      return value.format === "date" ? date.toLocaleDateString(APP_LOCALE) : date.toLocaleTimeString(APP_LOCALE, { hour: "2-digit", minute: "2-digit" });
     }
   }
   if (value.format === "json") {

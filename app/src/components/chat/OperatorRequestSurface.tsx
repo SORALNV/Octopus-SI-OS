@@ -51,9 +51,9 @@ export function OperatorRequestSurface({ message, onRespond }: Props) {
           <div className="operator-request-title">{presentation.title}</div>
         </div>
         {resolved ? (
-          <span className="operator-request-status"><Glyph name="check" size={12} /> Answered</span>
+          <span className="operator-request-status"><Glyph name="check" size={12} /> 回答済み</span>
         ) : sending ? (
-          <span className="operator-request-status"><span className="composer-spinner size-3" /> Sending</span>
+          <span className="operator-request-status"><span className="composer-spinner size-3" /> 送信中</span>
         ) : null}
       </div>
 
@@ -119,19 +119,19 @@ function ApprovalResponse({ data, clientInterface, disabled, onRespond }: {
     const requested = recordValue(detail.permissions);
     return (
       <div className="operator-request-actions is-stacked">
-        <div className="operator-request-help">Grant exactly the projected permission request for this turn or for the current provider session.</div>
+        <div className="operator-request-help">要求された権限を、このやり取りまたは現在のプロバイダーセッションに限って許可します。</div>
         <div className="flex flex-wrap gap-2">
-          <OcButton disabled={disabled} onClick={() => onRespond(permissionDecision(requested, "turn"))} size="sm" variant="primary">Allow for this turn</OcButton>
-          <OcButton disabled={disabled} onClick={() => onRespond(permissionDecision(requested, "session"))} size="sm" variant="secondary">Allow for session</OcButton>
+          <OcButton disabled={disabled} onClick={() => onRespond(permissionDecision(requested, "turn"))} size="sm" variant="primary">このやり取りで許可</OcButton>
+          <OcButton disabled={disabled} onClick={() => onRespond(permissionDecision(requested, "session"))} size="sm" variant="secondary">このセッションで許可</OcButton>
         </div>
       </div>
     );
   }
   return (
     <div className="operator-request-actions">
-      <OcButton disabled={disabled} onClick={() => onRespond("accept")} size="sm" variant="primary">Allow</OcButton>
-      <OcButton disabled={disabled} onClick={() => onRespond("acceptForSession")} size="sm" variant="secondary">Allow for session</OcButton>
-      <OcButton disabled={disabled} onClick={() => onRespond("decline")} size="sm" variant="secondary">Decline</OcButton>
+      <OcButton disabled={disabled} onClick={() => onRespond("accept")} size="sm" variant="primary">許可</OcButton>
+      <OcButton disabled={disabled} onClick={() => onRespond("acceptForSession")} size="sm" variant="secondary">このセッションで許可</OcButton>
+      <OcButton disabled={disabled} onClick={() => onRespond("decline")} size="sm" variant="secondary">拒否</OcButton>
     </div>
   );
 }
@@ -159,7 +159,7 @@ function ToolPermissionResponse({ data, clientInterface, complete, disabled, hel
   const remaining = choices.filter((choice) => choice !== primary && choice !== decline);
   const blocked = disabled || Boolean(failure);
   const label = (choice: OperatorPermissionChoice) => choice.decision === "accept"
-    ? choice.persistence === "once" ? "Allow once" : choice.persistence === "session" ? "Allow for this task" : "Always allow"
+    ? choice.persistence === "once" ? "今回のみ許可" : choice.persistence === "session" ? "Allow for this task" : "Always allow"
     : choice.persistence === "once" ? "Decline" : choice.persistence === "session" ? "Decline for this task" : "Always decline";
   const choose = (choice: OperatorPermissionChoice) => {
     setOpen(false);
@@ -171,19 +171,19 @@ function ToolPermissionResponse({ data, clientInterface, complete, disabled, hel
       {warning ? <div className="operator-request-help">{warning}</div> : null}
       <div className="flex flex-wrap gap-2">
         {!offer && !failure ? <>
-          <OcButton disabled={blocked} onClick={() => onRespond("accept")} size="sm" variant="primary">Allow once</OcButton>
-          <OcButton disabled={blocked} onClick={() => onRespond("decline")} size="sm" variant="secondary">Decline</OcButton>
+          <OcButton disabled={blocked} onClick={() => onRespond("accept")} size="sm" variant="primary">今回のみ許可</OcButton>
+          <OcButton disabled={blocked} onClick={() => onRespond("decline")} size="sm" variant="secondary">拒否</OcButton>
         </> : <>
           {primary ? <OcButton disabled={blocked} onClick={() => choose(primary)} size="sm" variant="primary">{label(primary)}</OcButton> : null}
           {remaining.length ? <>
-            <OcButton aria-label="More permission choices" buttonRef={anchorRef} disabled={blocked} onClick={() => setOpen(!open)} size="sm" variant="secondary" leadingIcon="chevronDown" />
-            <OcDropdown anchorRef={anchorRef} open={open && !blocked} onOpenChange={setOpen} aria-label="Permission choices">
+            <OcButton aria-label="許可の選択肢を表示" buttonRef={anchorRef} disabled={blocked} onClick={() => setOpen(!open)} size="sm" variant="secondary" leadingIcon="chevronDown" />
+            <OcDropdown anchorRef={anchorRef} open={open && !blocked} onOpenChange={setOpen} aria-label="許可の選択肢">
               {remaining.map((choice) => <OcMenuItem key={`${choice.decision}:${choice.persistence}`} label={label(choice)} onClick={() => choose(choice)} />)}
             </OcDropdown>
           </> : null}
           {decline ? <OcButton disabled={blocked} onClick={() => choose(decline)} size="sm" variant="secondary">{label(decline)}</OcButton> : null}
         </>}
-        <OcButton disabled={blocked} onClick={() => onRespond(offer ? { decision: "cancel" } : "cancel")} size="sm" variant="ghost">Cancel</OcButton>
+        <OcButton disabled={blocked} onClick={() => onRespond(offer ? { decision: "cancel" } : "cancel")} size="sm" variant="ghost">キャンセル</OcButton>
       </div>
       {failure ? <div className="operator-request-error">{failure}</div> : null}
     </div>
@@ -218,7 +218,7 @@ function QuestionResponse({ data, disabled, onRespond }: {
       {questions.map((question, questionIndex) => (
         <fieldset className="operator-question" disabled={disabled} key={question.id}>
           <legend>
-            <span>{question.header || `Question ${questionIndex + 1}`}</span>
+            <span>{question.header || `質問 ${questionIndex + 1}`}</span>
             <strong>{question.question}</strong>
           </legend>
           {question.options.length ? (
@@ -232,22 +232,22 @@ function QuestionResponse({ data, disabled, onRespond }: {
               {question.isOther ? (
                 <label className={`operator-question-option${answers[question.id] === "__other__" ? " is-selected" : ""}`}>
                   <input checked={answers[question.id] === "__other__"} name={question.id} onChange={() => setAnswers((current) => ({ ...current, [question.id]: "__other__" }))} type="radio" />
-                  <span className="min-w-0 flex-1"><strong>Other</strong></span>
+                  <span className="min-w-0 flex-1"><strong>その他</strong></span>
                 </label>
               ) : null}
               {answers[question.id] === "__other__" ? (
-                <input autoFocus className="operator-request-input" onChange={(event) => setOther((current) => ({ ...current, [question.id]: event.target.value }))} placeholder="Type another answer" type={question.isSecret ? "password" : "text"} value={other[question.id] ?? ""} />
+                <input autoFocus className="operator-request-input" onChange={(event) => setOther((current) => ({ ...current, [question.id]: event.target.value }))} placeholder="別の回答を入力" type={question.isSecret ? "password" : "text"} value={other[question.id] ?? ""} />
               ) : null}
             </div>
           ) : (
-            <OcTextArea label={question.question || "Answer"} onChange={(event) => setAnswers((current) => ({ ...current, [question.id]: event.target.value }))} placeholder="Enter your answer" textareaClassName="operator-request-textarea" value={answers[question.id] ?? ""} />
+            <OcTextArea label={question.question || "回答"} onChange={(event) => setAnswers((current) => ({ ...current, [question.id]: event.target.value }))} placeholder="回答を入力" textareaClassName="operator-request-textarea" value={answers[question.id] ?? ""} />
           )}
         </fieldset>
       ))}
       <div className="operator-request-actions">
-        <OcButton disabled={disabled || !complete} size="sm" type="submit" variant="primary">Submit answer</OcButton>
+        <OcButton disabled={disabled || !complete} size="sm" type="submit" variant="primary">回答を送信</OcButton>
         {numberValue(recordValue(data.requested_schema).autoResolutionMs ?? data.autoResolutionMs ?? data.auto_resolution_ms) > 0 ? (
-          <span className="operator-request-auto">May resolve automatically</span>
+          <span className="operator-request-auto">自動的に解決する場合があります</span>
         ) : null}
       </div>
     </form>
@@ -276,10 +276,10 @@ function ElicitationResponse({ data, disabled, onRespond }: {
         if (!freeform.trim()) return;
         onRespond({ action: "accept", content: freeform.trim(), _meta: null });
       }}>
-        <OcTextArea label="Response" disabled={disabled} onChange={(event) => setFreeform(event.target.value)} placeholder="Enter your response" textareaClassName="operator-request-textarea" value={freeform} />
+        <OcTextArea label="回答" disabled={disabled} onChange={(event) => setFreeform(event.target.value)} placeholder="回答を入力" textareaClassName="operator-request-textarea" value={freeform} />
         <div className="operator-request-actions">
-          <OcButton disabled={disabled || !freeform.trim()} size="sm" type="submit" variant="primary">Submit</OcButton>
-          <OcButton disabled={disabled} onClick={() => onRespond({ action: "decline", _meta: null })} size="sm" variant="secondary">Decline</OcButton>
+          <OcButton disabled={disabled || !freeform.trim()} size="sm" type="submit" variant="primary">送信</OcButton>
+          <OcButton disabled={disabled} onClick={() => onRespond({ action: "decline", _meta: null })} size="sm" variant="secondary">拒否</OcButton>
         </div>
       </form>
     );
@@ -303,8 +303,8 @@ function ElicitationResponse({ data, disabled, onRespond }: {
         />
       ))}
       <div className="operator-request-actions">
-        <OcButton disabled={disabled || !valid} size="sm" type="submit" variant="primary">Submit</OcButton>
-        <OcButton disabled={disabled} onClick={() => onRespond({ action: "decline", _meta: null })} size="sm" variant="secondary">Decline</OcButton>
+        <OcButton disabled={disabled || !valid} size="sm" type="submit" variant="primary">送信</OcButton>
+        <OcButton disabled={disabled} onClick={() => onRespond({ action: "decline", _meta: null })} size="sm" variant="secondary">拒否</OcButton>
       </div>
     </form>
   );
@@ -317,8 +317,8 @@ function FreeformUserInput({ disabled, onRespond }: { disabled: boolean; onRespo
       event.preventDefault();
       if (value.trim()) onRespond(value.trim());
     }}>
-      <OcTextArea label="Answer" disabled={disabled} onChange={(event) => setValue(event.target.value)} placeholder="Enter your answer" textareaClassName="operator-request-textarea" value={value} />
-      <div className="operator-request-actions"><OcButton disabled={disabled || !value.trim()} size="sm" type="submit" variant="primary">Submit answer</OcButton></div>
+      <OcTextArea label="回答" disabled={disabled} onChange={(event) => setValue(event.target.value)} placeholder="回答を入力" textareaClassName="operator-request-textarea" value={value} />
+      <div className="operator-request-actions"><OcButton disabled={disabled || !value.trim()} size="sm" type="submit" variant="primary">回答を送信</OcButton></div>
     </form>
   );
 }
@@ -357,15 +357,15 @@ function SchemaControl({ descriptor, disabled, name, required, value, onChange, 
 
   return (
     <div className="operator-schema-field">
-      <span id={labelId}>{title}{required ? <b aria-label="required"> *</b> : null}</span>
+      <span id={labelId}>{title}{required ? <b aria-label="必須"> *</b> : null}</span>
       {description ? <small>{description}</small> : null}
       {options.length ? (
         <select aria-labelledby={labelId} disabled={disabled} id={id} onChange={(event) => onChange(parseSchemaValue(event.target.value, type))} value={String(value ?? "")}>
-          {!required ? <option value="">Select…</option> : null}
+          {!required ? <option value="">選択…</option> : null}
           {options.map((option) => <option key={String(option)} value={String(option)}>{String(option)}</option>)}
         </select>
       ) : type === "boolean" ? (
-        <span className="operator-schema-checkbox"><input aria-labelledby={labelId} checked={value === true} disabled={disabled} id={id} onChange={(event) => onChange(event.target.checked)} type="checkbox" /> Enable</span>
+        <span className="operator-schema-checkbox"><input aria-labelledby={labelId} checked={value === true} disabled={disabled} id={id} onChange={(event) => onChange(event.target.checked)} type="checkbox" /> 有効にする</span>
       ) : type === "object" || type === "array" ? (
         <OcTextArea error={invalid ? `Enter valid ${type === "array" ? "JSON array" : "JSON object"}.` : undefined} label={title} disabled={disabled} id={id} onChange={(event) => updateStructured(event.target.value)} textareaClassName="operator-request-textarea is-code" value={raw} />
       ) : (
@@ -393,46 +393,46 @@ export function requestPresentation(kind: "approval" | "elicitation" | "user_inp
   const context: Array<{ label: string; value: string; code?: boolean }> = [];
   if (kind === "approval" && requestKind === "browser_history_read") {
     const history = browserHistoryPresentation(data);
-    if (history.source) context.push({ label: "History source", value: history.source, code: true });
-    if (history.queries) context.push({ label: "Queries", value: JSON.stringify(history.queries), code: true });
-    if (history.from) context.push({ label: "From", value: history.from });
-    if (history.to) context.push({ label: "To", value: history.to });
-    if (history.limit !== undefined) context.push({ label: "Result limit", value: String(history.limit) });
-    return { glyph: "lock", kicker: "Browsing history", title: "Allow browsing history access?", detail: "", context };
+    if (history.source) context.push({ label: "履歴の取得元", value: history.source, code: true });
+    if (history.queries) context.push({ label: "検索条件", value: JSON.stringify(history.queries), code: true });
+    if (history.from) context.push({ label: "開始", value: history.from });
+    if (history.to) context.push({ label: "終了", value: history.to });
+    if (history.limit !== undefined) context.push({ label: "取得件数の上限", value: String(history.limit) });
+    return { glyph: "lock", kicker: "Browsing history", title: "閲覧履歴へのアクセスを許可しますか？", detail: "", context };
   }
   if (kind === "approval" && requestKind === "application") {
     const application = recordValue(detail.application);
     const name = stringValue(application.display_name);
     const path = stringValue(application.bundle_path);
     const bundleId = stringValue(application.bundle_id);
-    if (path) context.push({ label: "Application", value: path, code: true });
-    if (bundleId) context.push({ label: "Bundle ID", value: bundleId, code: true });
-    return { glyph: "lock", kicker: "Application access", title: name ? `Allow access to ${name}?` : "Application approval requested", detail: "", context };
+    if (path) context.push({ label: "アプリケーション", value: path, code: true });
+    if (bundleId) context.push({ label: "バンドル ID", value: bundleId, code: true });
+    return { glyph: "lock", kicker: "Application access", title: name ? `アクセスを許可： ${name}?` : "アプリの承認が求められています", detail: "", context };
   }
   if (kind === "approval" && requestKind === "browser_file_upload") {
     const upload = browserUploadPresentation(data);
-    if (upload.origin) context.push({ label: "Page origin", value: upload.origin, code: true });
+    if (upload.origin) context.push({ label: "ページのオリジン", value: upload.origin, code: true });
     upload.files.forEach((file, index) => context.push({
-      label: `File ${index + 1}`,
-      value: `${JSON.stringify(file.filename)} · ${file.sizeBytes === null ? "Size unavailable" : `${file.sizeBytes.toLocaleString("en-US")} bytes`}`,
+      label: `ファイル ${index + 1}`,
+      value: `${JSON.stringify(file.filename)} · ${file.sizeBytes === null ? "Size unavailable" : `${file.sizeBytes.toLocaleString("en-US")} バイト`}`,
       code: true,
     }));
-    return { glyph: "lock", kicker: "File upload", title: "Allow file upload?", detail: "", context };
+    return { glyph: "lock", kicker: "File upload", title: "ファイルのアップロードを許可しますか？", detail: "", context };
   }
   const command = commandValue(detail.command);
   const cwd = stringValue(detail.cwd);
   const reason = stringValue(detail.reason);
-  if (command) context.push({ label: "Command", value: command, code: true });
-  if (cwd) context.push({ label: "Working directory", value: cwd, code: true });
+  if (command) context.push({ label: "コマンド", value: command, code: true });
+  if (cwd) context.push({ label: "作業ディレクトリ", value: cwd, code: true });
   const changes = recordValue(detail.fileChanges);
   const changeCount = Object.keys(changes).length;
-  if (changeCount) context.push({ label: "Files", value: `${changeCount} ${changeCount === 1 ? "change" : "changes"}` });
-  if (reason) context.push({ label: "Reason", value: reason });
+  if (changeCount) context.push({ label: "ファイル", value: `${changeCount} ${changeCount === 1 ? "change" : "changes"}` });
+  if (reason) context.push({ label: "理由", value: reason });
   if (kind === "approval") {
     return {
       glyph: requestKind === "exec" ? "terminal" : requestKind === "patch" ? "changes" : "lock",
       kicker: requestKind === "exec" ? "Command approval" : requestKind === "patch" ? "File change approval" : "Permission approval",
-      title: stringValue(data.title) || fallback || "Approval requested",
+      title: stringValue(data.title) || fallback || "承認が求められています",
       detail: requestKind === "permission" ? permissionSummary(recordValue(detail.permissions)) : "",
       context,
     };
@@ -440,7 +440,7 @@ export function requestPresentation(kind: "approval" | "elicitation" | "user_inp
   return {
     glyph: "hand",
     kicker: kind === "user_input" ? "Question from the model" : "Input requested",
-    title: stringValue(data.message) || fallback || "The run is waiting for your response",
+    title: stringValue(data.message) || fallback || "実行はあなたの回答を待っています",
     detail: "",
     context,
   };
@@ -518,7 +518,7 @@ function permissionSummary(requested: Record<string, unknown>): string {
   const capabilities = [];
   if (requested.network != null) capabilities.push("additional network access");
   if (requested.fileSystem != null) capabilities.push("additional filesystem access");
-  return capabilities.length ? `The provider requested ${capabilities.join(" and ")}.` : "The provider requested additional permissions.";
+  return capabilities.length ? `The provider requested ${capabilities.join(" 〜 ")}.` : "The provider requested additional permissions.";
 }
 
 function normalizeQuestions(value: unknown): Question[] {
@@ -576,8 +576,8 @@ function resolvedSummary(value: unknown): string {
   if (typeof decision === "string") {
     const scope = response.selected_persistence ?? approval.selected_persistence;
     const suffix = scope === "session" ? " for this task" : scope === "always" ? " always" : scope === "once" ? " once" : "";
-    return decision === "accept" ? `Allowed${suffix}` : decision === "acceptForSession" ? "Allowed for session"
-      : decision === "decline" ? `Declined${suffix}` : decision === "cancel" ? "Cancelled" : decision;
+    return decision === "accept" ? `許可済み${suffix}` : decision === "acceptForSession" ? "Allowed for session"
+      : decision === "decline" ? `Declined${suffix}` : decision === "cancel" ? "キャンセル済み" : decision;
   }
   if (decision && typeof decision === "object") return "Permission granted";
   if (response.answer !== undefined || response.answers !== undefined || elicitation.answer !== undefined || userInput.answers !== undefined) return "Response submitted";

@@ -140,8 +140,8 @@ export function ComposerUtilityBar({
             indicator="none"
             navigationTarget="workspace-project"
             title={selectedAgent
-              ? `Project fixed by ${selectedAgent.name}`
-              : projectSelected ? "Change the project for this task" : "Select a project to run your task in"}
+              ? `プロジェクトの指定元： ${selectedAgent.name}`
+              : projectSelected ? "このタスクのプロジェクトを変更" : "タスクを実行するプロジェクトを選択"}
             value={selectedContext
               ? selectedContext.isOsRoot
                 ? "No project"
@@ -151,14 +151,14 @@ export function ComposerUtilityBar({
           >
             {(close, query) => (
               <div className={MENU_BODY_CLASS}>
-                <MenuSearch placeholder="Search projects" />
+                <MenuSearch placeholder="プロジェクトを検索" />
                 <div className={MENU_LIST_CLASS}>
-                  <div className={MENU_SECTION_LABEL_CLASS}>Projects</div>
+                  <div className={MENU_SECTION_LABEL_CLASS}>プロジェクト</div>
                   <div className={MENU_SECTION_CLASS}>
-                    {rootContext && matches("No project", query) ? (
+                    {rootContext && matches("プロジェクトなし", query) ? (
                       <UtilityBarItem
                         icon={<ProjectIcon />}
-                        label="No project"
+                        label="プロジェクトなし"
                         selected={rootContext.eeId === eeId}
                         onSelect={() => {
                           onEeChange(rootContext.eeId);
@@ -181,7 +181,7 @@ export function ComposerUtilityBar({
                           }}
                         />
                       ))}
-                    {!contexts.length ? <UtilityBarDisabledItem label="No projects found" /> : null}
+                    {!contexts.length ? <UtilityBarDisabledItem label="プロジェクトが見つかりません" /> : null}
                   </div>
                 </div>
               </div>
@@ -199,22 +199,22 @@ export function ComposerUtilityBar({
             indicator="none"
             navigationTarget="workspace-agent"
             title={selectedAgent
-              ? `Agent: ${selectedAgent.name}`
+              ? `エージェント： ${selectedAgent.name}`
               : taskConfiguration
-                ? "This task uses its own configuration"
+                ? "このタスクは独自の設定を使います"
               : locked
-                ? "This task's Agent identity is unavailable"
-                : "Select an agent for this task"}
+                ? "このタスクのエージェント情報を取得できません"
+                : "このタスクのエージェントを選択"}
             value={selectedAgent?.name || (taskConfiguration ? "Task configuration" : locked ? "Agent unavailable" : "Choose agent")}
             valueClassName="max-w-40 text-sm"
           >
             {(close, query) => (
               <div className={MENU_BODY_CLASS}>
-                <MenuSearch placeholder="Search agents" />
+                <MenuSearch placeholder="エージェントを検索" />
                 <div className={MENU_LIST_CLASS}>
                   {agentOptions.some((option) => matches(option.searchValue, query)) ? (
                     <div className={MENU_SECTION_CLASS}>
-                      <div className={MENU_SECTION_LABEL_CLASS}>Agents</div>
+                      <div className={MENU_SECTION_LABEL_CLASS}>エージェント</div>
                       {agentOptions
                         .filter((option) => matches(option.searchValue, query))
                         .map(({ agent, defaultAccessMode, projectColor, subText }) => (
@@ -242,18 +242,18 @@ export function ComposerUtilityBar({
                     </div>
                   ) : null}
                   {!agentOptions.some((option) => matches(option.searchValue, query))
-                    ? <UtilityBarDisabledItem label="No agents found" />
+                    ? <UtilityBarDisabledItem label="エージェントが見つかりません" />
                     : null}
                 </div>
               </div>
             )}
           </UtilityBarDropdown>
 
-          <ShellTooltip label={locked ? "Access is fixed for this task" : !selectedWorker ? "Choose an agent to set access"
+          <ShellTooltip label={locked ? "このタスクのアクセス権は固定されています" : !selectedWorker ? "アクセス権を設定するにはエージェントを選択"
             : accessMode !== "full_access" && fullAccessUnavailableReason ? fullAccessUnavailableReason
-            : accessMode === "full_access" ? "Use project access" : "Use full access"}>
+            : accessMode === "full_access" ? "プロジェクトのアクセス権を使う" : "フルアクセスを使う"}>
           <button
-            aria-label={accessMode === "full_access" ? "Use project access" : "Use full access"}
+            aria-label={accessMode === "full_access" ? "プロジェクトのアクセス権を使う" : "フルアクセスを使う"}
             aria-pressed={accessMode === "full_access"}
             className={`${CHIP_BUTTON_CLASS} composer-agent-access-toggle shrink-0`}
             data-composer-navigation-target="permissions"
@@ -263,7 +263,7 @@ export function ComposerUtilityBar({
             type="button"
           >
             <TaskAccessIcon accessMode={accessMode} className="icon-xs shrink-0" />
-            <span>{accessMode === "full_access" ? "Full access" : "Project access"}</span>
+            <span>{accessMode === "full_access" ? "フルアクセス" : "プロジェクトのアクセス権"}</span>
           </button>
           </ShellTooltip>
         </div>
@@ -276,15 +276,15 @@ export function ComposerUtilityBar({
           navigationTarget="workspace-applications"
           title={applicationLocked
             ? applicationLockReason === "turn"
-              ? "Applications can be changed after this turn settles"
+              ? "このやり取りが落ち着いたあとにアプリケーションを変更できます"
               : applicationLockReason === "saving"
-                ? "Application changes are being saved"
-                : "This task is read-only"
+                ? "アプリケーションの変更を保存しています"
+                : "このタスクは読み取り専用です"
             : applications.length
               ? runId
-                ? "Choose applications for this task"
-                : "Choose which applications provided by this Agent this task can use"
-              : "No applications are available for this task"}
+                ? "このタスクのアプリケーションを選択"
+                : "このエージェントのアプリケーションのうち、タスクで使うものを選択"
+              : "このタスクで使えるアプリケーションがありません"}
           value={selectionLabel(
             applicationIds,
             applications.map((application) => ({
@@ -299,7 +299,7 @@ export function ComposerUtilityBar({
         >
           {(_close, query) => (
             <div className={MENU_BODY_CLASS}>
-              <MenuSearch placeholder="Search applications" />
+              <MenuSearch placeholder="アプリケーションを検索" />
               <div className={MENU_LIST_CLASS}>
                 {(["connector", "plugin", "artifact"] as const).map((category) => {
                   const rows = applications.filter((application) => (
@@ -327,7 +327,7 @@ export function ComposerUtilityBar({
                   );
                 })}
                 {!applications.some((application) => matches(`${application.name} ${application.id} ${application.description}`, query))
-                  ? <UtilityBarDisabledItem label="No applications found" />
+                  ? <UtilityBarDisabledItem label="アプリケーションが見つかりません" />
                   : null}
               </div>
             </div>
@@ -341,12 +341,12 @@ export function ComposerUtilityBar({
           indicator="collapsible-chevron"
           navigationTarget="workspace-drivers"
           title={locked
-            ? "Worker Environments are fixed for this active task"
+            ? "実行中のタスクの作業環境は変更できません"
             : drivers.length
               ? runId
-                ? "Worker Environments are fixed for this active task"
-                : "Choose which Worker Environments provided by this Agent this task can use"
-              : "No Worker Environments are available for this task"}
+                ? "実行中のタスクの作業環境は変更できません"
+                : "このエージェントの作業環境のうち、タスクで使うものを選択"
+              : "このタスクで使える作業環境がありません"}
           value={selectionLabel(
             effectiveDriverNames,
             drivers.map((driver) => ({
@@ -361,9 +361,9 @@ export function ComposerUtilityBar({
         >
           {(_close, query) => (
             <div className={MENU_BODY_CLASS}>
-              <MenuSearch placeholder="Search Worker Environments" />
+              <MenuSearch placeholder="作業環境を検索" />
               <div className={MENU_LIST_CLASS}>
-                <div className={MENU_SECTION_LABEL_CLASS}>Worker Environments</div>
+                <div className={MENU_SECTION_LABEL_CLASS}>作業環境</div>
                 <div className={MENU_SECTION_CLASS}>
                   {drivers.filter((driver) => matches(`${driver.name} ${driver.capabilities.join(" ")}`, query)).map((driver) => (
                     <UtilityBarItem
@@ -379,7 +379,7 @@ export function ComposerUtilityBar({
                     />
                   ))}
                   {!drivers.some((driver) => matches(`${driver.name} ${driver.capabilities.join(" ")}`, query))
-                    ? <UtilityBarDisabledItem label="No Worker Environments found" />
+                    ? <UtilityBarDisabledItem label="作業環境が見つかりません" />
                     : null}
                 </div>
               </div>
@@ -395,7 +395,7 @@ export function ComposerUtilityBar({
 function UtilityBarContent({ children }: { children: ReactNode }) {
   return (
     <div
-      aria-label="Composer utility bar"
+      aria-label="入力欄のツールバー"
       className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden"
       role="group"
     >
@@ -425,9 +425,9 @@ function ProjectClearSlot({
       onPointerEnter={() => setSuppressed(false)}
       onPointerLeave={() => setSuppressed(false)}
     >
-      <ShellTooltip className="pointer-events-none absolute inset-y-0 left-0 z-10 aspect-square" disabled={!active} label="Don't work in a project">
+      <ShellTooltip className="pointer-events-none absolute inset-y-0 left-0 z-10 aspect-square" disabled={!active} label="プロジェクトを使わない">
         <button
-          aria-label="Don't work in a project"
+          aria-label="プロジェクトを使わない"
           className={`${CLEAR_BUTTON_CLASS}${active ? ` ${CLEAR_BUTTON_AVAILABLE_CLASS}` : ""}`}
           data-clear-project-button=""
           disabled={!active}
@@ -663,8 +663,8 @@ function selectionLabel(
   if (!selected.length && unavailableCount > 0) {
     return unavailableCount === 1 ? "Unavailable selection" : `${unavailableCount} unavailable selections`;
   }
-  if (!choices.length) return `No ${pluralLabel} available`;
-  if (!selected.length) return `No ${pluralLabel}`;
+  if (!choices.length) return `なし ${pluralLabel} available`;
+  if (!selected.length) return `なし ${pluralLabel}`;
   const projectDefaults = choices.filter((choice) => choice.selectedByDefault);
   const selectedIsProjectDefault = showProjectDefaults
     && projectDefaults.length > 0
@@ -682,9 +682,9 @@ function capabilityChoiceDescription(selectedByDefault: boolean, description: st
 }
 
 function applicationCategoryLabel(category: "connector" | "plugin" | "artifact"): string {
-  if (category === "connector") return "Connectors";
-  if (category === "plugin") return "Plugins";
-  return "Artifacts";
+  if (category === "connector") return "コネクター";
+  if (category === "plugin") return "プラグイン";
+  return "成果物";
 }
 
 function collapseClass(collapse: "none" | "sm" | "xs"): string {

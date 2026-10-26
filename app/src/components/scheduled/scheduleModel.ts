@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../../locale";
 import type { OctopusScheduledDraft } from "../../electron";
 import type { ChangeJournal, ChangeJournalEntry, InactivityState, ScheduledDelivery, ScheduledEditorDraft, ScheduledInterfaceProjection, ScheduledScopeOption } from "./types";
 
@@ -123,8 +124,8 @@ export function describeInactivityState(task: Pick<ScheduledInterfaceProjection,
 }
 
 export const QUIET_PERIOD_UNITS = [
-  { value: "minutes", label: "Minutes", seconds: 60 },
-  { value: "hours", label: "Hours", seconds: 3600 },
+  { value: "minutes", label: "分", seconds: 60 },
+  { value: "hours", label: "時間", seconds: 3600 },
 ] as const;
 
 export type QuietPeriodUnit = typeof QUIET_PERIOD_UNITS[number]["value"];
@@ -192,30 +193,30 @@ export function scheduledDraftError(draft: ScheduledEditorDraft, creating: boole
 export type RepeatMode = "hourly" | "daily" | "weekdays" | "weekly" | "interval" | "inactivity" | "custom";
 
 export const REPEAT_OPTIONS: ReadonlyArray<{ id: RepeatMode; label: string }> = [
-  { id: "hourly", label: "Hourly" },
-  { id: "daily", label: "Daily" },
-  { id: "weekdays", label: "Weekdays" },
-  { id: "weekly", label: "Weekly" },
-  { id: "interval", label: "Interval" },
-  { id: "inactivity", label: "After inactivity" },
-  { id: "custom", label: "Custom" },
+  { id: "hourly", label: "毎時" },
+  { id: "daily", label: "毎日" },
+  { id: "weekdays", label: "平日" },
+  { id: "weekly", label: "毎週" },
+  { id: "interval", label: "一定間隔" },
+  { id: "inactivity", label: "一定時間操作がないとき" },
+  { id: "custom", label: "カスタム" },
 ];
 
 export const WEEKDAY_OPTIONS: ReadonlyArray<{ id: number; label: string }> = [
-  { id: 1, label: "Monday" },
-  { id: 2, label: "Tuesday" },
-  { id: 3, label: "Wednesday" },
-  { id: 4, label: "Thursday" },
-  { id: 5, label: "Friday" },
-  { id: 6, label: "Saturday" },
-  { id: 0, label: "Sunday" },
+  { id: 1, label: "月曜日" },
+  { id: 2, label: "火曜日" },
+  { id: 3, label: "水曜日" },
+  { id: 4, label: "木曜日" },
+  { id: 5, label: "金曜日" },
+  { id: 6, label: "土曜日" },
+  { id: 0, label: "日曜日" },
 ];
 
 export const INTERVAL_UNITS = [
-  { value: "seconds", label: "seconds", seconds: 1 },
-  { value: "minutes", label: "minutes", seconds: 60 },
-  { value: "hours", label: "hours", seconds: 3600 },
-  { value: "days", label: "days", seconds: 86_400 },
+  { value: "seconds", label: "秒", seconds: 1 },
+  { value: "minutes", label: "分", seconds: 60 },
+  { value: "hours", label: "時間", seconds: 3600 },
+  { value: "days", label: "日", seconds: 86_400 },
 ] as const;
 
 export type IntervalUnit = typeof INTERVAL_UNITS[number]["value"];
@@ -299,7 +300,7 @@ export function clockLabel(hour: number, minute: number): string {
 
 export function timezoneName(timezone: string, at: number = Date.now()): string {
   try {
-    return new Intl.DateTimeFormat(undefined, { timeZone: resolvedTimezone(timezone), timeZoneName: "shortGeneric" })
+    return new Intl.DateTimeFormat(APP_LOCALE, { timeZone: resolvedTimezone(timezone), timeZoneName: "shortGeneric" })
       .formatToParts(new Date(at)).find((part) => part.type === "timeZoneName")?.value ?? "";
   } catch {
     return timezone;
@@ -312,7 +313,7 @@ export function shortScheduleLabel(task: Pick<ScheduledInterfaceProjection, "sch
   if (schedule.type === "interval") return formatInterval(schedule.intervalSeconds);
   if (schedule.type === "inactivity") return describeSchedule(task);
   const mode = cronShape(schedule.cron)?.mode;
-  return mode === "hourly" ? "Hourly" : mode === "daily" ? "Daily" : mode === "weekdays" ? "Weekdays" : mode === "weekly" ? "Weekly" : describeCron(schedule.cron);
+  return mode === "hourly" ? "毎時" : mode === "daily" ? "毎日" : mode === "weekdays" ? "平日" : mode === "weekly" ? "毎週" : describeCron(schedule.cron);
 }
 
 export function formatSchedule(task: Pick<ScheduledInterfaceProjection, "schedule" | "timezone">): string {
@@ -381,7 +382,7 @@ export function describeCron(expression: string): string {
   if (rawHour === "*" && rawDom === "*" && rawMonth === "*" && rawDow === "*") {
     if (rawMinute === "*") return "Every minute";
     const step = stepOf(rawMinute);
-    if (step) return `Every ${plural(step, "minute", "minutes")}`;
+    if (step) return `間隔 ${plural(step, "minute", "minutes")}`;
     if (fields.minutes.size === 1) return `Hourly at :${String([...fields.minutes][0]).padStart(2, "0")}`;
     return `${plural(fields.minutes.size, "time", "times")} an hour`;
   }
@@ -416,7 +417,7 @@ function clockText(fields: CronFields): string {
 
 function formatClock(hour: number, minute: number): string {
   const date = new Date(Date.UTC(2024, 0, 1, hour, minute));
-  return new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit", timeZone: "UTC" }).format(date);
+  return new Intl.DateTimeFormat(APP_LOCALE, { hour: "numeric", minute: "2-digit", timeZone: "UTC" }).format(date);
 }
 
 function weekdayText(days: Set<number>): string {
@@ -424,7 +425,7 @@ function weekdayText(days: Set<number>): string {
   const key = sorted.join(",");
   if (key === "1,2,3,4,5") return "Weekdays";
   if (key === "0,6") return "Weekends";
-  if (sorted.length === 1) return `Every ${WEEKDAY_NAMES[sorted[0]]}`;
+  if (sorted.length === 1) return `間隔 ${WEEKDAY_NAMES[sorted[0]]}`;
   return sorted.map((day) => WEEKDAY_SHORT[day]).join(", ");
 }
 
@@ -538,7 +539,7 @@ function cronDayMatches(fields: CronFields, cursor: Date): boolean {
 }
 
 function timezoneOffsetMs(timeZone: string, at: number): number {
-  const parts = new Intl.DateTimeFormat("en-US", {
+  const parts = new Intl.DateTimeFormat(APP_LOCALE, {
     day: "2-digit",
     hour: "2-digit",
     hour12: false,
@@ -558,15 +559,15 @@ function timezoneOffsetMs(timeZone: string, at: number): number {
 }
 
 export function formatInterval(seconds: number): string {
-  if (seconds % 86_400 === 0) return `Every ${plural(seconds / 86_400, "day", "days")}`;
-  if (seconds % 3_600 === 0) return `Every ${plural(seconds / 3_600, "hour", "hours")}`;
-  if (seconds % 60 === 0) return `Every ${plural(seconds / 60, "minute", "minutes")}`;
-  return `Every ${plural(seconds, "second", "seconds")}`;
+  if (seconds % 86_400 === 0) return `間隔 ${plural(seconds / 86_400, "day", "days")}`;
+  if (seconds % 3_600 === 0) return `間隔 ${plural(seconds / 3_600, "hour", "hours")}`;
+  if (seconds % 60 === 0) return `間隔 ${plural(seconds / 60, "minute", "minutes")}`;
+  return `間隔 ${plural(seconds, "second", "seconds")}`;
 }
 
 export function formatEvidenceTime(timestamp: number | null): string {
   if (!timestamp) return "Not recorded";
-  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(timestamp));
+  return new Intl.DateTimeFormat(APP_LOCALE, { dateStyle: "medium", timeStyle: "short" }).format(new Date(timestamp));
 }
 
 export function relativeEvidenceTime(timestamp: number | null): string {
@@ -574,7 +575,7 @@ export function relativeEvidenceTime(timestamp: number | null): string {
   const delta = timestamp - Date.now();
   const future = delta > 0;
   const magnitude = Math.abs(delta);
-  const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+  const formatter = new Intl.RelativeTimeFormat(APP_LOCALE, { numeric: "auto" });
   if (magnitude < 90_000) return formatter.format(future ? 1 : -1, "minute");
   if (magnitude < 5_400_000) return formatter.format(Math.round(delta / 60_000), "minute");
   if (magnitude < 129_600_000) return formatter.format(Math.round(delta / 3_600_000), "hour");

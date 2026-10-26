@@ -77,7 +77,7 @@ export default function WorkingPatchDiff({ added, changeKind, deleted, patch, pa
     return () => { active = false; };
   }, [darkTheme, lightTheme]);
 
-  if (!ready && !parsed.error && !loadError) return <OcLoadingRows className="activity-file-diff-loading" label="Loading diff…" />;
+  if (!ready && !parsed.error && !loadError) return <OcLoadingRows className="activity-file-diff-loading" label="差分を読み込んでいます…" />;
   return (
     <div className="activity-file-patch">
       <div className="activity-file-patch-header">
@@ -89,9 +89,9 @@ export default function WorkingPatchDiff({ added, changeKind, deleted, patch, pa
               <i>−{deleted ?? 0}</i>
             </span>
           ) : null}
-          <ShellTooltip label={copied ? "Copied" : "Copy diff"}>
+          <ShellTooltip label={copied ? "コピーしました" : "差分をコピー"}>
             <button
-              aria-label={copied ? "Copied diff" : "Copy diff"}
+              aria-label={copied ? "差分をコピーしました" : "差分をコピー"}
               className="activity-file-diff-copy"
               onClick={() => {
                 void copyText(parsed.patch).then((didCopy) => {
@@ -123,7 +123,7 @@ export default function WorkingPatchDiff({ added, changeKind, deleted, patch, pa
             unsafeCSS: workingPatchUnsafeCss,
           }}
           fileDiff={parsed.fileDiff}
-        /> : <div className="activity-file-empty-detail" role="alert">Couldn’t render this diff: {parsed.error || loadError}</div>}
+        /> : <div className="activity-file-empty-detail" role="alert">この差分を表示できませんでした： {parsed.error || loadError}</div>}
       </div>
     </div>
   );

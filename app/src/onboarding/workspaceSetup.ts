@@ -651,7 +651,7 @@ function requiredText(value: unknown, label: string, maxLength: number): string 
   if (typeof value !== "string") throw new Error(`${label} must be text`);
   const normalized = value.trim();
   if (!normalized) throw new Error(`${label} cannot be empty`);
-  if (normalized.length > maxLength) throw new Error(`${label} exceeds ${maxLength} characters`);
+  if (normalized.length > maxLength) throw new Error(`${label} exceeds ${maxLength} 文字`);
   return normalized;
 }
 

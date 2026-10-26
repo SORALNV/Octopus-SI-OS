@@ -1511,7 +1511,7 @@ export function useChatWorkspace(
     if (!nextText || !canSteer || message.id !== steerableMessageIdRef.current
       || message.runId !== activeRunIdRef.current || message.role !== "user" || message.eventKind !== "message"
       || message.pending || message.error) {
-      setError("This reply is no longer accepting edits. Your text has been kept.");
+      setError("この応答は編集を受け付けていません。入力した文章は保持されています。");
       return false;
     }
     return submitSteeringMessage({ attachments: [], fromComposer: false,
@@ -2679,7 +2679,7 @@ export function useChatWorkspace(
         const { stage, message } = result.deliveryError;
         if (stage === "not-sent" || stage === "refused") {
           clearPendingTurnControl(target.runId, controlId);
-          setError(`Stop ${stage === "not-sent" ? "was not sent" : "was refused"}. ${message}`);
+          setError(`停止 ${stage === "not-sent" ? "was not sent" : "was refused"}. ${message}`);
         } else setError(`Stop is awaiting confirmation. ${message}`);
         return;
       }
@@ -2725,7 +2725,7 @@ export function useChatWorkspace(
         const { stage, message } = result.deliveryError;
         if (stage === "not-sent" || stage === "refused") {
           clearPendingTurnControl(run.runId, controlId);
-          setError(`Resume ${stage === "not-sent" ? "was not sent" : "was refused"}. ${message}`);
+          setError(`再開 ${stage === "not-sent" ? "was not sent" : "was refused"}. ${message}`);
         } else setError(`Resume is awaiting confirmation. ${message}`);
         return;
       }
@@ -2734,7 +2734,7 @@ export function useChatWorkspace(
     } catch (failure) {
       if (!deliveryScopeCurrent()) return;
       if (!bridgeAttempted) clearPendingTurnControl(run.runId, controlId);
-      setError(`Resume ${bridgeAttempted ? "is awaiting confirmation" : "was not sent"}. ${formatRuntimeError(failure)}`);
+      setError(`再開 ${bridgeAttempted ? "is awaiting confirmation" : "was not sent"}. ${formatRuntimeError(failure)}`);
     }
   }
 
@@ -2772,7 +2772,7 @@ export function useChatWorkspace(
     const saved = removed as QueuedChatTurn;
     appToast.info(saved.status === "unknown" ? "Unconfirmed message removed locally" : "Queued message deleted", 8, {
       dedupeKey: `queued-turn-delete:${id}`,
-      action: { label: "Undo", onSelect: () => {
+      action: { label: "元に戻す", onSelect: () => {
         void replaceQueuedTurns((current) => {
           if (current.some((item) => item.id === saved.id)) return current;
           const next = [...current];

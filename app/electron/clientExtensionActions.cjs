@@ -112,7 +112,7 @@ async function inspectProviderCredential(options) {
   let octopusHome;
   let codexHome;
   try {
-    octopusHome = requiredAbsolutePath(options?.octopusHome, "Octopus home");
+    octopusHome = requiredAbsolutePath(options?.octopusHome, "Octopus のホーム");
     codexHome = requiredAbsolutePath(options?.codexHome, "Codex home");
   } catch (error) {
     return credentialStatus("unavailable", error, "Provider sign-in status is unavailable.");
@@ -149,7 +149,7 @@ function credentialStatus(state, error, message) {
 }
 
 async function repairProviderCredential(options, incident) {
-  const octopusHome = requiredAbsolutePath(options?.octopusHome, "Octopus home");
+  const octopusHome = requiredAbsolutePath(options?.octopusHome, "Octopus のホーム");
   const codexHome = requiredAbsolutePath(options?.codexHome, "Codex home");
   const target = await resolveProviderAuthTarget(octopusHome, incident.interfaceId, codexHome);
   await readAndValidateCodexAuth(target.path, "machine Codex sign-in");
@@ -276,7 +276,7 @@ async function readStableRegularFile(filePath, maximumBytes, label, allowEmpty =
   try {
     const before = await handle.stat();
     if (!before.isFile() || (!allowEmpty && before.size <= 0) || before.size > maximumBytes) {
-      throw new Error(`${label} must be a ${allowEmpty ? "regular file" : "non-empty regular file"} no larger than ${maximumBytes} bytes`);
+      throw new Error(`${label} must be a ${allowEmpty ? "regular file" : "non-empty regular file"} no larger than ${maximumBytes} バイト`);
     }
     const bytes = await handle.readFile();
     const after = await handle.stat();

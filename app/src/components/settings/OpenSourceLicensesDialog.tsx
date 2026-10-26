@@ -64,23 +64,23 @@ export function OpenSourceLicensesDialog({ onClose, open }: { onClose: () => voi
     >
       <OcDialogHeader
         closeLabel="Close open-source licenses"
-        description="Production dependencies bundled into the Octopus desktop renderer"
+        description="Octopus のデスクトップ画面に同梱される依存パッケージ"
         onClose={onClose}
-        title="Open-source licenses"
+        title="オープンソースライセンス"
         titleId="open-source-licenses-title"
       />
         <OcSearchField
           className="mx-4 shrink-0"
           id="open-source-licenses-search"
           inputRef={searchRef}
-          label="Search open-source licenses"
+          label="オープンソースライセンスを検索"
           onChange={setQuery}
-          placeholder="Search packages or licenses"
+          placeholder="パッケージまたはライセンスを検索"
           trailing={<span className="shrink-0 text-xs tabular-nums text-token-description-foreground">{filtered.length}</span>}
           value={query}
         />
         <div className="mt-3 grid min-h-0 flex-1 grid-cols-[minmax(220px,0.34fr)_minmax(0,1fr)] border-t border-token-border">
-          <nav aria-label="Bundled dependencies" className="min-h-0 overflow-y-auto border-r border-token-border p-2">
+          <nav aria-label="同梱する依存パッケージ" className="min-h-0 overflow-y-auto border-r border-token-border p-2">
             {filtered.map((entry) => {
               const key = licenseKey(entry);
               return (
@@ -97,12 +97,12 @@ export function OpenSourceLicensesDialog({ onClose, open }: { onClose: () => voi
               );
             })}
             {!loading && !loadError && filtered.length === 0 ? (
-              <OcEmptyState className="min-h-0 py-6" size="compact" title="No matching dependencies" />
+              <OcEmptyState className="min-h-0 py-6" size="compact" title="一致する依存パッケージがありません" />
             ) : null}
           </nav>
           <main className="min-h-0 overflow-y-auto p-5">
-            {loading ? <OcEmptyState className="h-full min-h-0" size="compact" title="Loading dependency notices…" /> : null}
-            {loadError ? <OcEmptyState className="h-full min-h-0" detail={loadError} glyph="warning" size="compact" title="Dependency inventory unavailable" tone="danger" /> : null}
+            {loading ? <OcEmptyState className="h-full min-h-0" size="compact" title="依存パッケージの告知を読み込んでいます…" /> : null}
+            {loadError ? <OcEmptyState className="h-full min-h-0" detail={loadError} glyph="warning" size="compact" title="依存パッケージの一覧を利用できません" tone="danger" /> : null}
             {selected ? (
               <article>
                 <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -113,14 +113,14 @@ export function OpenSourceLicensesDialog({ onClose, open }: { onClose: () => voi
                 {selected.notice ? (
                   <pre className="mt-5 whitespace-pre-wrap break-words font-mono text-xs leading-5 text-token-text-secondary">{selected.notice}</pre>
                 ) : (
-                  <p className="mt-5 text-sm text-token-description-foreground">This package declares {selected.license}, but its installed package does not include a root LICENSE or NOTICE file.</p>
+                  <p className="mt-5 text-sm text-token-description-foreground">このパッケージのライセンス： {selected.license}。ただし、インストール済みパッケージのルートに LICENSE または NOTICE ファイルがありません。</p>
                 )}
               </article>
             ) : null}
           </main>
         </div>
         <OcDialogFooter leading="Generated from the production dependency graph at build time">
-          <OcButton onClick={onClose} size="sm" variant="secondary">Done</OcButton>
+          <OcButton onClick={onClose} size="sm" variant="secondary">完了</OcButton>
         </OcDialogFooter>
     </OcDialog>
   );

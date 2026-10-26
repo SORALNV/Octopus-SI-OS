@@ -48,7 +48,7 @@ function WorkerEnvironmentTab({ accessProfile, active, assistantCodeComments, sn
       style={{ display: active ? "flex" : "none" }}
     >
       <SurfaceRenderBoundary resetKey={tabId}>
-        <Suspense fallback={<SurfaceLoadingState label="Loading environment…" />}>
+        <Suspense fallback={<SurfaceLoadingState label="環境を読み込んでいます…" />}>
           <WorkerEnvironmentPaneTab
             accessProfile={accessProfile}
             assistantCodeComments={assistantCodeComments}

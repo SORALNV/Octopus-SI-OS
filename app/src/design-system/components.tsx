@@ -841,7 +841,7 @@ export function OcSelect<T extends string>({
         type="button"
       >
         <span className="flex min-w-0 flex-1 items-center gap-1.5 truncate">
-          {selected?.label ?? placeholder ?? "Select"}
+          {selected?.label ?? placeholder ?? "選択"}
         </span>
         <Glyph className="icon-2xs shrink-0 text-tertiary" name="chevronDown" size={14} />
       </button></ShellTooltip>
@@ -1179,10 +1179,10 @@ export function OcExpandableList<T>({
   const names = hiddenItems.slice(0, 2).map(getItemLabel).filter(Boolean);
   const remaining = Math.max(hiddenItems.length - names.length, 0);
   const disclosureLabel = isExpanded
-    ? "Show less"
+    ? "表示を減らす"
     : names.length
-      ? `See ${names.join(", ")}${remaining ? `, and ${remaining} more` : ""}`
-      : `Show ${hiddenItems.length} more`;
+      ? `See ${names.join(", ")}${remaining ? `, and ${remaining} その他` : ""}`
+      : `表示 ${hiddenItems.length} その他`;
   return (
     <>
       {children(visibleItems)}
@@ -1253,7 +1253,7 @@ export function OcTreePreview({ items, label, className, ...props }: OcTreePrevi
                 {item.leading ?? <Glyph className="icon-xs text-token-text-secondary" name="folder" size={16} />}
               </span>
               <span className="flex min-w-0 flex-1 flex-col py-1 pr-1">
-                <span className="min-w-0 truncate text-base text-token-foreground"><span className="sr-only">Level {depth + 1}. </span>{item.label}</span>
+                <span className="min-w-0 truncate text-base text-token-foreground"><span className="sr-only">レベル {depth + 1}. </span>{item.label}</span>
                 {item.description ? <span className="min-w-0 truncate text-xs text-token-description-foreground">{item.description}</span> : null}
               </span>
               {item.meta ? <span className="mr-2 shrink-0 text-xs text-token-text-secondary">{item.meta}</span> : null}
@@ -1341,7 +1341,7 @@ export function OcSearchField({
       />
       {value.length ? (
         <button
-          aria-label="Clear search"
+          aria-label="検索を解除"
           className="flex shrink-0 cursor-interaction text-token-text-secondary hover:text-token-foreground"
           onClick={() => onChange("")}
           type="button"
@@ -1569,7 +1569,7 @@ export function OcDialogHeader({
   description,
   leading,
   onClose,
-  closeLabel = "Close dialog",
+  closeLabel = "ダイアログを閉じる",
   closeDisabled = false,
   titleId,
   className,
@@ -1653,7 +1653,7 @@ export function OcPopover({
         <>
           {onDismiss && modal ? (
             <button
-              aria-label={`Close ${label}`}
+              aria-label={`閉じる ${label}`}
               className="oc-popover__scrim"
               onClick={onDismiss}
               tabIndex={-1}

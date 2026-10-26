@@ -17,12 +17,12 @@ export type ClientNavigationDestination = Readonly<{
 export const NAVIGATION_RAIL_WIDTH = 52;
 
 export const clientNavigationDestinations: readonly ClientNavigationDestination[] = [
-  { id: "home", label: "Home", surfaceId: "voice", glyph: "home", selectedGlyph: "homeFilled", sidebar: false },
-  { id: "tasks", label: "Tasks", surfaceId: "chat", glyph: "tasks", selectedGlyph: "tasksFilled", sidebar: true },
-  { id: "dashboard", label: "Dashboard", surfaceId: "dashboard", glyph: "dashboardRail", selectedGlyph: "dashboardRailFilled", sidebar: false },
-  { id: "inbox", label: "Inbox", surfaceId: "inbox", glyph: "inbox", selectedGlyph: "inboxFilled", sidebar: true },
-  { id: "applications", label: "Applications", surfaceId: "applications", glyph: "applicationsRail", selectedGlyph: "applicationsRailFilled", sidebar: false },
-  { id: "drivers", label: "Drivers", surfaceId: "drivers", glyph: "driversRail", selectedGlyph: "driversRailFilled", sidebar: false },
+  { id: "home", label: "ホーム", surfaceId: "voice", glyph: "home", selectedGlyph: "homeFilled", sidebar: false },
+  { id: "tasks", label: "タスク", surfaceId: "chat", glyph: "tasks", selectedGlyph: "tasksFilled", sidebar: true },
+  { id: "dashboard", label: "ダッシュボード", surfaceId: "dashboard", glyph: "dashboardRail", selectedGlyph: "dashboardRailFilled", sidebar: false },
+  { id: "inbox", label: "受信トレイ", surfaceId: "inbox", glyph: "inbox", selectedGlyph: "inboxFilled", sidebar: true },
+  { id: "applications", label: "アプリケーション", surfaceId: "applications", glyph: "applicationsRail", selectedGlyph: "applicationsRailFilled", sidebar: false },
+  { id: "drivers", label: "ドライバー", surfaceId: "drivers", glyph: "driversRail", selectedGlyph: "driversRailFilled", sidebar: false },
 ];
 
 export function navigationSectionForSurface(surface: Pick<ClientSurfaceDescriptor, "id" | "placements">): ClientNavigationSection {

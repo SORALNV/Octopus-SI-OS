@@ -102,7 +102,7 @@ export function ArtifactWorkbench({ onClose, presentation = "embedded", referenc
   const file = useMemo(() => previewDownload(model), [model]);
 
   const content = (
-    <section className={`artifact-workbench is-${presentation}`} aria-label={`Preview ${model.title}`}>
+    <section className={`artifact-workbench is-${presentation}`} aria-label={`プレビュー ${model.title}`}>
       <header className="artifact-workbench-header">
         <div className="artifact-workbench-identity">
           <h2 title={model.title}>{model.title}</h2>
@@ -113,7 +113,7 @@ export function ArtifactWorkbench({ onClose, presentation = "embedded", referenc
         </div>
         <div className="artifact-workbench-actions">
           {file ? <ArtifactOpenControl file={file} key={`${file.filename}:${file.mediaType}`} /> : null}
-          {onClose ? <OcIconButton glyph="close" label="Close preview" onClick={onClose} size="xs" variant="ghost" /> : null}
+          {onClose ? <OcIconButton glyph="close" label="プレビューを閉じる" onClick={onClose} size="xs" variant="ghost" /> : null}
         </div>
       </header>
 
@@ -122,8 +122,8 @@ export function ArtifactWorkbench({ onClose, presentation = "embedded", referenc
         onMouseUp={() => setSelection(selectionFromPreview(previewRef.current))}
         ref={previewRef}
       >
-        {loading ? <WorkbenchState glyph="pulse" title="Preparing preview…" />
-          : error ? <WorkbenchState detail={error} glyph="warning" title="This preview could not be loaded" />
+        {loading ? <WorkbenchState glyph="pulse" title="プレビューを準備しています…" />
+          : error ? <WorkbenchState detail={error} glyph="warning" title="プレビューを読み込めませんでした" />
             : <ArtifactPreview model={model} zoomPercent={zoomPercent} />}
       </div>
 
@@ -133,8 +133,8 @@ export function ArtifactWorkbench({ onClose, presentation = "embedded", referenc
 
   if (presentation !== "overlay") return content;
   return createPortal(
-    <div aria-label={`Preview ${model.title}`} className="artifact-workbench-overlay" data-oc-dialog data-settings-layer="true" onKeyDown={(event) => containModalFocus(event, overlayRef.current)} ref={overlayRef} role="dialog" aria-modal="true" tabIndex={-1}>
-      <button aria-label="Close preview" className="artifact-workbench-backdrop" onClick={onClose} tabIndex={-1} type="button" />
+    <div aria-label={`プレビュー ${model.title}`} className="artifact-workbench-overlay" data-oc-dialog data-settings-layer="true" onKeyDown={(event) => containModalFocus(event, overlayRef.current)} ref={overlayRef} role="dialog" aria-modal="true" tabIndex={-1}>
+      <button aria-label="プレビューを閉じる" className="artifact-workbench-backdrop" onClick={onClose} tabIndex={-1} type="button" />
       {content}
     </div>,
     document.body,
@@ -148,11 +148,11 @@ function ArtifactZoomControl({ onChange, value }: { onChange: (value: number) =>
 
   return (
     <div className="artifact-zoom-control">
-      <button aria-expanded={open} aria-haspopup="menu" aria-label={`Zoom ${value}%`} onClick={() => setOpen((current) => !current)} ref={anchorRef} type="button">
+      <button aria-expanded={open} aria-haspopup="menu" aria-label={`拡大・縮小 ${value}%`} onClick={() => setOpen((current) => !current)} ref={anchorRef} type="button">
         <span>{value}%</span>
         <Glyph name="chevronDown" size={12} />
       </button>
-        <OcDropdown align="center" anchorRef={anchorRef} aria-label="Zoom" className="artifact-zoom-menu" onOpenChange={setOpen} open={open} sideOffset={4}>
+        <OcDropdown align="center" anchorRef={anchorRef} aria-label="拡大・縮小" className="artifact-zoom-menu" onOpenChange={setOpen} open={open} sideOffset={4}>
           {options.map((option) => (
             <OcMenuItem
               key={option}
@@ -243,19 +243,19 @@ function ArtifactOpenControl({ file }: { file: ArtifactFile }) {
   }
 
   const preferred = targets?.applications.find((application) => application.id === targets.preferredApplicationId) ?? null;
-  const primaryLabel = preferred ? `Open in ${preferred.label}` : "Open";
+  const primaryLabel = preferred ? `次のアプリで開く ${preferred.label}` : "Open";
 
   return (
     <div className="artifact-file-actions">
       <div className="artifact-open-control">
         <button aria-busy={pending === "open"} aria-label={primaryLabel} className="artifact-open-primary" disabled={Boolean(pending)} onClick={() => void openPrimary()} title={primaryLabel} type="button">
           {pending === "open" ? <span className="composer-spinner size-3.5" /> : preferred?.icon ? <img alt="" className="size-4" draggable={false} src={preferred.icon} /> : null}
-          {preferred ? null : <span>Open</span>}
+          {preferred ? null : <span>開く</span>}
         </button>
         <button
           aria-expanded={menuOpen}
           aria-haspopup="menu"
-          aria-label="Open options"
+          aria-label="開く方法を選択"
           className="artifact-open-options"
           disabled={Boolean(pending)}
           onClick={() => setMenuOpen((value) => {
@@ -271,7 +271,7 @@ function ArtifactOpenControl({ file }: { file: ArtifactFile }) {
           <Glyph name="chevronDown" size={13} />
         </button>
       </div>
-        <OcDropdown align="end" anchorRef={anchorRef} aria-label="Open options" className="artifact-open-menu" onOpenChange={setMenuOpen} open={menuOpen} sideOffset={4}>
+        <OcDropdown align="end" anchorRef={anchorRef} aria-label="開く方法を選択" className="artifact-open-menu" onOpenChange={setMenuOpen} open={menuOpen} sideOffset={4}>
           {targets?.applications.map((application) => (
             <OcMenuItem
               disabled={Boolean(pending)}
@@ -281,10 +281,10 @@ function ArtifactOpenControl({ file }: { file: ArtifactFile }) {
               role="menuitem"
             />
           ))}
-          {targetsLoading ? <OcLoadingRows label="Loading available apps…" rows={2} /> : null}
+          {targetsLoading ? <OcLoadingRows label="利用できるアプリを読み込んでいます…" rows={2} /> : null}
           {targetsError && !targetsLoading ? <OcMenuMessage>{targetsError}</OcMenuMessage> : null}
           {targetsLoading || targetsError || targets?.applications.length ? <div className="my-1 h-px bg-token-border" /> : null}
-          <OcMenuItem disabled={Boolean(pending)} label="Open in folder" onClick={() => void reveal()} role="menuitem" />
+          <OcMenuItem disabled={Boolean(pending)} label="フォルダーで表示" onClick={() => void reveal()} role="menuitem" />
         </OcDropdown>
     </div>
   );
@@ -317,7 +317,7 @@ function SelectedTextAction({ model, onDone, reference, selection }: {
           }}
           type="button"
         >
-          Add to task
+          タスクに追加
         </button>
       </div>
     </div>,
@@ -346,15 +346,15 @@ function zoomable(kind: ReturnType<typeof createArtifactPreviewModel>["kind"]): 
 
 function rendererLabel(kind: ReturnType<typeof createArtifactPreviewModel>["kind"]): string {
   const labels = {
-    code: "Code",
+    code: "コード",
     document: "Document",
     image: "Image",
     json: "JSON",
     media: "Media",
     notebook: "Notebook",
     pdf: "PDF",
-    text: "Text",
-    unsupported: "Artifact",
+    text: "テキスト",
+    unsupported: "成果物",
   };
   return labels[kind];
 }

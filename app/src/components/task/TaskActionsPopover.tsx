@@ -36,7 +36,7 @@ export function TaskActionsPopover({ anchor, actions, title, onClose, onSelect }
   const previousFocusRef = useRef(anchor.anchorElement ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null));
   const callbacks = useRef({ onClose, onSelect });
   callbacks.current = { onClose, onSelect };
-  const levels = [{ title: `Actions for ${title}`, actions }];
+  const levels = [{ title: `操作： ${title}`, actions }];
   for (const selected of path) {
     const parent = levels.at(-1)!.actions.find((item) => item.type !== "separator" && item.id === selected);
     if (!parent || parent.type === "separator" || parent.enabled === false || !parent.submenu) break;

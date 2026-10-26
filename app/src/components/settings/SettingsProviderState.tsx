@@ -16,10 +16,10 @@ export type ProviderState = {
 function SettingsProviderFacts({ provider }: { provider: OctopusProviderInterface }) {
   return (
     <dl className="settings-provider-facts">
-      <div><dt>Model</dt><dd>{provider.model || "Not declared"}</dd></div>
-      <div><dt>Reasoning effort</dt><dd>{provider.reasoningEffort || "Not declared"}</dd></div>
-      <div><dt>Driver</dt><dd title={provider.runtimeHandlerRef}>{provider.runtimeHandlerRef || "Not declared"}</dd></div>
-      <div><dt>Interface id</dt><dd title={provider.id}>{provider.id}</dd></div>
+      <div><dt>モデル</dt><dd>{provider.model || "未定義"}</dd></div>
+      <div><dt>推論の強さ</dt><dd>{provider.reasoningEffort || "未定義"}</dd></div>
+      <div><dt>ドライバー</dt><dd title={provider.runtimeHandlerRef}>{provider.runtimeHandlerRef || "未定義"}</dd></div>
+      <div><dt>インターフェース ID</dt><dd title={provider.id}>{provider.id}</dd></div>
     </dl>
   );
 }
@@ -30,9 +30,9 @@ export function ProviderSummary({ provider, compact = false }: { provider: Octop
       <div className="settings-provider-title">
         <div>
           <strong>{provider.label}</strong>
-          <span>{provider.sourceNames.length ? provider.sourceNames.join(", ") : "No declared source name"}</span>
+          <span>{provider.sourceNames.length ? provider.sourceNames.join(", ") : "定義されたソース名がありません"}</span>
         </div>
-        <OcStatus label="Declared" tone="success" />
+        <OcStatus label="定義済み" tone="success" />
       </div>
       <SettingsProviderFacts provider={provider} />
     </div>

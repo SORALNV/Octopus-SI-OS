@@ -53,7 +53,7 @@ function QueuedMessageRail(props: Props) {
     if (present && event.over && event.active.id !== event.over.id) props.onReorder(String(event.active.id), String(event.over.id));
   }
   return (
-    <motion.div className="composer-queue-surface" aria-label="Queued messages"
+    <motion.div className="composer-queue-surface" aria-label="送信待ちのメッセージ"
       aria-hidden={!present || undefined} inert={!present || undefined} data-composer-rail-item={present ? "present" : "exiting"} data-reduced-motion={reducedMotion}
       initial={reducedMotion ? false : railExit} animate={{ gridTemplateRows: "1fr", borderTopWidth: 1, borderBottomWidth: 0 }}
       exit={railExit} transition={transition}>
@@ -62,9 +62,9 @@ function QueuedMessageRail(props: Props) {
       <div className="composer-queue-scroll vertical-scroll-fade-mask hide-scrollbar">
         {props.paused && props.messages.length ? <div className="composer-queue-paused composer-queue-row">
           <div className="composer-queue-body"><Glyph className="composer-queue-leading icon-2xs" name="pause" size={16} />
-            <span className="composer-queue-title">{blocked ? "Queue paused while delivery is unconfirmed" : "Queue paused"}</span></div>
+            <span className="composer-queue-title">{blocked ? "配信を確認できないため、送信待ちを一時停止しています" : "送信待ちを一時停止中"}</span></div>
           <button className="composer-queue-action" disabled={!present || blocked} onClick={props.onResume} type="button">
-            <Glyph className="icon-2xs" name="play" size={16} /><span>Resume</span>
+            <Glyph className="icon-2xs" name="play" size={16} /><span>再開</span>
           </button>
         </div> : null}
         <DndContext collisionDetection={closestCenter} modifiers={queueDragModifiers} onDragEnd={finishDrag} sensors={sensors}>
@@ -115,7 +115,7 @@ function QueuedMessageRow({ message, reorderable, sendNowAvailable, onDelete, on
       style={{ transform: CSS.Translate.toString(transform), transition: reducedMotion ? "none" : transition }} transition={{ duration: reducedMotion ? 0 : 0.18 }}>
       <div className="composer-queue-row group" data-message-status={message.status} data-muted={isDragging || editing || undefined} aria-busy={message.status === "sending"}>
         <div className="composer-queue-body">
-          {canReorder ? <span {...attributes} {...listeners} aria-label="Reorder queued message" className="composer-queue-drag" ref={setActivatorNodeRef}>
+          {canReorder ? <span {...attributes} {...listeners} aria-label="送信待ちの順番を変更" className="composer-queue-drag" ref={setActivatorNodeRef}>
             <Glyph className="composer-queue-drag-indicator icon-2xs" name="drag" size={16} />
             <Glyph className="composer-queue-leading icon-2xs" name="steer" size={16} />
           </span> : <Glyph className="composer-queue-leading icon-2xs" name="steer" size={16} />}
@@ -124,7 +124,7 @@ function QueuedMessageRow({ message, reorderable, sendNowAvailable, onDelete, on
               {failed || unknown ? <MessageTooltip label={[failureLabel, message.error].filter(Boolean).join("\n")}>
                 <span className="composer-queue-warning" aria-label={failureLabel}><Glyph className="icon-2xs" name="warning" size={16} /></span>
               </MessageTooltip> : null}
-              {previewSrc ? <img className="composer-queue-image" src={previewSrc} alt="Image attachment" draggable={false} /> : null}
+              {previewSrc ? <img className="composer-queue-image" src={previewSrc} alt="添付画像" draggable={false} /> : null}
               <div className="composer-queue-message">{!message.text.trim() ? attachmentSummary : fenced
                 ? markdownToPlainText(message.text).replace(/\s+/g, " ").trim()
                 : <MessageContent compactHeadings text={message.text} variant="user" />}</div>
@@ -134,20 +134,20 @@ function QueuedMessageRow({ message, reorderable, sendNowAvailable, onDelete, on
           </div>
         </div>
         <div className="composer-queue-actions">
-          {mutable ? <MessageTooltip label={failed ? "Try sending this queued message again. Edit or delete it if retry keeps failing." : "Submit without interrupting the model"}>
-            <button aria-label={failed ? "Retry queued message" : "Steer with queued message"} className="composer-queue-action"
+          {mutable ? <MessageTooltip label={failed ? "この送信待ちメッセージを再送信してください。失敗が続く場合は編集するか削除してください。" : "モデルを中断せずに送信"}>
+            <button aria-label={failed ? "送信待ちのメッセージを再試行" : "送信待ちのメッセージを今すぐ送信"} className="composer-queue-action"
               disabled={!present || !sendNowAvailable} onClick={() => failed ? onRetry(message.id) : onSendNow(message.id)} type="button">
-              <Glyph className="icon-2xs" name="sendNow" size={16} /><span>{failed ? "Retry" : "Steer"}</span>
+              <Glyph className="icon-2xs" name="sendNow" size={16} /><span>{failed ? "再試行" : "今すぐ送信"}</span>
             </button>
           </MessageTooltip> : null}
-          {mutable || unknown ? <MessageTooltip label={unknown ? "Remove locally; this does not cancel or resend the message" : "Delete queued message"}>
-            <button aria-label={unknown ? "Remove unconfirmed message locally" : "Delete queued message"} className="composer-queue-action is-icon" disabled={!present} onClick={() => onDelete(message.id)} type="button"><Glyph className="icon-2xs" name="close" size={16} /></button>
+          {mutable || unknown ? <MessageTooltip label={unknown ? "ローカルの表示から削除します。メッセージの取り消しや再送信はしません" : "送信待ちのメッセージを削除"}>
+            <button aria-label={unknown ? "未確認のメッセージをローカルの表示から削除" : "送信待ちのメッセージを削除"} className="composer-queue-action is-icon" disabled={!present} onClick={() => onDelete(message.id)} type="button"><Glyph className="icon-2xs" name="close" size={16} /></button>
           </MessageTooltip> : null}
-          {editing ? <button className="composer-queue-action" disabled={!present} onClick={() => onEdit(message.id)} type="button">Editing</button> : null}
+          {editing ? <button className="composer-queue-action" disabled={!present} onClick={() => onEdit(message.id)} type="button">編集中</button> : null}
           {mutable ? <>
-            <button aria-label="Queued message actions" aria-expanded={present && menuOpen} aria-haspopup="menu" className="composer-queue-action is-icon" disabled={!present} ref={menuRef} onClick={() => setMenuOpen((open) => !open)} type="button"><Glyph className="icon-2xs" name="more" size={16} /></button>
+            <button aria-label="送信待ちメッセージの操作" aria-expanded={present && menuOpen} aria-haspopup="menu" className="composer-queue-action is-icon" disabled={!present} ref={menuRef} onClick={() => setMenuOpen((open) => !open)} type="button"><Glyph className="icon-2xs" name="more" size={16} /></button>
             {present ? <OcDropdown anchorRef={menuRef} align="end" open={menuOpen} onOpenChange={setMenuOpen}>
-              <OcMenuItem role="menuitem" className="composer-queue-menu-item" label="Edit message" leadingIcon="edit" onClick={() => { setMenuOpen(false); onEdit(message.id); }} />
+              <OcMenuItem role="menuitem" className="composer-queue-menu-item" label="メッセージを編集" leadingIcon="edit" onClick={() => { setMenuOpen(false); onEdit(message.id); }} />
             </OcDropdown> : null}
           </> : null}
         </div>

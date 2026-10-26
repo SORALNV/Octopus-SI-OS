@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../../locale";
 import { useEffect, useLayoutEffect, useMemo, useState, type KeyboardEvent } from "react";
 import { Glyph, type GlyphName } from "../IconGlyphs";
 import { useFixedVirtualRange } from "../useFixedVirtualRange";
@@ -115,14 +116,14 @@ export function ArtifactLibrary({ onSelect, rows, selectedId }: Props) {
         <em>{rendererLabel(entry.kind)}</em>
         <time>{formatArtifactTime(entry.createdAtMs)}</time>
       </span>
-      {view === "list" ? <span className="artifact-library-run" title={entry.runId}>{entry.runId || "Not bound to a run"}</span> : null}
+      {view === "list" ? <span className="artifact-library-run" title={entry.runId}>{entry.runId || "実行に紐付けられていません"}</span> : null}
     </button>
   );
 
   return (
     <div className="artifact-library">
       <div className="artifact-library-toolbar">
-        <div className="artifact-library-filters" role="group" aria-label="Filter artifacts by renderer">
+        <div className="artifact-library-filters" role="group" aria-label="表示形式で成果物を絞り込む">
           {(["all", "documents", "images", "code", "data", "media", "text", "opaque"] as const).map((value) => (
             <button aria-pressed={filter === value} className={filter === value ? "is-active" : ""} key={value} onClick={() => setFilter(value)} type="button">
               {filterLabel(value)}
@@ -131,15 +132,15 @@ export function ArtifactLibrary({ onSelect, rows, selectedId }: Props) {
         </div>
         <div className="artifact-library-display-controls">
           <label>
-            <span>Sort</span>
-            <select aria-label="Sort artifacts" onChange={(event) => setSort(event.target.value as ArtifactSort)} value={sort}>
-              <option value="newest">Newest</option>
-              <option value="name">Name</option>
-              <option value="type">Type</option>
+            <span>並べ替え</span>
+            <select aria-label="成果物を並べ替え" onChange={(event) => setSort(event.target.value as ArtifactSort)} value={sort}>
+              <option value="newest">新しい順</option>
+              <option value="name">名前</option>
+              <option value="type">種類</option>
             </select>
           </label>
-          <button aria-label="Grid view" aria-pressed={view === "grid"} className={view === "grid" ? "is-active" : ""} onClick={() => setView("grid")} type="button"><Glyph name="viewAll" size={13} /></button>
-          <button aria-label="List view" aria-pressed={view === "list"} className={view === "list" ? "is-active" : ""} onClick={() => setView("list")} type="button"><Glyph name="registry" size={13} /></button>
+          <button aria-label="グリッド表示" aria-pressed={view === "grid"} className={view === "grid" ? "is-active" : ""} onClick={() => setView("grid")} type="button"><Glyph name="viewAll" size={13} /></button>
+          <button aria-label="リスト表示" aria-pressed={view === "list"} className={view === "list" ? "is-active" : ""} onClick={() => setView("list")} type="button"><Glyph name="registry" size={13} /></button>
         </div>
       </div>
 
@@ -168,7 +169,7 @@ export function ArtifactLibrary({ onSelect, rows, selectedId }: Props) {
           </div>
         )
       ) : (
-        <div className="artifact-library-empty"><Glyph name="artifact" size={22} /><strong>No matching artifacts</strong><span>Choose another renderer filter or clear the registry search.</span></div>
+        <div className="artifact-library-empty"><Glyph name="artifact" size={22} /><strong>一致する成果物がありません</strong><span>別の表示形式を選ぶか、レジストリの検索条件を解除してください。</span></div>
       )}
     </div>
   );
@@ -206,11 +207,11 @@ function sorter(sort: ArtifactSort): (left: LibraryEntry, right: LibraryEntry) =
 }
 
 function filterLabel(value: ArtifactFilter): string {
-  if (value === "all") return "All";
+  if (value === "all") return "すべて";
   if (value === "data") return "Data";
   if (value === "documents") return "Docs";
   if (value === "images") return "Images";
-  if (value === "opaque") return "Other";
+  if (value === "opaque") return "その他";
   return value[0].toLocaleUpperCase() + value.slice(1);
 }
 
@@ -230,7 +231,7 @@ function kindGlyph(kind: ArtifactRendererKind): GlyphName {
 
 function formatArtifactTime(value: number): string {
   if (!value) return "Unknown time";
-  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(value);
+  return new Intl.DateTimeFormat(APP_LOCALE, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(value);
 }
 
 function timestamp(value: unknown): number {

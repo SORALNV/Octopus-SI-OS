@@ -30,7 +30,7 @@ export function ProjectAppearancePicker({ projectName, selectedColor, selectedIc
   return (
     <>
       <button
-        aria-label={`Change icon and color for ${projectName}`}
+        aria-label={`アイコンと色を変更： ${projectName}`}
         className="project-appearance-trigger no-drag cursor-interaction"
         disabled={disabled || !present}
         onClick={(event) => {
@@ -45,7 +45,7 @@ export function ProjectAppearancePicker({ projectName, selectedColor, selectedIc
       <OcDropdown
         anchorRef={anchorRef}
         align="center"
-        aria-label="Project appearance"
+        aria-label="プロジェクトの外観"
         className="project-appearance-picker"
         id={id}
         onClick={(event) => event.stopPropagation()}
@@ -80,10 +80,10 @@ export function ProjectAppearancePicker({ projectName, selectedColor, selectedIc
         sideOffset={6}
         surface="opaque"
       >
-        <div aria-label="Project color" className="project-appearance-picker__colors" role="group">
+        <div aria-label="プロジェクトの色" className="project-appearance-picker__colors" role="group">
           {PROJECT_COLOR_OPTIONS.map((option) => (
             <button
-              aria-label={option === DEFAULT_PROJECT_COLOR ? "Use default color" : `Use ${option}`}
+              aria-label={option === DEFAULT_PROJECT_COLOR ? "既定の色を使う" : `使用 ${option}`}
               aria-pressed={colorKey === option}
               className="project-appearance-picker__color cursor-interaction"
               disabled={disabled}
@@ -98,7 +98,7 @@ export function ProjectAppearancePicker({ projectName, selectedColor, selectedIc
           ))}
         </div>
         <div className="project-appearance-picker__divider" />
-        <div aria-label="Project icon" className="project-appearance-picker__icons" role="group" style={{ color: projectColor(selectedColor) }}>
+        <div aria-label="プロジェクトのアイコン" className="project-appearance-picker__icons" role="group" style={{ color: projectColor(selectedColor) }}>
           {iconOptions.map((option) => (
             <button
               aria-label={option.label}
@@ -114,7 +114,7 @@ export function ProjectAppearancePicker({ projectName, selectedColor, selectedIc
           ))}
         </div>
         <div className="project-appearance-picker__footer">
-          <OcButton onClick={() => setOpen(false)} variant="secondary">Done</OcButton>
+          <OcButton onClick={() => setOpen(false)} variant="secondary">完了</OcButton>
         </div>
       </OcDropdown>
     </>

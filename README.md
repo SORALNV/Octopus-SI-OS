@@ -1,3 +1,9 @@
+> **非公式の日本語版 Fork**
+>
+> Octopus のデスクトップ UI を日本語化しています。上流の変更は依頼時に取り込み、公式に日本語対応が入ったら独自の翻訳対応を終了します。
+>
+> [日本語版の方針と更新手順](docs/japanese-fork.md) · [上流リポジトリ](https://github.com/miuuyy/Octopus-SI-OS)
+
 <p align="center">
   <img src="assets/octopus-icon.png" width="128" alt="Octopus">
 </p>

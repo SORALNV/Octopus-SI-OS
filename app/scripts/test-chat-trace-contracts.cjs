@@ -447,9 +447,9 @@ const projectedRoomRead = toolPresentation.dynamicToolPresentation({
     tool: `file.read__${workspaceToolSuffix}`,
   },
 }, {});
-assert.equal(toolPresentation.dynamicToolReadLabel(projectedRoomRead, false), "Read activation.json");
+assert.equal(toolPresentation.dynamicToolReadLabel(projectedRoomRead, false), "activation.jsonを読み取りました");
 assert.equal(projectedWorkspaceRead.family, "read");
-assert.equal(toolPresentation.dynamicToolReadLabel(projectedWorkspaceRead, false), "Read life.rs");
+assert.equal(toolPresentation.dynamicToolReadLabel(projectedWorkspaceRead, false), "life.rsを読み取りました");
 assert.equal(projectedWorkspaceExec.family, "exec");
 assert.equal(projectedWorkspaceExec.target, "git status --short");
 const projectedBrowserTabs = toolPresentation.dynamicToolPresentation({
@@ -458,7 +458,7 @@ const projectedBrowserTabs = toolPresentation.dynamicToolPresentation({
 const projectedContainerStatus = toolPresentation.dynamicToolPresentation({
   eventData: { arguments: {}, tool: `container.status__${workspaceToolSuffix}` },
 }, {});
-assert.equal(toolPresentation.dynamicToolOperationLabel(projectedBrowserTabs), "Used the browser");
+assert.equal(toolPresentation.dynamicToolOperationLabel(projectedBrowserTabs), "ブラウザーを使用しました");
 assert.equal(toolPresentation.dynamicToolOperationLabel(projectedContainerStatus), "Container status");
 assert.equal(toolPresentation.dynamicToolGlyph(projectedBrowserTabs), "browserUse");
 assert.equal(toolPresentation.dynamicToolGlyph(projectedWorkspaceRead), "read");
@@ -885,7 +885,7 @@ async function verifyTranscriptLayout() {
     assert.doesNotMatch(container.textContent, /Progress explained|Run list/);
     await render([operation], true, assistantDelta, true);
     assert.equal(query(".octopus-turn-activity").dataset.state, "working");
-    assert.match(query(".octopus-worked-for-boundary").textContent, /^Working/);
+    assert.match(query(".octopus-worked-for-boundary").textContent, /^作業時間： /);
     await render([operation], true, { ...assistantDelta, eventData: { ...assistantDelta.eventData, phase: "final_answer" } }, true);
     assert.equal(query(".octopus-turn-activity").dataset.state, "complete");
     await render([commentary, reasoning]);
@@ -901,11 +901,11 @@ async function verifyTranscriptLayout() {
     assert.equal(query(".octopus-turn-activity-content").children.length, 1);
     assert.ok(query(".octopus-agent-activity-body") === null, "settled groups mount collapsed");
     await click(query(".octopus-agent-activity-toggle"));
-    assert.deepEqual(rowText(), ["Run list", "Read life.rs"]);
+    assert.deepEqual(rowText(), ["Run list", "読み取り life.rs"]);
     assert.ok(query('.structured-activity [data-glyph="plugins"]'), "Octopus interface operations carry the plugin mark");
     assert.ok(query(".structured-activity-body") === null, "closed operation details cannot retain padding");
     await click(query(".structured-activity .octopus-agent-activity-toggle"));
-    assert.match(query(".structured-activity-body").textContent, /Arguments\{\}Result[\s\S]*count/);
+    assert.match(query(".structured-activity-body").textContent, /引数\{\}結果[\s\S]*count/);
     await click(query(".structured-activity .octopus-agent-activity-toggle"));
     assert.ok(query(".structured-activity-body") === null, "closed operation content unmounts after transition");
     const settledRows = rowText();
@@ -923,14 +923,14 @@ async function verifyTranscriptLayout() {
       subagent("sub-1", "t1", "started", "root/research_agent"), subagent("sub-2", "t2", "started", "root/writer"),
       subagent("sub-3", "t3", "started", "root/critic"), subagent("sub-4", "t4", "started", "root/editor"),
     ], false);
-    assert.deepEqual(all(".octopus-agent-activity-toggle").map((node) => node.getAttribute("aria-label")), ["Created 2 agents", "Messaged an agent"]);
+    assert.deepEqual(all(".octopus-agent-activity-toggle").map((node) => node.getAttribute("aria-label")), ["2 体のエージェント：作成済み", "1 体のエージェント：メッセージを送信済み"]);
     assert.deepEqual(all(".octopus-subagent-chip-name").map((node) => node.textContent), ["Research agent", "Writer", "Critic"]);
-    assert.equal(query(".octopus-subagent-group-status").textContent, "and 1 other subagent started working");
+    assert.equal(query(".octopus-subagent-group-status").textContent, "ほか 1 体のサブエージェントが作業を開始しました");
     assert.doesNotMatch(container.textContent, /Prompt wait/);
     await render([subagent("sub-1", "t1", "started", "root/a"), subagent("sub-2", "t2", "interacted", "root/b")], false);
-    assert.equal(query(".octopus-subagent-group-status").textContent, "updated");
+    assert.equal(query(".octopus-subagent-group-status").textContent, "更新しました");
     await render([subagent("sub-1", "t1", "interacted", "root/a"), subagent("sub-2", "t2", "interrupted", "root/b")], false);
-    assert.equal(query(".octopus-subagent-group-status").textContent, "interrupted");
+    assert.equal(query(".octopus-subagent-group-status").textContent, "中断しました");
     const privateReasoning = [message("reason", "reasoning", "", { summary: ["Checking files", "Then comparing"], content: ["RAW PRIVATE CHAIN"] }),
       message("raw-delta", "reasoning_delta", "RAW DELTA", { content_index: 0 }), message("unindexed-delta", "reasoning_delta", "RAW UNINDEXED", {})];
     await render(privateReasoning, true);
@@ -941,20 +941,20 @@ async function verifyTranscriptLayout() {
       renderActivity: (message) => React.createElement(events.AssistantEventContent, { message, toolPresentations: {} }),
     })));
     await renderLedger(privateReasoning, false);
-    assert.deepEqual(all(".octopus-agent-activity-toggle").map((node) => [node.getAttribute("aria-label"), node.getAttribute("aria-expanded")]), [["Thought", "false"]]);
+    assert.deepEqual(all(".octopus-agent-activity-toggle").map((node) => [node.getAttribute("aria-label"), node.getAttribute("aria-expanded")]), [["思考", "false"]]);
     await click(query(".octopus-agent-activity-toggle"));
     assert.equal(query(".octopus-reasoning-detail").textContent, "Then comparing");
     assert.ok(container.querySelector(".vertical-scroll-fade-mask") === null);
     assert.doesNotMatch(container.textContent, /RAW|Checking files/);
     await renderLedger([message("timed", "reasoning", "", { summary: ["Done"], started_at_ms: 1_000, completed_at_ms: 4_000 })], false);
-    assert.match(query(".octopus-agent-activity-toggle").getAttribute("aria-label"), /^Thought for \S/);
+    assert.match(query(".octopus-agent-activity-toggle").getAttribute("aria-label"), /^思考時間： \S/);
     await renderLedger([message("live", "reasoning_delta", "Scanning", { summary_index: 0, lifecycle: "streaming" })], true);
-    assert.equal(query(".octopus-agent-activity-summary-value").textContent, "Thinking");
+    assert.equal(query(".octopus-agent-activity-summary-value").textContent, "考えています");
     assert.equal(query(".octopus-reasoning-detail").textContent, "Scanning", "active reasoning opens without a click");
     await render([], false);
     await render([message("pending", "event", "", { work_status: "submitting" })], true);
     assert.equal(query(".octopus-turn-activity").dataset.state, "starting");
-    assert.equal(query('[role="status"][aria-live="polite"]').textContent, "Starting your task");
+    assert.equal(query('[role="status"][aria-live="polite"]').textContent, "タスクを開始しています");
     await render([message("pending", "event", "", { work_status: "submitting" }), operation], true);
     assert.notEqual(query(".octopus-turn-activity").dataset.state, "starting");
     const finalResponse = { ...assistantDelta, eventData: { ...assistantDelta.eventData, phase: "final_answer" } };
@@ -963,7 +963,7 @@ async function verifyTranscriptLayout() {
     for (const motion of [true, false]) {
       reducedMotion = motion;
       await render([], false); await render([operation], false, finalResponse, true);
-      assert.match(historyToggle().textContent, /^Worked for /);
+      assert.match(historyToggle().textContent, /^作業時間 /);
       assert.equal(history(), null, "settled history mounts collapsed");
       await React.act(async () => historyToggle().click());
       assert.equal(historyToggle().getAttribute("aria-expanded"), "true");
@@ -979,19 +979,19 @@ async function verifyTranscriptLayout() {
     }
     reducedMotion = true;
     await render([], false); await render([message("thought", "reasoning", "", { summary: ["Comparing the two files"] })], false, finalResponse, true);
-    assert.match(query(".octopus-worked-for-boundary").textContent, /^Worked for /, "a turn that only thought still says how long it worked");
+    assert.match(query(".octopus-worked-for-boundary").textContent, /^作業時間 /, "a turn that only thought still says how long it worked");
     assert.equal(all(".octopus-agent-activity").length, 0);
     await render([], false); await render([], false, finalResponse, true);
     assert.equal(container.childElementCount, 0, "a turn without work or thought renders nothing");
     await render([operation, message("interrupted", "interrupted_result", "", {})], false, undefined, true);
     assert.equal(query(".octopus-turn-activity").dataset.state, "stopped");
-    assert.match(query(".octopus-worked-for-boundary").textContent, /^Interrupted after /);
+    assert.match(query(".octopus-worked-for-boundary").textContent, /^中断までの作業時間： /);
     await render([operation, message("stop", "turn_control", "", { action: "stop", status: "acknowledged" })], false, undefined, true);
-    assert.match(query(".octopus-worked-for-boundary").textContent, /^You stopped after /);
+    assert.match(query(".octopus-worked-for-boundary").textContent, /^停止までの作業時間： /);
     const buffering = (id, showBufferingUi) => message(id, "warning", "Checking response safety", { source: "model_safety_buffering", showBufferingUi });
     await render([operation, buffering("quiet", false), buffering("shown", true)], true);
     assert.equal((container.textContent.match(/Checking response safety/g) ?? []).length, 1);
-    assert.equal((container.textContent.match(/No action is required\. Octopus will keep waiting for the response\./g) ?? []).length, 1);
+    assert.equal((container.textContent.match(/操作は不要です。Octopus は応答を待ち続けます。/g) ?? []).length, 1);
     await render([operation, buffering("shown", true)], false, finalResponse, false);
     assert.doesNotMatch(container.textContent, /Checking response safety/);
     const callUpdate = (index, failed) => message(`flaky-${index}`, "dynamic_tool", "", { tool: "run_list", call_id: "flaky", status: failed ? "failed" : "completed",
@@ -1038,7 +1038,7 @@ async function verifyTranscriptLayout() {
     artifactResponse = { artifact_id: artifactMessage.artifactId, run_id: artifactMessage.runId, interface_id: artifactMessage.interfaceId, base64: Buffer.from(JSON.stringify(readResult)).toString("base64") };
     await render([artifactMessage], false);
     await click(query(".octopus-agent-activity-toggle"));
-    assert.deepEqual(rowText(), ["Read artifact docs.guide.md"]);
+    assert.deepEqual(rowText(), ["読み取り 成果物 docs.guide.md"]);
     assert.equal(query("[data-tooltip-target]").getAttribute("data-tooltip-target"), artifactId);
     assert.equal(query("[data-tooltip-target]").getAttribute("data-activates-file"), "true");
     await click(query("[data-tooltip-target]"));
@@ -1068,25 +1068,25 @@ async function verifyTranscriptLayout() {
     await render([navigation], false);
     assert.ok(query('.octopus-agent-activity-header [data-glyph="browserUse"]'));
     await click(query(".octopus-agent-activity-toggle"));
-    assert.deepEqual(rowText(), ["Used the browser"]);
+    assert.deepEqual(rowText(), ["ブラウザーを使用しました"]);
     assert.ok(query('.structured-activity [data-glyph="browserUse"]'));
     await click(query(".structured-activity .octopus-agent-activity-toggle"));
     assert.match(query(".structured-activity-body").textContent, /https:\/\/example.org\/path/);
     assert.match(query(".structured-activity-body").textContent, /native host rendezvous/);
     for (const [receipt, expected] of [
-      [{}, "Diff unavailable"],
-      [{ added: 0 }, "Diff unavailable"],
-      [{ added: 1, deleted: 0 }, "Diff unavailable"],
-      [{ changeKind: "delete" }, "Diff unavailable"],
-      [{ added: 0, deleted: 0, lifecycle: "error" }, "Diff unavailable"],
-      [{ added: 0, deleted: 0 }, "No changes"],
-      [{ detailsLoading: true }, "Loading full diff…"],
+      [{}, "差分を取得できません"],
+      [{ added: 0 }, "差分を取得できません"],
+      [{ added: 1, deleted: 0 }, "差分を取得できません"],
+      [{ changeKind: "delete" }, "差分を取得できません"],
+      [{ added: 0, deleted: 0, lifecycle: "error" }, "差分を取得できません"],
+      [{ added: 0, deleted: 0 }, "変更なし"],
+      [{ detailsLoading: true }, "差分の全体を読み込んでいます…"],
       [{ diff: "+recorded content" }, "+recorded content"],
     ]) {
       await React.act(async () => root.render(React.createElement(fileActivity.FileChangeActivity, {
         changeKind: "update", diff: "", lifecycle: "complete", path: "expense-report.md", onOpenFile: () => {}, ...receipt,
       })));
-      const disclosure = query('[aria-label="Toggle diff for expense-report.md"]');
+      const disclosure = query('[aria-label="差分表示を切り替え： expense-report.md"]');
       if (disclosure.getAttribute("aria-expanded") === "false") await click(disclosure);
       assert.equal(receipt.detailsLoading ? query('.activity-file-body [role="status"]').getAttribute("aria-label") : query(".activity-file-body").textContent, expected);
     }

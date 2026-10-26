@@ -652,7 +652,7 @@ function parseHeldRetirementProof(value, ctx) {
 }
 
 async function normalizeRoots(options) {
-  const octopusHomeRoot = await realPlainDirectory(requiredAbsolutePath(options?.octopusHomeRoot, "octopusHomeRoot"), "Octopus home");
+  const octopusHomeRoot = await realPlainDirectory(requiredAbsolutePath(options?.octopusHomeRoot, "octopusHomeRoot"), "Octopus のホーム");
   const registryRoot = await realPlainDirectory(requiredAbsolutePath(options?.registryRoot, "registryRoot"), "Active Registry");
   const stateRoot = path.join(octopusHomeRoot, "client-state", "workspace");
   return {
@@ -745,11 +745,11 @@ function parseProjectMutationRequest(value) {
       parentEeId: requiredId(request.parentEeId, "Project parent EE"),
       expectedParentDigest: requiredDigest(request.expectedParentDigest, "Project parent digest"),
       templateName: requiredId(request.templateName, "Project policy template"),
-      name: requiredHumanText(request.name, "Project name", 80),
+      name: requiredHumanText(request.name, "プロジェクト名", 80),
       goal: requiredHumanText(request.goal, "Project goal", 240),
       presentation: {
-        icon: requiredHumanText(presentation.icon, "Project icon", 64),
-        color: requiredHumanText(presentation.color, "Project color", 64),
+        icon: requiredHumanText(presentation.icon, "プロジェクトのアイコン", 64),
+        color: requiredHumanText(presentation.color, "プロジェクトの色", 64),
       },
     };
   } else if (request.action === "delete_project") {
@@ -1910,7 +1910,7 @@ function validatePlannedHomeRuns(roots, plan, writes, home) {
   if (context !== undefined) {
     const fields = ["run_id", "control_interface_id", "provider_id", "delegation_interface_id"];
     exactObject(context, fields, fields, "Home voice context");
-    for (const field of fields) requiredId(context[field], `Home voice ${field}`);
+    for (const field of fields) requiredId(context[field], `ホームの音声通話 ${field}`);
     const voice = records.get(context.run_id);
     const origin = voice?.interface_state?.[context.control_interface_id];
     const topology = voice?.interface_state?.[context.provider_id]?.run_authoring_binding;
@@ -4807,7 +4807,7 @@ function parseDoorHostSlots(value) {
     const slots = exactObject(slotsValue, Object.keys(slotsValue ?? {}), [], `Home folder access ${id}`);
     output[id] = {};
     for (const [slot, root] of Object.entries(slots)) {
-      output[id][requiredId(slot, `Home folder access ${id} slot`)] = requiredAbsolutePath(root, `Home folder access ${id} root`);
+      output[id][requiredId(slot, `Home folder access ${id} slot`)] = requiredAbsolutePath(root, `Home folder access ${id} ルート`);
     }
   }
   return output;
@@ -4831,7 +4831,7 @@ function projectProfileExternalInputs(value) {
       `Project authoring external input ${index + 1}`,
     );
     return {
-      checkpointId: requiredId(route.checkpoint_id, `Project authoring external input ${index + 1} checkpoint`),
+      checkpointId: requiredId(route.checkpoint_id, `Project authoring external input ${index + 1} チェックポイント`),
       interfaceId: requiredId(route.interface_id, `Project authoring external input ${index + 1} interface`),
       ...(artifactNames.length ? { artifactNames } : {}),
       ...(requirements.length ? { requiredVerifiedArtifacts: requirements } : {}),
@@ -4854,7 +4854,7 @@ function projectProfileExternalRelays(value) {
       `Project authoring external relay ${index + 1}`,
     );
     return {
-      checkpointId: requiredId(route.checkpoint_id, `Project authoring external relay ${index + 1} checkpoint`),
+      checkpointId: requiredId(route.checkpoint_id, `Project authoring external relay ${index + 1} チェックポイント`),
       interfaceId: requiredId(route.interface_id, `Project authoring external relay ${index + 1} interface`),
       outboundInterfaceIds: parseUniqueIds(
         route.outbound_interface_ids,
@@ -4916,7 +4916,7 @@ function projectProfileModelOutputs(value) {
       throw new Error(`Project authoring model output ${index + 1} params must be an object`);
     }
     return {
-      checkpointId: requiredId(route.checkpoint_id, `Project authoring model output ${index + 1} checkpoint`),
+      checkpointId: requiredId(route.checkpoint_id, `Project authoring model output ${index + 1} チェックポイント`),
       interfaceId: requiredId(route.interface_id, `Project authoring model output ${index + 1} interface`),
       requiredVerifiedArtifact: {
         mark: requiredId(requirement.mark, `Project authoring model output ${index + 1} mark`),
@@ -5039,7 +5039,7 @@ function requiredFileIdentityNumber(value, label) {
 
 function requiredHumanText(value, label, maxLength) {
   if (typeof value !== "string" || value.trim() !== value || !value || value.length > maxLength) {
-    throw new Error(`${label} must be non-empty trimmed text up to ${maxLength} characters`);
+    throw new Error(`${label} must be non-empty trimmed text up to ${maxLength} 文字`);
   }
   return value;
 }

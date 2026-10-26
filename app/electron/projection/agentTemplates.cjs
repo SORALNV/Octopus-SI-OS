@@ -456,11 +456,11 @@ function requiredAgentId(value) {
 }
 
 function requiredAgentName(value) {
-  return requiredClientAgentName(value, "Agent name");
+  return requiredClientAgentName(value, "エージェント名");
 }
 
 function requiredAgentIcon(value) {
-  return requiredClientAgentIcon(value, "Agent icon");
+  return requiredClientAgentIcon(value, "エージェントのアイコン");
 }
 
 async function planAgentWorkerAdmission(

@@ -211,10 +211,10 @@ type ApplicationCatalogView = "browse" | "manage";
 const CATEGORY_ORDER: ApplicationCategory[] = ["provider", "connector", "plugin", "artifact"];
 const SHA256_DIGEST = /^[a-f0-9]{64}$/;
 const CATEGORY_COPY: Record<ApplicationCategory, { title: string; description: string }> = {
-  provider: { title: "AI Providers", description: "Models for Home and tasks. Each provider connects through its own sign-in, API key, or local service." },
-  connector: { title: "Connectors", description: "Services and triggers that bring messages into a task and carry its replies back out." },
-  plugin: { title: "Plugins", description: "Tools and guides a task picks up when it needs them, such as MCP servers, memory and image generation." },
-  artifact: { title: "Context", description: "Knowledge packages you can attach to new tasks." },
+  provider: { title: "AI プロバイダー", description: "ホームやタスクで使うモデルです。各プロバイダーには、ログイン、API キー、またはローカルサービスで接続します。" },
+  connector: { title: "コネクター", description: "タスクにメッセージを届け、その応答を外部に返すサービスやトリガーです。" },
+  plugin: { title: "プラグイン", description: "MCP サーバー、メモリ、画像生成など、タスクが必要に応じて使うツールやガイドです。" },
+  artifact: { title: "コンテキスト", description: "新しいタスクに添付できる知識パッケージです。" },
 };
 
 export function ApplicationsView({
@@ -764,7 +764,7 @@ export function ApplicationsView({
     }
   }
 
-  if (!hasProjectionBridge()) return <SurfaceState title="Applications are unavailable" detail="Start Octopus to manage installed applications." />;
+  if (!hasProjectionBridge()) return <SurfaceState title="アプリケーションを利用できません" detail="Octopus を起動すると、インストール済みのアプリケーションを管理できます。" />;
   const detailOpen = Boolean(selected || selectedPack);
   return (
     <>
@@ -772,21 +772,21 @@ export function ApplicationsView({
         <div aria-hidden={detailOpen || undefined} className={cx("h-full min-h-0", detailOpen && "pointer-events-none invisible absolute inset-0")}>
           <CatalogRouteTransition className="h-full min-h-0" direction={routeDirection} viewKey={`applications-${catalogView}`}>
             {!loaded || catalogView === "browse" && !packsLoaded ? (
-              <OctopusLoadingState className="surface-content-loading-state" label="Loading applications" />
+              <OctopusLoadingState className="surface-content-loading-state" label="アプリケーションを読み込んでいます" />
             ) : <section className="flex h-full min-h-0 flex-col text-base select-none">
               <header className="surface-titlebar-spacer draggable flex h-toolbar shrink-0 items-center justify-between gap-2 px-panel">
                 {catalogView === "manage" ? (
                   <button className="no-drag cursor-interaction flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-token-text-secondary hover:bg-token-list-hover-background hover:text-token-foreground focus:outline-none" onClick={closeManage} type="button">
-                    <span>Applications</span>
+                    <span>アプリケーション</span>
                     <span className="text-token-input-placeholder-foreground">/</span>
-                    <span className="text-token-foreground">Manage</span>
+                    <span className="text-token-foreground">管理</span>
                   </button>
                 ) : (
-                  <span className="no-drag flex min-w-0 items-center rounded-lg px-2 py-1 text-sm text-token-foreground">Applications</span>
+                  <span className="no-drag flex min-w-0 items-center rounded-lg px-2 py-1 text-sm text-token-foreground">アプリケーション</span>
                 )}
                 <div className="no-drag flex min-w-0 items-center justify-end gap-2">
                   {catalogView === "browse" ? (
-                    <OcIconButton glyph="settings" id="applications-browse-manage" label="Manage applications" onClick={openManage} size="sm" variant="ghost" />
+                    <OcIconButton glyph="settings" id="applications-browse-manage" label="アプリケーションを管理" onClick={openManage} size="sm" variant="ghost" />
                   ) : null}
                 </div>
               </header>
@@ -797,17 +797,17 @@ export function ApplicationsView({
                       <div className="mx-auto w-full max-w-[var(--thread-content-max-width)] px-panel pt-panel">
                         <div className="flex items-start justify-between gap-4 px-2">
                           <div className="flex min-w-0 flex-col gap-2">
-                            <h1 className="heading-xl font-normal text-default">Applications</h1>
-                            <div className="text-lg leading-6 text-secondary">Connect Octopus to the tools and context you use</div>
+                            <h1 className="heading-xl font-normal text-default">アプリケーション</h1>
+                            <div className="text-lg leading-6 text-secondary">普段使うツールや情報を Octopus に接続しましょう</div>
                           </div>
                         </div>
                       </div>
                       <div className="sticky top-0 z-30 bg-surface after:pointer-events-none after:absolute after:top-full after:right-0 after:left-0 after:h-8 after:bg-linear-to-b after:from-surface after:to-transparent after:content-['']">
                         <div className="mx-auto flex w-full max-w-[var(--thread-content-max-width)] items-center gap-2 px-panel pt-panel pb-2">
-                          <OcSearchField autoFocus className="min-w-0 flex-1" id="applications-page-search" inputRef={browseSearchRef} label="Search applications" onChange={(value) => {
+                          <OcSearchField autoFocus className="min-w-0 flex-1" id="applications-page-search" inputRef={browseSearchRef} label="アプリケーションを検索" onChange={(value) => {
                             setBrowseQuery(value);
                             setHighlightedId("");
-                          }} onKeyDown={onSearchKeyDown} placeholder="Search applications" value={browseQuery} />
+                          }} onKeyDown={onSearchKeyDown} placeholder="アプリケーションを検索" value={browseQuery} />
                         </div>
                       </div>
                     </>
@@ -815,7 +815,7 @@ export function ApplicationsView({
                   <div className={cx("mx-auto flex min-h-0 w-full max-w-[var(--thread-content-max-width)] flex-1 flex-col px-panel pb-panel", catalogView === "manage" ? "gap-3 pt-panel" : "gap-8 pt-5")}>
                     {catalogView === "manage" ? (
                       <div className="flex flex-wrap items-center justify-between gap-3">
-                        <OcSegmented label="Manage applications" onChange={(category) => {
+                        <OcSegmented label="アプリケーションを管理" onChange={(category) => {
                           setManageCategory(category);
                           setHighlightedId("");
                         }} options={CATEGORY_ORDER.map((category) => ({
@@ -823,32 +823,32 @@ export function ApplicationsView({
                           label: <>{CATEGORY_COPY[category].title}<span className="ms-0.5 text-tertiary">{applications.filter((application) => application.category === category).length}</span></>,
                         }))} size="sm" value={manageCategory} />
                         <div className="w-56 min-w-0 max-w-full">
-                          <OcSearchField className="shadow-none" id="applications-page-manage-search" inputRef={manageSearchRef} label="Search applications" onChange={(value) => {
+                          <OcSearchField className="shadow-none" id="applications-page-manage-search" inputRef={manageSearchRef} label="アプリケーションを検索" onChange={(value) => {
                             setManageQuery(value);
                             setHighlightedId("");
-                          }} onKeyDown={onSearchKeyDown} placeholder="Search" value={manageQuery} />
+                          }} onKeyDown={onSearchKeyDown} placeholder="検索" value={manageQuery} />
                         </div>
                       </div>
                     ) : null}
                     {loaded && error && applications.length ? <ApplicationProjectionIssue detail={error} /> : null}
                     {packsLoaded && packError && applicationPacks.length ? <ApplicationProjectionIssue detail={packError} /> : null}
                     {error && applications.length === 0 && (catalogView === "manage" || packError && applicationPacks.length === 0) ? (
-                      <SurfaceState compact title="Applications could not be projected" detail={[error, packError].filter(Boolean).join("\n")} actionLabel="Retry" onAction={() => setReloadTick((current) => current + 1)} />
+                      <SurfaceState compact title="アプリケーションの情報を取得できませんでした" detail={[error, packError].filter(Boolean).join("\n")} actionLabel="Retry" onAction={() => setReloadTick((current) => current + 1)} />
                     ) : applications.length === 0 && (catalogView === "manage" || applicationPacks.length === 0) ? (
-                      <SurfaceState compact title="No application packages found" detail="No verified source or installed interface package is available." actionLabel="Refresh catalog" onAction={() => setReloadTick((current) => current + 1)} />
+                      <SurfaceState compact title="アプリケーションのパッケージがありません" detail="検証済みのソースも、インストール済みのインターフェースパッケージもありません。" actionLabel="Refresh catalog" onAction={() => setReloadTick((current) => current + 1)} />
                     ) : (catalogView === "browse" && visible.length === 0 && visiblePacks.length === 0) || (catalogView === "manage" && manageApplications.length === 0 && manageNeedle) ? (
-                      <SurfaceState compact title="No applications found" />
+                      <SurfaceState compact title="アプリケーションが見つかりません" />
                     ) : catalogView === "manage" ? (
                       <>
                         {manageApplications.length ? (
                           <ManageApplicationsList accessProfile={accessProfile} applicationRefs={manageCardRefs} applications={manageApplications} highlightedId={highlightedId} lifecycleOperations={lifecycleOperations} onInstall={(application) => void installOrRepairApplication(application)} onOpen={(id) => openApplication(id, "manage")} onRemove={(application) => setRemoveId(application.id)} onSetup={openSetup} setupStatusByInterface={setupStatusByInterface} />
-                        ) : <SurfaceState compact title={`No ${CATEGORY_COPY[manageCategory].title.toLowerCase()} found`} />}
+                        ) : <SurfaceState compact title={`なし ${CATEGORY_COPY[manageCategory].title.toLowerCase()} 件見つかりました`} />}
                       </>
                     ) : (
                       <>
                         {visiblePacks.length ? (
                           <CatalogSection
-                            description="Install a reviewed set of applications, local capabilities, and context"
+                            description="確認済みのアプリケーション、ローカル機能、コンテキストをまとめてインストールします"
                             getItemKey={(pack) => pack.id}
                             getItemLabel={(pack) => pack.name}
                             items={visiblePacks}
@@ -872,7 +872,7 @@ export function ApplicationsView({
                             )}
                             resetKey={`packs:${browseQuery}`}
                             showCount={Boolean(browseQuery.trim())}
-                            title="Application Packs"
+                            title="アプリケーションパック"
                             visibleItemLimit={3}
                           />
                         ) : null}
@@ -953,10 +953,10 @@ export function ApplicationsView({
       />
       <ApplicationRemovalDialog application={removeApplication} lifecycle={removeApplication ? lifecycleOperations[removeApplication.id] : undefined} onCancel={() => setRemoveId("")} onConfirm={() => removeApplication && void removeInstalledApplication(removeApplication)} />
       <SetupDialogShell ariaLabel="Review required packages" busy={false} open={Boolean(installReview)} onClose={() => setInstallReview(null)}>
-        <h2 className="text-lg font-semibold">Install {installReview?.name}</h2>
-        <p className="mt-2 text-sm text-text-secondary">This application requires these packages. Installing them does not connect them to tasks.</p>
-        <ul className="my-4 space-y-2 text-sm">{installReview?.install_packages.map((entry) => <li key={entry.id}>{entry.name}{entry.installed ? " · Installed" : ""}</li>)}</ul>
-        <div className="flex justify-end gap-2"><OcButton onClick={() => setInstallReview(null)}>Cancel</OcButton><OcButton onClick={() => { const application = installReview; setInstallReview(null); if (application) void installApplication(application); }}>Install</OcButton></div>
+        <h2 className="text-lg font-semibold">インストール {installReview?.name}</h2>
+        <p className="mt-2 text-sm text-text-secondary">このアプリケーションには次のパッケージが必要です。インストールしただけではタスクに接続されません。</p>
+        <ul className="my-4 space-y-2 text-sm">{installReview?.install_packages.map((entry) => <li key={entry.id}>{entry.name}{entry.installed ? " · インストール済み" : ""}</li>)}</ul>
+        <div className="flex justify-end gap-2"><OcButton onClick={() => setInstallReview(null)}>キャンセル</OcButton><OcButton onClick={() => { const application = installReview; setInstallReview(null); if (application) void installApplication(application); }}>インストール</OcButton></div>
       </SetupDialogShell>
     </>
   );
@@ -1000,7 +1000,7 @@ function ApplicationPackCard({ accessProfile, clientSetup, clientSetupError, hig
         <span className="min-w-0 flex-1">
           <span className="flex min-w-0 items-center gap-2">
             <span className="truncate font-medium text-token-foreground">{pack.name}</span>
-            <OcStatus label="Pack" tone="neutral" />
+            <OcStatus label="パック" tone="neutral" />
           </span>
           <span className="mt-0.5 block line-clamp-2 text-sm leading-relaxed text-text-description">{pack.description}</span>
           <ApplicationPackFactBadges clientSetup={clientSetup} clientSetupError={clientSetupError} compact pack={pack} setupStatus={setupStatus} />
@@ -1015,12 +1015,12 @@ function ApplicationPackCard({ accessProfile, clientSetup, clientSetupError, hig
               onApply();
             }}
             size="xs"
-            title={accessProfile !== "live" ? "Apply packs from the Administrator profile." : blockReason || `Apply ${pack.name}`}
+            title={accessProfile !== "live" ? "パックを適用するには管理者プロフィールを使ってください。" : blockReason || `適用 ${pack.name}`}
             variant="secondary"
           >
             {busy && lifecycle ? <ApplicationLifecycleProgress operation={lifecycle} /> : actionLabel}
           </OcButton>
-          {lifecycle?.phase === "failed" ? <span className="max-w-48 truncate text-xs text-token-error-foreground">Install failed</span> : null}
+          {lifecycle?.phase === "failed" ? <span className="max-w-48 truncate text-xs text-token-error-foreground">インストールできませんでした</span> : null}
         </div>
       ) : null}
     </div>
@@ -1066,7 +1066,7 @@ function ApplicationPackDetail({ accessProfile, clientSetup, clientSetupError, e
     <section className="flex h-full min-h-0 flex-col text-base select-none">
       <header className="surface-titlebar-spacer flex h-toolbar shrink-0 items-center px-panel">
         <button className="no-drag cursor-interaction flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-token-text-secondary hover:bg-token-list-hover-background hover:text-token-foreground focus:outline-none" onClick={onBack} type="button">
-          <span>Applications</span>
+          <span>アプリケーション</span>
           <span className="text-token-input-placeholder-foreground">/</span>
           <span className="truncate text-token-foreground">{pack.name}</span>
         </button>
@@ -1080,7 +1080,7 @@ function ApplicationPackDetail({ accessProfile, clientSetup, clientSetupError, e
                 <div className="flex min-w-0 flex-1 basis-64 flex-col gap-1.5">
                   <div className="flex min-w-0 items-center gap-2">
                     <h1 className="heading-base min-w-0 break-words text-token-foreground electron:heading-lg">{pack.name}</h1>
-                    <OcStatus label="Application Pack" tone="neutral" />
+                    <OcStatus label="アプリケーションパック" tone="neutral" />
                   </div>
                   <div className="text-base text-token-text-secondary">{pack.description}</div>
                 </div>
@@ -1091,7 +1091,7 @@ function ApplicationPackDetail({ accessProfile, clientSetup, clientSetupError, e
                       disabled={Boolean(busy) || accessProfile !== "live" || Boolean(blockReason)}
                       onClick={onApply}
                       size="sm"
-                      title={accessProfile !== "live" ? "Apply packs from the Administrator profile." : blockReason || `Apply ${pack.name}`}
+                      title={accessProfile !== "live" ? "パックを適用するには管理者プロフィールを使ってください。" : blockReason || `適用 ${pack.name}`}
                       variant="primary"
                     >
                       {busy && lifecycle ? <ApplicationLifecycleProgress operation={lifecycle} /> : actionLabel}
@@ -1102,32 +1102,32 @@ function ApplicationPackDetail({ accessProfile, clientSetup, clientSetupError, e
             </header>
             {lifecycle?.phase === "failed" ? (
               <div className="mx-[var(--detail-page-inline-inset,0px)] rounded-xl border border-token-error-foreground/25 bg-token-error-background px-4 py-3 text-sm text-token-error-foreground" role="alert">
-                <div className="font-medium">Pack installation failed</div>
-                <div className="mt-1 text-xs opacity-90">Octopus could not finish applying this pack. Retry after resolving the incomplete item.</div>
+                <div className="font-medium">パックをインストールできませんでした</div>
+                <div className="mt-1 text-xs opacity-90">パックの適用を完了できませんでした。未完了の項目を解決してから再試行してください。</div>
               </div>
             ) : null}
-            <DetailSection title="Setup">
+            <DetailSection title="セットアップ">
               <div className="flex flex-col gap-2">
-                <DetailRow label="Installed" value={`${inventory.installedCount} of ${inventory.includedCount} included components are fully installed and verified.`} />
-                {applicationPackSetupVerified(pack, clientSetup) ? <DetailRow label="Workspace setup" value="Home, selected projects, local capabilities, and provider account access were verified together." /> : null}
-                {setupStatus && inventory.ready ? <DetailRow label="Provider setup" value={setupStatus.message} /> : null}
-                {homeProviderName ? <DetailRow label="Home" value={`During first setup, this pack connects Home through ${homeProviderName}.`} /> : null}
-                <DetailRow label="Welcome defaults" value={projectDefaults.length ? `During first setup: ${projectDefaults.join(", ")}. Applying the pack here does not change your project choices.` : "This pack does not suggest any defaults during first setup."} />
-                {recommendedExtensions.length ? <DetailRow label="Optional additions" value="Recommended client additions remain independent and can be installed from Extensions." /> : null}
+                <DetailRow label="インストール済み" value={`${inventory.installedCount} of ${inventory.includedCount} included components are fully installed and verified.`} />
+                {applicationPackSetupVerified(pack, clientSetup) ? <DetailRow label="ワークスペースの設定" value="Home, selected projects, local capabilities, and provider account access were verified together." /> : null}
+                {setupStatus && inventory.ready ? <DetailRow label="プロバイダーの設定" value={setupStatus.message} /> : null}
+                {homeProviderName ? <DetailRow label="ホーム" value={`During first setup, this pack connects Home through ${homeProviderName}.`} /> : null}
+                <DetailRow label="初期設定の内容" value={projectDefaults.length ? `During first setup: ${projectDefaults.join(", ")}. Applying the pack here does not change your project choices.` : "This pack does not suggest any defaults during first setup."} />
+                {recommendedExtensions.length ? <DetailRow label="追加できる機能" value="Recommended client additions remain independent and can be installed from Extensions." /> : null}
               </div>
             </DetailSection>
-            <DetailSection title="What’s in this pack">
+            <DetailSection title="パックの内容">
               <div className="flex flex-col gap-2">
-                <ApplicationPackDisclosure count={included.length} label="Included" open>
+                <ApplicationPackDisclosure count={included.length} label="含まれています" open>
                   {included.map((component) => <ApplicationPackComponentRow component={component} key={component.package_id} />)}
                 </ApplicationPackDisclosure>
                 {recommendedComponents.length || recommendedExtensions.length ? (
-                  <ApplicationPackDisclosure count={recommendedComponents.length + recommendedExtensions.length} label="Recommended">
+                  <ApplicationPackDisclosure count={recommendedComponents.length + recommendedExtensions.length} label="おすすめ">
                     {recommendedComponents.map((component) => (
                       <ApplicationPackComponentRow
                         component={component}
                         key={component.package_id}
-                        selection={<OcSwitch checked={selectedRecommended.includes(component.package_id)} disabled={Boolean(busy) || !component.available} label={`Include ${component.name}`} onCheckedChange={(checked) => onRecommendedChange(component.package_id, checked)} />}
+                        selection={<OcSwitch checked={selectedRecommended.includes(component.package_id)} disabled={Boolean(busy) || !component.available} label={`含める ${component.name}`} onCheckedChange={(checked) => onRecommendedChange(component.package_id, checked)} />}
                       />
                     ))}
                     {recommendedExtensions.map((extension) => <ApplicationPackExtensionRow extension={extension} extensionRecord={extensionById.get(extension.extension_id)} key={extension.extension_id} />)}
@@ -1135,18 +1135,18 @@ function ApplicationPackDetail({ accessProfile, clientSetup, clientSetupError, e
                 ) : null}
               </div>
             </DetailSection>
-            <DetailSection title="Permissions">
+            <DetailSection title="権限">
               <div className="flex flex-col gap-1">
                 {included.map((component) => (
                   <DetailRow key={component.package_id} label={applicationPackPermissionLabel(component)} value={applicationPackPermissionDetail(component)} />
                 ))}
-                <DetailRow label="Project access" value="Capabilities are available only in Home and projects where you allow them; applying the pack does not turn them on for every task." />
+                <DetailRow label="プロジェクトのアクセス権" value="Capabilities are available only in Home and projects where you allow them; applying the pack does not turn them on for every task." />
               </div>
             </DetailSection>
-            <DetailSection title="Information">
+            <DetailSection title="情報">
               <div className="flex flex-col gap-1">
-                <DetailRow label="Version" value={pack.version} />
-                <DetailRow label="Source" value="Reviewed local Application Pack" />
+                <DetailRow label="バージョン" value={pack.version} />
+                <DetailRow label="ソース" value="Reviewed local Application Pack" />
               </div>
             </DetailSection>
           </div>
@@ -1192,12 +1192,12 @@ function ApplicationPackExtensionRow({ extension, extensionRecord }: { extension
     <div className="flex min-h-14 items-center gap-3 rounded-xl px-2 py-2 hover:bg-token-foreground/3">
       <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-token-foreground/5 text-token-text-secondary"><Glyph name={extensionRecord?.manifest.glyph ?? "plugins"} size={17} /></span>
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium text-token-foreground">{extensionRecord?.manifest.name ?? "Client extension"}</span>
+        <span className="block text-sm font-medium text-token-foreground">{extensionRecord?.manifest.name ?? "クライアントの拡張機能"}</span>
         <span className="block text-xs leading-4 text-token-description-foreground">{extension.reason}</span>
       </span>
       <span className="flex shrink-0 flex-wrap justify-end gap-1">
-        <OcStatus label={installed ? "Installed" : "Available in Extensions"} tone={installed ? "success" : "neutral"} />
-        {installed && !configured ? <OcStatus label="Needs setup" tone="warning" /> : null}
+        <OcStatus label={installed ? "インストール済み" : "拡張機能で利用可能"} tone={installed ? "success" : "neutral"} />
+        {installed && !configured ? <OcStatus label="設定が必要" tone="warning" /> : null}
       </span>
     </div>
   );
@@ -1327,15 +1327,15 @@ function ApplicationCardActions({ accessProfile, application, lifecycle, onInsta
         }}
         size="sm"
         title={accessProfile !== "live"
-          ? `${repairable ? "Repair" : "Install"} applications from the Administrator profile.`
-          : repairable ? "Repair application package" : application.install_block_reason || "Install application"}
+          ? `${repairable ? "修復" : "インストール"} には管理者プロフィールを使ってください。`
+          : repairable ? "アプリケーションのパッケージを修復" : application.install_block_reason || "アプリケーションをインストール"}
         variant="outline"
       >
         {busy
           ? <ApplicationLifecycleProgress operation={lifecycle} />
-          : lifecycle?.phase === "failed" ? `Retry ${repairable ? "repair" : "install"}` : repairable ? "Repair" : "Install"}
+          : lifecycle?.phase === "failed" ? `再試行 ${repairable ? "repair" : "install"}` : repairable ? "修復" : "インストール"}
       </OcButton>
-      {lifecycle?.phase === "failed" ? <span className="max-w-48 truncate text-xs text-token-error-foreground" title={lifecycle.error}>{lifecycle.operation === "repair" ? "Repair failed" : "Install failed"}</span> : null}
+      {lifecycle?.phase === "failed" ? <span className="max-w-48 truncate text-xs text-token-error-foreground" title={lifecycle.error}>{lifecycle.operation === "repair" ? "修復できませんでした" : "インストールできませんでした"}</span> : null}
     </div>
   );
   return (
@@ -1352,14 +1352,14 @@ function ApplicationCardActions({ accessProfile, application, lifecycle, onInsta
           size="xs"
           variant="ghost"
         >
-          {!application.valid ? "View issue" : available ? "Manage" : "Set up"}
+          {!application.valid ? "問題を確認" : available ? "管理" : "設定する"}
         </OcButton>
-        {!application.managed ? <OcIconButton disabled={Boolean(busy) || accessProfile !== "live" || !application.removal_allowed} glyph="trash" label={`Remove ${application.name}`} onClick={(event) => {
+        {!application.managed ? <OcIconButton disabled={Boolean(busy) || accessProfile !== "live" || !application.removal_allowed} glyph="trash" label={`削除 ${application.name}`} onClick={(event) => {
           event.stopPropagation();
           onRemove();
-        }} size="xs" title={accessProfile !== "live" ? "Remove applications from the Administrator profile." : application.removal_block_reason || `Remove ${application.name}`} variant="ghost" /> : null}
+        }} size="xs" title={accessProfile !== "live" ? "アプリケーションを削除するには管理者プロフィールを使ってください。" : application.removal_block_reason || `削除 ${application.name}`} variant="ghost" /> : null}
       </div>
-      {lifecycle?.phase === "failed" && lifecycle.operation === "remove" ? <span className="max-w-48 truncate text-xs text-token-error-foreground" title={lifecycle.error}>Remove failed</span> : null}
+      {lifecycle?.phase === "failed" && lifecycle.operation === "remove" ? <span className="max-w-48 truncate text-xs text-token-error-foreground" title={lifecycle.error}>削除できませんでした</span> : null}
     </div>
   );
 }
@@ -1395,14 +1395,14 @@ function ApplicationDetail({
   const repairable = Boolean(applicationRepairExpectation(application));
   const actionLabel = !application.installed
     ? lifecycle?.phase === "failed"
-      ? `Retry ${repairable ? "repair" : "install"}`
+      ? `再試行 ${repairable ? "repair" : "install"}`
       : repairable ? "Repair" : "Install"
-    : !application.valid ? "View issue" : availableProjects.length ? "Manage" : "Set up";
+    : !application.valid ? "問題を確認" : availableProjects.length ? "Manage" : "設定する";
   return (
     <section className="flex h-full min-h-0 flex-col text-base select-none">
       <header className="surface-titlebar-spacer flex h-toolbar shrink-0 items-center px-panel">
         <button className="no-drag cursor-interaction flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-secondary hover:bg-primary-ghost-hover hover:text-default focus:outline-none" onClick={onBack} type="button">
-          <span>Applications</span>
+          <span>アプリケーション</span>
           <span className="text-tertiary">/</span>
           <span className="truncate text-default">{application.name}</span>
         </button>
@@ -1421,7 +1421,7 @@ function ApplicationDetail({
                   <ApplicationFactBadges application={application} setupStatus={setupStatus} />
                   {application.installed ? (
                     <>
-                      <OcButton disabled={Boolean(busy) || accessProfile !== "live" || !application.removal_allowed} onClick={onRemove} size="sm" title={accessProfile !== "live" ? "Remove applications from the Administrator profile." : application.removal_block_reason || `Remove ${application.name}`} tone="danger" variant="ghost">Remove</OcButton>
+                      <OcButton disabled={Boolean(busy) || accessProfile !== "live" || !application.removal_allowed} onClick={onRemove} size="sm" title={accessProfile !== "live" ? "アプリケーションを削除するには管理者プロフィールを使ってください。" : application.removal_block_reason || `削除 ${application.name}`} tone="danger" variant="ghost">削除</OcButton>
                       <OcButton disabled={Boolean(busy) || !application.valid} onClick={onSetup} size="sm" variant="primary">{busy && lifecycle ? <ApplicationLifecycleProgress operation={lifecycle} /> : actionLabel}</OcButton>
                     </>
                   ) : (
@@ -1431,8 +1431,8 @@ function ApplicationDetail({
                       onClick={onInstall}
                       size="sm"
                       title={accessProfile !== "live"
-                        ? `${repairable ? "Repair" : "Install"} applications from the Administrator profile.`
-                        : repairable ? "Repair application package" : application.install_block_reason || "Install application"}
+                        ? `${repairable ? "修復" : "インストール"} には管理者プロフィールを使ってください。`
+                        : repairable ? "アプリケーションのパッケージを修復" : application.install_block_reason || "アプリケーションをインストール"}
                       variant="primary"
                     >
                       {busy && lifecycle ? <ApplicationLifecycleProgress operation={lifecycle} /> : actionLabel}
@@ -1443,48 +1443,48 @@ function ApplicationDetail({
             </header>
             {lifecycle?.phase === "failed" ? (
               <div className="mx-[var(--detail-page-inline-inset,0px)] rounded-xl border border-token-error-foreground/25 bg-token-error-background px-4 py-3 text-sm text-token-error-foreground" role="alert">
-                <div className="font-medium">{lifecycle.operation === "install" ? "Installation failed" : lifecycle.operation === "repair" ? "Repair failed" : "Removal failed"}</div>
+                <div className="font-medium">{lifecycle.operation === "install" ? "インストールできませんでした" : lifecycle.operation === "repair" ? "修復できませんでした" : "削除できませんでした"}</div>
                 <div className="mt-1 whitespace-pre-wrap text-xs opacity-90">{lifecycle.error}</div>
               </div>
             ) : null}
-            <DetailSection title="Setup">
+            <DetailSection title="セットアップ">
               <div className="flex flex-col gap-2">
-                <DetailRow label="Installed" value={application.installed
+                <DetailRow label="インストール済み" value={application.installed
                   ? "Package installed in Octopus Home."
                   : application.materialized || application.partially_materialized
                     ? "Package files were found, but Octopus could not verify one complete installation."
                     : "Available to install. No interfaces or task bindings have been added."} />
-                {application.configuration && application.configuration.fields.length ? <DetailRow label="Configuration" value={applicationConfigurationDetail(application.configuration)} /> : null}
-                {setupStatus && application.installed ? <DetailRow label="Provider setup" value={setupStatus.message} /> : null}
-                <DetailRow label="Enabled in" value={availableProjects.length ? availableProjects.map((state) => projectLabel(projectById.get(state.ee_id), state.ee_id, rootEeId)).join(", ") : "Not enabled yet. Choose Home or a project in Set up."} />
-                <DetailRow label="Default for new tasks" value={defaultProjects.length ? defaultProjects.map((state) => projectLabel(projectById.get(state.ee_id), state.ee_id, rootEeId)).join(", ") : "Not selected by default in any project."} />
-                <DetailRow label="Connected" value={partiallyConnectedRunCount
+                {application.configuration && application.configuration.fields.length ? <DetailRow label="構成" value={applicationConfigurationDetail(application.configuration)} /> : null}
+                {setupStatus && application.installed ? <DetailRow label="プロバイダーの設定" value={setupStatus.message} /> : null}
+                <DetailRow label="有効な場所" value={availableProjects.length ? availableProjects.map((state) => projectLabel(projectById.get(state.ee_id), state.ee_id, rootEeId)).join(", ") : "Not enabled yet. Choose Home or a project in Set up."} />
+                <DetailRow label="新しいタスクで既定で使う" value={defaultProjects.length ? defaultProjects.map((state) => projectLabel(projectById.get(state.ee_id), state.ee_id, rootEeId)).join(", ") : "Not selected by default in any project."} />
+                <DetailRow label="接続済み" value={partiallyConnectedRunCount
                   ? `Connection incomplete in ${partiallyConnectedRunCount} task${partiallyConnectedRunCount === 1 ? "" : "s"}.`
                   : application.connected_run_ids.length
                     ? `Connected to ${application.connected_run_ids.length} task${application.connected_run_ids.length === 1 ? "" : "s"}.`
                     : "Not connected to a task."} />
-                {application.source_kind === "local" ? null : <DetailRow label="Package source" value="This build ships no package for it, so it cannot be repaired or updated." />}
-                {application.installed && application.removal_block_reason ? <DetailRow label="Removal" value={application.removal_block_reason} /> : null}
-                {!application.valid ? <DetailRow label="Installation issue" value={application.missing_interface_ids.length
+                {application.source_kind === "local" ? null : <DetailRow label="パッケージのソース" value="This build ships no package for it, so it cannot be repaired or updated." />}
+                {application.installed && application.removal_block_reason ? <DetailRow label="削除" value={application.removal_block_reason} /> : null}
+                {!application.valid ? <DetailRow label="インストールの問題" value={application.missing_interface_ids.length
                   ? `Missing interfaces: ${application.missing_interface_ids.join(", ")}`
                   : application.receipt_state && application.receipt_state !== "valid"
                     ? "The package files do not have one matching install receipt."
                     : "The package manifest could not be admitted."} /> : null}
               </div>
             </DetailSection>
-            <DetailSection title="Included">
+            <DetailSection title="含まれています">
               <div className="flex flex-col gap-2">
-                {application.interfaces.map((interfaceId) => <DetailRow key={interfaceId} label="Interface" value={interfaceId} />)}
-                {application.artifact_bindings.map((binding) => <DetailRow key={binding.artifact_id} label="Guide for the model" value={binding.label?.trim() || binding.artifact_id} />)}
-                <DetailRow label="Task access" value="A task gets it only when you connect it to that task." />
+                {application.interfaces.map((interfaceId) => <DetailRow key={interfaceId} label="インターフェース" value={interfaceId} />)}
+                {application.artifact_bindings.map((binding) => <DetailRow key={binding.artifact_id} label="モデルへのガイド" value={binding.label?.trim() || binding.artifact_id} />)}
+                <DetailRow label="タスクのアクセス権" value="A task gets it only when you connect it to that task." />
               </div>
             </DetailSection>
-            <DetailSection title="Information">
+            <DetailSection title="情報">
               <div className="flex flex-col gap-1">
-                <DetailRow label="Developer" value={application.developer} />
-                <DetailRow label="Category" value={CATEGORY_COPY[application.category].title} />
-                <DetailRow label="Version" value={application.version} />
-                <DetailRow label="Manifest" value={application.manifest_path} />
+                <DetailRow label="開発者" value={application.developer} />
+                <DetailRow label="カテゴリー" value={CATEGORY_COPY[application.category].title} />
+                <DetailRow label="バージョン" value={application.version} />
+                <DetailRow label="マニフェスト" value={application.manifest_path} />
               </div>
             </DetailSection>
           </div>
@@ -1532,16 +1532,16 @@ function ApplicationSetupDialog({
         <div className="flex items-start gap-4 px-6 pt-8 pb-6">
           <ApplicationLogo application={application} className="size-[60px] overflow-hidden rounded-2xl border border-default bg-transparent" logoSize={28} />
           <div className="min-w-0 flex-1">
-            <h2 className="heading-base text-token-foreground electron:heading-lg">Set up {application.name}</h2>
-            <p className="mt-1 text-sm leading-5 text-token-text-secondary">Add the details this application needs, then choose where it is available. Existing tasks will not change.</p>
+            <h2 className="heading-base text-token-foreground electron:heading-lg">設定する {application.name}</h2>
+            <p className="mt-1 text-sm leading-5 text-token-text-secondary">このアプリケーションに必要な情報を入力し、使用できる場所を選びます。既存のタスクには影響しません。</p>
           </div>
-          <OcIconButton disabled={saving} glyph="close" label="Close" onClick={onCancel} variant="ghost" />
+          <OcIconButton disabled={saving} glyph="close" label="閉じる" onClick={onCancel} variant="ghost" />
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
           {configuration.fields.length ? (
             <section className="mb-6">
               <div className="mb-2 flex items-center justify-between gap-3">
-                <h3 className="text-sm font-medium text-token-foreground">Configuration</h3>
+                <h3 className="text-sm font-medium text-token-foreground">構成</h3>
                 <ConfigurationStatus status={configuration.status} />
               </div>
               <div className="space-y-4 rounded-2xl border border-token-border/60 p-4">
@@ -1564,7 +1564,7 @@ function ApplicationSetupDialog({
                         const current = configurationDraft[key] ?? { value: "", clear: false };
                         return <label className="block" key={key}>
                       <span className="mb-1.5 flex items-center justify-between gap-3 text-xs font-medium text-token-text-secondary">
-                        <span>{field.label}{field.required ? " · Required" : ""}</span>
+                        <span>{field.label}{field.required ? " · 必須" : ""}</span>
                         <span className={cx(field.source === "conflict" && "text-token-error-foreground")}>{configurationFieldStatus(field)}</span>
                       </span>
                       <div className="flex items-center gap-2">
@@ -1584,15 +1584,15 @@ function ApplicationSetupDialog({
                           <OcButton disabled={saving} onClick={() => onConfigurationChange({
                             ...configurationDraft,
                             [key]: { value: "", clear: !current.clear },
-                          })} size="sm" tone={current.clear ? "danger" : "neutral"} variant="ghost">{current.clear ? "Keep" : "Clear"}</OcButton>
+                          })} size="sm" tone={current.clear ? "danger" : "neutral"} variant="ghost">{current.clear ? "保持" : "消去"}</OcButton>
                         ) : null}
                       </div>
-                      {current.clear ? <span className="mt-1 block text-xs text-token-error-foreground">Saved value will be cleared.</span> : null}
+                      {current.clear ? <span className="mt-1 block text-xs text-token-error-foreground">保存された値を消去します。</span> : null}
                         </label>;
                       })}
                       </div>
                       <div className="mt-3 flex justify-end">
-                        <OcButton disabled={saving || !dirty || !documentEditable || !conflictsResolved} onClick={() => onConfigurationSave(document.interface_id)} size="sm" variant="secondary">Save connection details</OcButton>
+                        <OcButton disabled={saving || !dirty || !documentEditable || !conflictsResolved} onClick={() => onConfigurationSave(document.interface_id)} size="sm" variant="secondary">接続情報を保存</OcButton>
                       </div>
                     </div>
                   );
@@ -1601,7 +1601,7 @@ function ApplicationSetupDialog({
               {configuration.status === "issue" && configuration.error ? <p className="mt-2 text-xs text-token-error-foreground">{configuration.error}</p> : null}
             </section>
           ) : null}
-          <h3 className="mb-2 text-sm font-medium text-token-foreground">Available in</h3>
+          <h3 className="mb-2 text-sm font-medium text-token-foreground">使用できる場所</h3>
           <div className="overflow-hidden rounded-2xl border border-token-border/60">
             {application.project_states.map((state, index) => {
               const current = draft[state.ee_id] ?? { available: state.policy_allowed, selected: state.selected_by_default };
@@ -1611,14 +1611,14 @@ function ApplicationSetupDialog({
                   <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-token-foreground/5 text-token-text-secondary"><Glyph name="project" size={17} /></span>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium text-token-foreground">{projectLabel(project, state.ee_id, rootEeId)}</div>
-                    <div className="truncate text-xs text-token-description-foreground">{state.ee_id === rootEeId ? "Root life area" : "Project"}</div>
+                    <div className="truncate text-xs text-token-description-foreground">{state.ee_id === rootEeId ? "暮らしのルート領域" : "プロジェクト"}</div>
                   </div>
                   <div className="flex shrink-0 items-center gap-4">
-                    <OcSwitch checked={current.available} disabled={saving || (!state.ceiling_allowed && !current.available)} label={state.ceiling_allowed ? "Available" : current.available ? "Remove" : "Not supported here"} onCheckedChange={(available) => onChange({
+                    <OcSwitch checked={current.available} disabled={saving || (!state.ceiling_allowed && !current.available)} label={state.ceiling_allowed ? "利用可能" : current.available ? "削除" : "ここでは対応していません"} onCheckedChange={(available) => onChange({
                       ...draft,
                       [state.ee_id]: { available, selected: available ? current.selected : false },
                     })} showLabel />
-                    <OcSwitch checked={current.selected} disabled={saving || !current.available} label="New task default" onCheckedChange={(selected) => onChange({
+                    <OcSwitch checked={current.selected} disabled={saving || !current.available} label="新しいタスクの既定値" onCheckedChange={(selected) => onChange({
                       ...draft,
                       [state.ee_id]: { ...current, selected },
                     })} showLabel />
@@ -1629,8 +1629,8 @@ function ApplicationSetupDialog({
           </div>
         </div>
         <footer className="flex min-h-[76px] shrink-0 items-center justify-end gap-2 border-t border-token-border/40 px-6 py-4 [padding-bottom:max(1rem,env(safe-area-inset-bottom))]">
-          <OcButton disabled={saving} onClick={onCancel} variant="ghost">Cancel</OcButton>
-          <OcButton disabled={saving || !availabilityDirty} onClick={onSave} variant="primary">{saving ? "Saving…" : "Save availability"}</OcButton>
+          <OcButton disabled={saving} onClick={onCancel} variant="ghost">キャンセル</OcButton>
+          <OcButton disabled={saving || !availabilityDirty} onClick={onSave} variant="primary">{saving ? "保存しています…" : "利用範囲を保存"}</OcButton>
         </footer>
         </>
       ) : null}
@@ -1650,13 +1650,13 @@ function ApplicationRemovalDialog({ application, lifecycle, onCancel, onConfirm 
       {application ? (
         <>
           <div className="px-6 pt-8 pb-6">
-            <h2 className="heading-base text-token-foreground electron:heading-lg">Remove {application.name}?</h2>
-            <p className="mt-2 text-sm leading-5 text-token-text-secondary">Its interface folders will leave the active registry. Project policy and task bindings must already be removed; private interface data is not deleted.</p>
+            <h2 className="heading-base text-token-foreground electron:heading-lg">削除 {application.name}?</h2>
+            <p className="mt-2 text-sm leading-5 text-token-text-secondary">インターフェースのフォルダーを有効なレジストリから削除します。先にプロジェクトのポリシーとタスクの紐付けを解除してください。非公開のインターフェースデータは削除しません。</p>
             {application.removal_block_reason ? <div className="mt-4 rounded-xl border border-token-charts-orange/25 bg-token-charts-orange/10 px-3 py-2 text-sm text-token-charts-orange">{application.removal_block_reason}</div> : null}
           </div>
           <footer className="flex min-h-[76px] shrink-0 items-center justify-end gap-2 border-t border-token-border/40 px-6 py-4">
-            <OcButton disabled={Boolean(busy)} onClick={onCancel} variant="ghost">Cancel</OcButton>
-            <OcButton disabled={Boolean(busy) || !application.removal_allowed} onClick={onConfirm} tone="danger" variant="secondary">{busy && lifecycle ? <ApplicationLifecycleProgress operation={lifecycle} /> : "Remove"}</OcButton>
+            <OcButton disabled={Boolean(busy)} onClick={onCancel} variant="ghost">キャンセル</OcButton>
+            <OcButton disabled={Boolean(busy) || !application.removal_allowed} onClick={onConfirm} tone="danger" variant="secondary">{busy && lifecycle ? <ApplicationLifecycleProgress operation={lifecycle} /> : "削除"}</OcButton>
           </footer>
         </>
       ) : null}
@@ -1786,24 +1786,24 @@ function applicationCardStatus(application: ApplicationRecord, setupStatus?: Cli
     || application.partially_materialized
     || application.receipt_state === "stale"
   );
-  if (materializationIncomplete || (application.installed && !application.valid)) return { label: "Needs repair", tone: "danger" };
-  if (application.configuration?.status === "issue") return { label: "Check settings", tone: "danger" };
-  if (application.partially_connected_run_ids?.length) return { label: "Connection incomplete", tone: "danger" };
-  if (setupStatus?.state === "unavailable") return { label: "Setup unavailable", tone: "danger" };
-  if (setupStatus?.state === "repair_available" || setupStatus?.state === "sign_in_required") return { label: "Sign in required", tone: "warning" };
-  if (application.configuration?.status === "required") return { label: "Needs setup", tone: "warning" };
-  if (setupStatus?.state === "waiting_for_interface") return { label: "Finishing setup", tone: "neutral" };
-  if (application.installed && !application.project_states.some((state) => state.policy_allowed)) return { label: "Not enabled", tone: "neutral" };
-  if (application.installed) return { label: "Enabled", tone: "success" };
+  if (materializationIncomplete || (application.installed && !application.valid)) return { label: "修復が必要", tone: "danger" };
+  if (application.configuration?.status === "issue") return { label: "設定を確認", tone: "danger" };
+  if (application.partially_connected_run_ids?.length) return { label: "接続が未完了", tone: "danger" };
+  if (setupStatus?.state === "unavailable") return { label: "設定を利用できません", tone: "danger" };
+  if (setupStatus?.state === "repair_available" || setupStatus?.state === "sign_in_required") return { label: "ログインが必要", tone: "warning" };
+  if (application.configuration?.status === "required") return { label: "設定が必要", tone: "warning" };
+  if (setupStatus?.state === "waiting_for_interface") return { label: "設定を完了しています", tone: "neutral" };
+  if (application.installed && !application.project_states.some((state) => state.policy_allowed)) return { label: "無効", tone: "neutral" };
+  if (application.installed) return { label: "有効", tone: "success" };
   return application.source_available
-    ? { label: "Not installed", tone: "neutral" }
-    : { label: "Unavailable", tone: "danger" };
+    ? { label: "未インストール", tone: "neutral" }
+    : { label: "利用できません", tone: "danger" };
 }
 
 function applicationFacts(application: ApplicationRecord, setupStatus?: ClientExtensionActionStatus): Array<{ label: string; tone: "neutral" | "success" | "warning" | "danger" }> {
   const facts = [applicationCardStatus(application, setupStatus)];
   const connected = application.connected_run_ids.length;
-  if (connected) facts.push({ label: `Connected to ${connected} task${connected === 1 ? "" : "s"}`, tone: "success" });
+  if (connected) facts.push({ label: `接続先 ${connected} task${connected === 1 ? "" : "s"}`, tone: "success" });
   return facts;
 }
 
@@ -1825,10 +1825,10 @@ function configurationFieldKey(field: ApplicationConfigurationField): string {
 }
 
 function configurationFieldStatus(field: ApplicationConfigurationField): string {
-  if (field.source === "conflict") return "Configuration issue";
+  if (field.source === "conflict") return "設定の問題";
   if (field.private_saved) return "Saved";
   if (field.source === "environment") return "Set in environment";
-  if (field.source === "unknown") return "Not checked";
+  if (field.source === "unknown") return "未確認";
   return field.required ? "Not configured" : "Optional";
 }
 
@@ -1836,14 +1836,14 @@ function configurationFieldPlaceholder(field: ApplicationConfigurationField): st
   if (field.private_saved) return "Leave blank to keep saved value";
   if (field.source === "environment") return "Configured outside Octopus";
   if (field.source === "conflict") return "Resolve the conflicting external value first";
-  return field.required ? `Enter ${field.label.toLowerCase()}` : `Optional ${field.label.toLowerCase()}`;
+  return field.required ? `Enter ${field.label.toLowerCase()}` : `任意 ${field.label.toLowerCase()}`;
 }
 
 function ConfigurationStatus({ status }: { status: ApplicationConfiguration["status"] }) {
-  if (status === "issue") return <OcStatus label="Configuration issue" tone="danger" />;
-  if (status === "required") return <OcStatus label="Setup required" tone="warning" />;
-  if (status === "unknown") return <OcStatus label="Not checked" tone="neutral" />;
-  return <OcStatus label="Configured" tone="neutral" />;
+  if (status === "issue") return <OcStatus label="設定の問題" tone="danger" />;
+  if (status === "required") return <OcStatus label="設定が必要" tone="warning" />;
+  if (status === "unknown") return <OcStatus label="未確認" tone="neutral" />;
+  return <OcStatus label="設定済み" tone="neutral" />;
 }
 
 function applicationSetupStatus(
@@ -1896,7 +1896,7 @@ function SurfaceState({ title, detail = "", compact = false, actionLabel = "", o
 function ApplicationProjectionIssue({ detail }: { detail: string }) {
   return (
     <div className="rounded-xl border border-token-error-foreground/25 bg-token-error-background px-4 py-3 text-sm text-token-error-foreground" role="alert">
-      <div className="font-medium">Some application packages need attention</div>
+      <div className="font-medium">確認が必要なアプリケーションパッケージがあります</div>
       <div className="mt-1 whitespace-pre-wrap text-xs opacity-90">{detail}</div>
     </div>
   );
@@ -1927,7 +1927,7 @@ function applicationSearchText(application: ApplicationRecord): string {
 }
 
 function projectLabel(project: ApplicationProject | undefined, eeId: string, rootEeId: string): string {
-  if (eeId === rootEeId) return "Home";
+  if (eeId === rootEeId) return "ホーム";
   return project?.name || "Untitled project";
 }
 
@@ -2041,15 +2041,15 @@ function applicationPackFacts(
   const currentSetupFailure = setupStatus && setupStatus.state !== "configured";
   const facts: Array<{ label: string; tone: "neutral" | "success" | "warning" | "danger" }> = [
     inventory.state === "installed"
-      ? { label: "Installed", tone: "success" }
+      ? { label: "インストール済み", tone: "success" }
       : inventory.state === "partial"
-        ? { label: "Partially installed", tone: "warning" }
-        : { label: "Not installed", tone: "neutral" },
+        ? { label: "一部のみインストール済み", tone: "warning" }
+        : { label: "未インストール", tone: "neutral" },
   ];
-  if (inventory.ready && clientSetupError) facts.push({ label: "Setup unknown", tone: "danger" });
-  else if (inventory.ready && setupStatus?.state === "unavailable") facts.push({ label: "Setup unavailable", tone: "danger" });
-  else if (inventory.ready && (currentSetupFailure || !setupVerified)) facts.push({ label: "Needs setup", tone: "warning" });
-  else if (inventory.ready) facts.push({ label: "Ready", tone: "success" });
+  if (inventory.ready && clientSetupError) facts.push({ label: "設定状況が不明", tone: "danger" });
+  else if (inventory.ready && setupStatus?.state === "unavailable") facts.push({ label: "設定を利用できません", tone: "danger" });
+  else if (inventory.ready && (currentSetupFailure || !setupVerified)) facts.push({ label: "設定が必要", tone: "warning" });
+  else if (inventory.ready) facts.push({ label: "準備完了", tone: "success" });
   return facts;
 }
 
@@ -2065,16 +2065,16 @@ function applicationPackSetupVerified(
 }
 
 function applicationPackComponentStatus(component: ApplicationPackComponent): { label: string; tone: "neutral" | "success" | "warning" | "danger" } {
-  if (component.installed && component.receipt_state === "valid") return { label: "Installed", tone: "success" };
+  if (component.installed && component.receipt_state === "valid") return { label: "インストール済み", tone: "success" };
   if (
     component.installed
     || component.materialized
     || component.partially_materialized
     || component.receipt_state === "stale"
     || component.error
-  ) return { label: "Needs repair", tone: "danger" };
+  ) return { label: "修復が必要", tone: "danger" };
   if (component.available) return { label: component.selection === "included" ? "Included" : "Optional", tone: "neutral" };
-  return { label: "Unavailable", tone: "danger" };
+  return { label: "利用できません", tone: "danger" };
 }
 
 function applicationPackComponentGlyph(component: ApplicationPackComponent): GlyphName {
@@ -2090,8 +2090,8 @@ function applicationPackComponentDescription(component: ApplicationPackComponent
 }
 
 function applicationPackPermissionLabel(component: ApplicationPackComponent): string {
-  if (component.product_kind === "driver") return `Use ${component.name}`;
-  if (component.product_kind === "artifact") return `Read ${component.name}`;
+  if (component.product_kind === "driver") return `使用 ${component.name}`;
+  if (component.product_kind === "artifact") return `読み取り ${component.name}`;
   return `Connect through ${component.name}`;
 }
 

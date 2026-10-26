@@ -44,7 +44,7 @@ function createClientSurfaceDocumentStore(options) {
         const stat = await fsPromises.lstat(target);
         if (!stat.isFile() || stat.isSymbolicLink()) throw new Error("surface document must not be a symlink");
         if (stat.size > MAX_DOCUMENT_BYTES) {
-          throw new Error(`surface document is ${stat.size} bytes; maximum is ${MAX_DOCUMENT_BYTES}`);
+          throw new Error(`surface document is ${stat.size} バイト。上限： ${MAX_DOCUMENT_BYTES}`);
         }
         const bytes = await fsPromises.readFile(target);
         documents.push({

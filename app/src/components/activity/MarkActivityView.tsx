@@ -28,13 +28,13 @@ export function MarkActivityView({ activity, activeId, onSelect }: {
   const hasMore = sections.reduce((count, section) => count + section.rows.length, 0) > visibleCount;
   const options = <ActivityOptions activity={activity} />;
   return (
-    <div className="mark-activity px-row-x" aria-label="Inbox">
+    <div className="mark-activity px-row-x" aria-label="受信トレイ">
       <div className="flex flex-col" role="list">
         {!visible.length ? (
-          <ActivitySection heading={<OctopusNavSection title={<div className="py-0.5">Inbox</div>} titleActions={options}>{null}</OctopusNavSection>}>
+          <ActivitySection heading={<OctopusNavSection title={<div className="py-0.5">受信トレイ</div>} titleActions={options}>{null}</OctopusNavSection>}>
             {activity.error ? <div className="mark-activity-message" role="alert">{activity.error}</div> : null}
-            {!activity.loaded && !activity.error ? <div className="mark-activity-message" role="status">Loading Inbox…</div> : null}
-            {activity.loaded && !activity.error ? <div className="mark-activity-empty">You're all caught up</div> : null}
+            {!activity.loaded && !activity.error ? <div className="mark-activity-message" role="status">受信トレイを読み込んでいます…</div> : null}
+            {activity.loaded && !activity.error ? <div className="mark-activity-empty">すべて確認済みです</div> : null}
           </ActivitySection>
         ) : visible.map((section, index) => (
           <Fragment key={section.key}>
@@ -84,7 +84,7 @@ function ActivityRow({ active, now, row, unread, onSelect }: { active: boolean; 
   const count = row.items.length;
   return <div
     aria-current={active ? "page" : undefined}
-    aria-label={[title, count > 1 && `${count} times`, summary, unread && "Unread"].filter(Boolean).join(", ")}
+    aria-label={[title, count > 1 && `${count}回`, summary, unread && "Unread"].filter(Boolean).join(", ")}
     className="mark-activity-row"
     data-active={active || undefined}
     data-activity-kind={item.kind}
@@ -127,13 +127,13 @@ function ActivityOptions({ activity }: { activity: MarkActivity }) {
     setClientPreferences({ markActivityMode: "custom", markActivityTypes: [...selected] });
   };
   return <div className="flex items-center gap-1">
-    <OcIconButton appearance="sidebar" glyph="clearRead" label="Clear Inbox" title={!activity.loaded || activity.error ? "Inbox read state is unavailable" : !activity.listedCount ? "No notifications to clear" : undefined} disabled={!activity.listedCount || !activity.loaded || Boolean(activity.error)} onClick={activity.clearNotifications} />
-    <OcIconButton appearance="sidebar" glyph="activityOptions" label="Inbox options" aria-expanded={open} aria-haspopup="menu" data-state={open ? "open" : "closed"} onClick={() => setOpen(!open)} buttonRef={anchor} />
-    <OcDropdown anchorRef={anchor} align="start" contentWidth="sidebar" modal open={open} onOpenChange={setOpen} aria-label="Inbox options">
-      <OcMenuSectionLabel>Show</OcMenuSectionLabel>
-      <OcMenuItem aria-checked={mode === "attention"} label="Messages and requests" role="menuitemradio" selected={mode === "attention"} onClick={() => setClientPreferences({ markActivityMode: "attention" })} />
-      <OcMenuItem aria-checked={mode === "all"} label="All activity" role="menuitemradio" selected={mode === "all"} onClick={() => setClientPreferences({ markActivityMode: "all" })} />
-      <OcMenuSectionLabel>Also show</OcMenuSectionLabel>
+    <OcIconButton appearance="sidebar" glyph="clearRead" label="受信トレイを空にする" title={!activity.loaded || activity.error ? "受信トレイの既読状態を取得できません" : !activity.listedCount ? "消去する通知はありません" : undefined} disabled={!activity.listedCount || !activity.loaded || Boolean(activity.error)} onClick={activity.clearNotifications} />
+    <OcIconButton appearance="sidebar" glyph="activityOptions" label="受信トレイの設定" aria-expanded={open} aria-haspopup="menu" data-state={open ? "open" : "closed"} onClick={() => setOpen(!open)} buttonRef={anchor} />
+    <OcDropdown anchorRef={anchor} align="start" contentWidth="sidebar" modal open={open} onOpenChange={setOpen} aria-label="受信トレイの設定">
+      <OcMenuSectionLabel>表示</OcMenuSectionLabel>
+      <OcMenuItem aria-checked={mode === "attention"} label="メッセージとリクエスト" role="menuitemradio" selected={mode === "attention"} onClick={() => setClientPreferences({ markActivityMode: "attention" })} />
+      <OcMenuItem aria-checked={mode === "all"} label="すべてのアクティビティ" role="menuitemradio" selected={mode === "all"} onClick={() => setClientPreferences({ markActivityMode: "all" })} />
+      <OcMenuSectionLabel>追加で表示</OcMenuSectionLabel>
       {activity.kinds.map((name) => <OcMenuItem aria-checked={mode === "all" || mode === "custom" && Boolean(types?.includes(name))} key={name} label={markKindLabel(name)} description={name} onClick={() => toggle(name)} role="menuitemcheckbox" selected={mode === "all" || mode === "custom" && Boolean(types?.includes(name))} />)}
     </OcDropdown>
   </div>;

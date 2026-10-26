@@ -22,13 +22,13 @@ export function ManualRoomControlWarning({ glyph, onCancel, onContinue, open, ti
         <div className="we-manual-control-dialog__icon"><Glyph name={glyph} size={20} /></div>
         <OcDialogHeader
           className="we-manual-control-dialog__copy p-0"
-          description={<><span className="block">Your clicks, typing, navigation, and scrolling in this room viewer are not recorded in Octopus evidence.</span><span className="block">The agent may observe the resulting page state, but your actions will not appear in Movements.</span></>}
+          description={<><span className="block">この作業環境のビューアーで行うクリック、入力、画面移動、スクロールは、Octopus の実行記録には残りません。</span><span className="block">操作後のページの状態をエージェントが確認することはありますが、手動操作は移動の記録には表示されません。</span></>}
           title={title}
           titleId="we-manual-control-title"
         />
         <OcDialogFooter className="we-manual-control-dialog__actions">
-          <OcButton onClick={onCancel} variant="secondary">Cancel</OcButton>
-          <OcButton onClick={onContinue} variant="primary">Continue manually</OcButton>
+          <OcButton onClick={onCancel} variant="secondary">キャンセル</OcButton>
+          <OcButton onClick={onContinue} variant="primary">手動操作を続ける</OcButton>
         </OcDialogFooter>
     </OcDialog>
   );

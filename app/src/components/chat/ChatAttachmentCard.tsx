@@ -76,7 +76,7 @@ export function ChatAttachmentCard({ attachment, scope, onRemove, compact = fals
   const setOpen = onOpenChange ?? setExpanded;
   const failImage = () => setPreview((previous) => previous.key === key && previous.file === file
     ? { ...previous, url: "", error: "Image preview could not be decoded." } : previous);
-  const remove = onRemove ? <button aria-label={`Remove ${attachment.name}`} className="chat-attachment-remove" type="button"
+  const remove = onRemove ? <button aria-label={`削除 ${attachment.name}`} className="chat-attachment-remove" type="button"
     onClick={(event) => { event.preventDefault(); event.stopPropagation(); onRemove(); }}
     onPointerDown={(event) => { event.preventDefault(); event.stopPropagation(); }}><AttachmentIcon name="close" size={12} /></button> : null;
 
@@ -112,12 +112,12 @@ export function ChatAttachmentCard({ attachment, scope, onRemove, compact = fals
   const canReadFile = !awaitingAdmission && (admitted ? Boolean(artifactId && runId && interfaceId) : Boolean(file || stageId && stageHash));
   return <div className={`chat-attachment-card ${onRemove ? "is-composer" : "is-message"}${image ? ` is-image${compact ? " is-compact" : ""}` : onRemove ? " is-file-card" : " is-file-pill"}`}
     data-preview-state={image ? url ? "ready" : error ? "failed" : "loading" : undefined} title={`${attachment.name}${error ? `\n${error}` : ""}`}>
-    {image ? url ? <button aria-label={`View ${attachment.name}`} className="chat-attachment-image-button composer-attachment-surface" onClick={() => setOpen(true)} type="button"
+    {image ? url ? <button aria-label={`表示 ${attachment.name}`} className="chat-attachment-image-button composer-attachment-surface" onClick={() => setOpen(true)} type="button"
       onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setOpen(true); } }}>
       <img alt={attachment.name} draggable={false} onError={failImage} referrerPolicy="no-referrer" src={url} />
-    </button> : <div aria-label={error ? "Image failed to load" : `${attachment.name}: ${awaitingAdmission ? "Preparing image" : "Loading image"}`}
+    </button> : <div aria-label={error ? "画像を読み込めませんでした" : `${attachment.name}: ${awaitingAdmission ? "画像を準備しています" : "画像を読み込んでいます"}`}
       className="chat-attachment-image-placeholder composer-attachment-surface" role={error ? "img" : "status"}>
-      {error ? <span>Failed</span> : <AttachmentIcon className="chat-attachment-loading-spinner" name="spinner" size={onRemove ? 24 : 16} />}
+      {error ? <span>失敗</span> : <AttachmentIcon className="chat-attachment-loading-spinner" name="spinner" size={onRemove ? 24 : 16} />}
     </div> : <button aria-busy={opening || undefined} aria-label={attachment.name} className="chat-attachment-file-button composer-attachment-surface"
       data-composer-attachment-pill={onRemove ? undefined : "true"} onClick={canReadFile ? () => { void openFile(); } : undefined} tabIndex={canReadFile ? undefined : -1} type="button">
       <span className="chat-attachment-file-icon"><AttachmentIcon name={presentation.icon} size={onRemove ? 24 : 14} /></span>

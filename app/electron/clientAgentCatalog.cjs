@@ -183,16 +183,16 @@ function parseClientAgentCatalog(value, file = "Client Agent catalog") {
         "updated_at_ms",
         "deleted_at_ms",
       ],
-      `${file} Agent ${index}`,
+      `${file} エージェント ${index}`,
     );
-    const id = requiredClientId(candidate.id, `${file} Agent ${index} id`);
-    const name = requiredHumanText(candidate.name, `${file} Agent ${index} name`, 80);
-    const icon = requiredAgentIcon(candidate.icon, `${file} Agent ${index} icon`);
-    const projectEeId = requiredExactId(candidate.project_ee_id, `${file} Agent ${index} Project EE`);
-    const workerInterface = requiredExactId(candidate.worker_interface, `${file} Agent ${index} worker interface`);
-    const createdAtMs = requiredTimestamp(candidate.created_at_ms, `${file} Agent ${index} created_at_ms`);
-    const updatedAtMs = requiredTimestamp(candidate.updated_at_ms, `${file} Agent ${index} updated_at_ms`);
-    const deletedAtMs = requiredTimestamp(candidate.deleted_at_ms, `${file} Agent ${index} deleted_at_ms`);
+    const id = requiredClientId(candidate.id, `${file} エージェント ${index} id`);
+    const name = requiredHumanText(candidate.name, `${file} エージェント ${index} name`, 80);
+    const icon = requiredAgentIcon(candidate.icon, `${file} エージェント ${index} icon`);
+    const projectEeId = requiredExactId(candidate.project_ee_id, `${file} エージェント ${index} Project EE`);
+    const workerInterface = requiredExactId(candidate.worker_interface, `${file} エージェント ${index} worker interface`);
+    const createdAtMs = requiredTimestamp(candidate.created_at_ms, `${file} エージェント ${index} created_at_ms`);
+    const updatedAtMs = requiredTimestamp(candidate.updated_at_ms, `${file} エージェント ${index} updated_at_ms`);
+    const deletedAtMs = requiredTimestamp(candidate.deleted_at_ms, `${file} エージェント ${index} deleted_at_ms`);
     const templateKey = `${projectEeId}\0${workerInterface}`;
     if (
       agentIds.has(id)
@@ -266,7 +266,7 @@ function requiredHumanText(value, label, maximum) {
     || value.length > maximum
     || /[\u0000-\u001f\u007f]/.test(value)
   ) {
-    throw new Error(`${label} must be trimmed text up to ${maximum} characters`);
+    throw new Error(`${label} must be trimmed text up to ${maximum} 文字`);
   }
   return value;
 }

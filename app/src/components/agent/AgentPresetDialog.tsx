@@ -214,17 +214,17 @@ export function AgentPresetDialog({ busy = false, contexts, initialProjectEeId, 
         <OcDialogHeader
           className="p-0 pb-3"
           description={readOnly
-            ? "This Lab Agent is projected fixture data. Agent authoring is available only in the live Octopus OS."
+            ? "このテスト用エージェントはサンプルデータです。エージェントの作成・編集は実際の Octopus OS で行ってください。"
             : preset
-            ? "Changes become defaults for future tasks. Existing runs keep their original configuration."
-            : "Configure a reusable Agent for future tasks. Creating an Agent does not create a run."}
+            ? "変更は今後のタスクの既定値になります。既存の実行は元の設定を保持します。"
+            : "今後のタスクで繰り返し使うエージェントを設定します。エージェントを作成しても実行は開始しません。"}
           onClose={onCancel}
-          title={readOnly && preset ? preset.name : preset ? `Edit ${preset.name}` : "Create agent"}
+          title={readOnly && preset ? preset.name : preset ? `編集 ${preset.name}` : "エージェントを作成"}
           titleId="octopus-agent-preset-title"
         />
         <div className="vertical-scroll-fade-mask -mr-2 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-2 [&>*]:shrink-0">
           <section className="flex w-full flex-col gap-2">
-            <label className="text-base text-token-foreground" htmlFor="octopus-agent-name">Agent name</label>
+            <label className="text-base text-token-foreground" htmlFor="octopus-agent-name">エージェント名</label>
             <div className="flex items-center gap-2.5">
               <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-token-foreground/[0.035]">
                 <AgentPresetLogo color={selectedProject?.color} icon={icon} size={34} />
@@ -234,10 +234,10 @@ export function AgentPresetDialog({ busy = false, contexts, initialProjectEeId, 
                 disabled={busy || readOnly}
                 id="octopus-agent-name"
                 inputRef={inputRef}
-                label="Agent name"
+                label="エージェント名"
                 maxLength={80}
                 onChange={(event) => setName(event.currentTarget.value)}
-                placeholder="Research partner"
+                placeholder="調査パートナー"
                 value={name}
               />
             </div>
@@ -246,14 +246,14 @@ export function AgentPresetDialog({ busy = false, contexts, initialProjectEeId, 
           <section className="flex flex-col gap-2">
             <OcSelect
               disabled={busy || readOnly || Boolean(preset)}
-              label="Project"
+              label="プロジェクト"
               onChange={chooseProject}
               options={projectContexts.map((context) => ({
                 value: context.eeId,
-                label: context.isOsRoot ? "No project" : projectNameById.get(context.eeId) || context.displayName || context.goal || context.eeId,
+                label: context.isOsRoot ? "プロジェクトなし" : projectNameById.get(context.eeId) || context.displayName || context.goal || context.eeId,
                 description: context.goal || context.templateName || context.eeId,
               }))}
-              placeholder="Choose a project"
+              placeholder="プロジェクトを選択"
               showLabel
               stretch
               value={projectEeId}
@@ -262,12 +262,12 @@ export function AgentPresetDialog({ busy = false, contexts, initialProjectEeId, 
 
           <section className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-base text-token-foreground">Icon</span>
+              <span className="text-base text-token-foreground">アイコン</span>
               <span className="truncate text-xs text-token-description-foreground">
-                {selectedProject ? `${selectedProject.name} color` : "Project color"}
+                {selectedProject ? `${selectedProject.name} color` : "プロジェクトの色"}
               </span>
             </div>
-            <div className="grid grid-cols-6 gap-1.5" role="radiogroup" aria-label="Agent icon">
+            <div className="grid grid-cols-6 gap-1.5" role="radiogroup" aria-label="エージェントのアイコン">
               {AGENT_PRESET_ICONS.map((option) => (
                 <button
                   aria-checked={icon === option}
@@ -289,32 +289,32 @@ export function AgentPresetDialog({ busy = false, contexts, initialProjectEeId, 
           <section className="grid grid-cols-2 gap-3">
             <OcSelect
               disabled={busy || readOnly || modelsLoading}
-              label="Model"
+              label="モデル"
               onChange={chooseModel}
               options={providerOptions}
-              placeholder="Choose a model"
+              placeholder="モデルを選択"
               showLabel
               stretch
               value={providerModel ? JSON.stringify([providerInterfaceId, providerModel]) : ""}
             />
             <OcSelect
               disabled={busy || readOnly || reasoningOptions.length <= 1}
-              label="Reasoning"
+              label="推論"
               onChange={setReasoningEffort}
               options={reasoningOptions.map((effort) => ({ value: effort, label: reasoningLabel(effort) }))}
-              placeholder={reasoningOptions.length ? "Choose reasoning" : "Provider default"}
+              placeholder={reasoningOptions.length ? "推論の強さを選択" : "プロバイダーの既定値"}
               showLabel
               stretch
               value={reasoningEffort}
             />
-            <OcSelect disabled={busy || readOnly || !selectedProvider || !providerModel} label="Speed"
+            <OcSelect disabled={busy || readOnly || !selectedProvider || !providerModel} label="速度"
               onChange={setServiceTier} showLabel stretch value={serviceTier}
-              placeholder="Choose speed"
+              placeholder="速度を選択"
               options={selectedProvider ? providerServiceTiers(selectedProvider, providerModel).map((tier) => ({ value: tier.id, label: tier.name })) : []} />
           </section>
 
           <AgentChoiceDisclosure
-            description="Connectors and tools offered to each new task."
+            description="新しいタスクで使えるコネクターとツールです。"
             empty="This Agent template exposes no applications in the selected project."
             items={applications.map((application) => ({
               id: application.id,
@@ -324,13 +324,13 @@ export function AgentPresetDialog({ busy = false, contexts, initialProjectEeId, 
             open={openChoiceSection === "applications"}
             readOnly={busy || readOnly}
             selectedIds={applicationIds}
-            title="Applications"
+            title="アプリケーション"
             onOpenChange={() => setOpenChoiceSection((current) => current === "applications" ? null : "applications")}
             onToggle={(id) => setApplicationIds((current) => toggleId(current, id))}
           />
 
           <AgentChoiceDisclosure
-            description="Artifact bindings for skills, memory, and prepared context."
+            description="スキル、メモリ、準備済みのコンテキストを成果物として紐付けます。"
             empty="No skill, memory, or context artifact packages are available to this Agent template."
             items={contextArtifacts.map((application) => ({
               id: application.id,
@@ -340,13 +340,13 @@ export function AgentPresetDialog({ busy = false, contexts, initialProjectEeId, 
             open={openChoiceSection === "context"}
             readOnly={busy || readOnly}
             selectedIds={applicationIds}
-            title="Knowledge & memory"
+            title="知識とメモリ"
             onOpenChange={() => setOpenChoiceSection((current) => current === "context" ? null : "context")}
             onToggle={(id) => setApplicationIds((current) => toggleId(current, id))}
           />
 
           <AgentChoiceDisclosure
-            description="Execution surfaces prepared only when a task creates its real run."
+            description="タスクの実行時に作成される作業環境です。"
             empty="This Agent template exposes no Worker Environments in the selected project."
             items={drivers.map((driver) => ({
               id: driver.name,
@@ -356,7 +356,7 @@ export function AgentPresetDialog({ busy = false, contexts, initialProjectEeId, 
             open={openChoiceSection === "environments"}
             readOnly={busy || readOnly}
             selectedIds={driverNames}
-            title="Worker Environments"
+            title="作業環境"
             onOpenChange={() => setOpenChoiceSection((current) => current === "environments" ? null : "environments")}
             onToggle={(id) => setDriverNames((current) => toggleId(current, id))}
           />
@@ -364,8 +364,8 @@ export function AgentPresetDialog({ busy = false, contexts, initialProjectEeId, 
           <aside className="flex items-start gap-2.5 rounded-xl bg-token-foreground/[0.035] p-3">
             <Glyph className="mt-0.5 shrink-0 text-token-description-foreground" name="lightbulb" size={17} />
             <p className="m-0 text-sm leading-5 text-token-description-foreground">
-              These defaults are applied only when a new task starts. Applications, context, and Worker Environments can still be removed before sending.
-              {" "}Choose Project access or Full access separately for each task in its composer.
+              この既定値は新しいタスクの開始時に適用されます。送信前であれば、アプリケーション、コンテキスト、作業環境を取り外せます。
+              {" "}各タスクの入力欄で、プロジェクトのアクセス権とフルアクセスを個別に選んでください。
             </p>
           </aside>
 
@@ -374,22 +374,22 @@ export function AgentPresetDialog({ busy = false, contexts, initialProjectEeId, 
         <OcDialogFooter
           className="mt-3 min-h-0 border-token-border/40 px-0 pb-0 pt-4"
           leading={!readOnly && preset ? deleteConfirm ? (
-            <span className="text-token-error-foreground">Delete this agent? Existing runs stay intact.</span>
+            <span className="text-token-error-foreground">このエージェントを削除しますか？ 既存の実行は保持されます。</span>
           ) : (
-            <OcButton disabled={busy} leadingIcon="trash" onClick={() => setDeleteConfirm(true)} tone="danger" variant="ghost">Delete agent</OcButton>
+            <OcButton disabled={busy} leadingIcon="trash" onClick={() => setDeleteConfirm(true)} tone="danger" variant="ghost">エージェントを削除</OcButton>
           ) : undefined}
         >
           {readOnly ? (
-            <OcButton onClick={onCancel} variant="primary">Close</OcButton>
+            <OcButton onClick={onCancel} variant="primary">閉じる</OcButton>
           ) : deleteConfirm && preset ? (
             <>
-              <OcButton disabled={busy} onClick={() => setDeleteConfirm(false)} variant="ghost">Cancel</OcButton>
-              <OcButton disabled={busy} onClick={() => onDelete(preset.id)} tone="danger" variant="secondary">Delete</OcButton>
+              <OcButton disabled={busy} onClick={() => setDeleteConfirm(false)} variant="ghost">キャンセル</OcButton>
+              <OcButton disabled={busy} onClick={() => onDelete(preset.id)} tone="danger" variant="secondary">削除</OcButton>
             </>
           ) : (
             <>
-              <OcButton disabled={busy} onClick={onCancel} variant="ghost">Cancel</OcButton>
-              <OcButton disabled={busy || Boolean(invalidReason)} type="submit" variant="primary">{preset ? "Save" : "Create agent"}</OcButton>
+              <OcButton disabled={busy} onClick={onCancel} variant="ghost">キャンセル</OcButton>
+              <OcButton disabled={busy || Boolean(invalidReason)} type="submit" variant="primary">{preset ? "保存" : "エージェントを作成"}</OcButton>
             </>
           )}
         </OcDialogFooter>
@@ -429,7 +429,7 @@ function AgentChoiceDisclosure({ description, empty, items, open, readOnly, sele
           <span className="mt-0.5 block truncate text-xs leading-4 text-token-description-foreground">{description}</span>
         </span>
         <span className="shrink-0 text-sm text-token-description-foreground">
-          {items.length ? `${selectedCount} of ${items.length}` : "None"}
+          {items.length ? `${selectedCount} / ${items.length}` : "なし"}
         </span>
         <Glyph className={`shrink-0 transition-transform duration-basic ${open ? "rotate-180" : ""}`} name="chevronDown" size={15} />
       </button>
@@ -550,7 +550,7 @@ function applicationBindingSummary(application: ChatApplicationChoice): string {
   const interfaces = application.interfaces.length;
   const tools = application.taskCapabilities.tools.length;
   return [
-    bindings ? `${bindings} artifact ${bindings === 1 ? "binding" : "bindings"}` : "",
+    bindings ? `${bindings} 成果物 ${bindings === 1 ? "binding" : "bindings"}` : "",
     interfaces ? `${interfaces} ${interfaces === 1 ? "interface" : "interfaces"}` : "",
     tools ? `${tools} ${tools === 1 ? "tool" : "tools"}` : "",
   ].filter(Boolean).join(" · ") || application.id;
@@ -563,5 +563,5 @@ function displayName(value: string): string {
 
 function reasoningLabel(value: string): string {
   const normalized = displayName(value);
-  return normalized === "Xhigh" ? "Extra high" : normalized;
+  return normalized === "Xhigh" ? "非常に高い" : normalized;
 }

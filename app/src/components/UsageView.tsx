@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../locale";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   OctopusCodexUsageBucket,
@@ -47,9 +48,9 @@ type Point = { x: number; y: number };
 type CurveSegment = { from: Point; c1: Point; c2: Point; to: Point };
 
 const WINDOW_OPTIONS: Array<{ value: UsageWindowValue; label: string }> = [
-  { value: "7", label: "7 days" },
-  { value: "30", label: "30 days" },
-  { value: "90", label: "90 days" },
+  { value: "7", label: "7 日間" },
+  { value: "30", label: "30 日間" },
+  { value: "90", label: "90 日間" },
 ];
 
 const EMPTY_TOTALS: UsageTotals = {
@@ -125,13 +126,13 @@ export function UsageView({ query }: { query: string }) {
     <section className="usage-view">
       <header className="usage-header">
         <div>
-          <h1>Usage</h1>
+          <h1>使用状況</h1>
           <p>{formatWindow(state.snapshot, windowDays)}</p>
         </div>
         <div className="usage-header-actions">
           <OcSegmented
             className="usage-control-group"
-            label="Usage time range"
+            label="使用状況の対象期間"
             onChange={setWindowValue}
             options={WINDOW_OPTIONS}
             size="sm"
@@ -141,7 +142,7 @@ export function UsageView({ query }: { query: string }) {
             className={`usage-refresh${state.loading ? " is-loading" : ""}`}
             disabled={state.loading || !hasCodexUsageBridge()}
             glyph="refresh"
-            label="Refresh usage"
+            label="使用状況を更新"
             onClick={() => setRefreshGeneration((generation) => generation + 1)}
             size="sm"
             variant="ghost"
@@ -152,23 +153,23 @@ export function UsageView({ query }: { query: string }) {
       {state.error ? <UsageNotice tone="error">{state.error}</UsageNotice> : null}
       {state.snapshot?.source.status === "partial" ? (
         <UsageNotice tone="warning">
-          Some transcript records could not be read. Totals include every valid record found in this scan.
+          一部の会話記録を読み込めませんでした。合計には今回読み取れた有効な記録をすべて含めています。
         </UsageNotice>
       ) : null}
       {state.snapshot?.source.status === "missing" ? (
-        <UsageNotice tone="neutral">No local Codex session directory was found.</UsageNotice>
+        <UsageNotice tone="neutral">ローカルの Codex セッションディレクトリが見つかりませんでした。</UsageNotice>
       ) : null}
       {state.snapshot?.source.status === "failed" ? (
-        <UsageNotice tone="error">{state.snapshot.source.message || "The local Codex session directory could not be scanned."}</UsageNotice>
+        <UsageNotice tone="error">{state.snapshot.source.message || "ローカルの Codex セッションディレクトリを確認できませんでした。"}</UsageNotice>
       ) : null}
 
       {state.loading && !state.snapshot ? (
-        <OctopusLoadingState className="usage-loading" label="Scanning local Codex transcripts" />
+        <OctopusLoadingState className="usage-loading" label="ローカルの Codex の会話記録を確認しています" />
       ) : (
         <>
           <section className="usage-feature-grid">
             <div className="usage-summary">
-              <div className="usage-kicker">{metric === "cost" ? "Raw API-equivalent cost" : "Processed tokens"}</div>
+              <div className="usage-kicker">{metric === "cost" ? "API 料金に換算した費用" : "処理したトークン"}</div>
               <strong className="usage-headline">
                 {metric === "cost"
                   ? model.hasPricedUsage ? `${formatUsd(model.totals.costUsd)}*` : "—"
@@ -176,8 +177,8 @@ export function UsageView({ query }: { query: string }) {
               </strong>
               <p>
                 {metric === "cost"
-                  ? "* estimated from public API rates, not your subscription bill"
-                  : `${formatCount(state.snapshot?.source.distinctSessions ?? 0)} local Codex sessions`}
+                  ? "* 公開 API 単価に基づく概算です。サブスクリプションの請求額ではありません"
+                  : `${formatCount(state.snapshot?.source.distinctSessions ?? 0)} 件のローカル Codex セッション`}
               </p>
               <div className="usage-provider-row">
                 <div className="usage-provider-heading">
@@ -187,21 +188,21 @@ export function UsageView({ query }: { query: string }) {
                 <div className="usage-provider-track"><span style={{ width: `${Math.max(0, Math.min(100, pricedShare * 100))}%` }} /></div>
                 <small>
                   {metric === "cost"
-                    ? `${formatPercent(pricedShare)} model-priced · ${formatTokens(model.totals.totalTokens)} tokens`
-                    : `${formatPercent(cachedShare)} of observed input read from cache`}
+                    ? `${formatPercent(pricedShare)} モデル単価で算出 · ${formatTokens(model.totals.totalTokens)} tokens`
+                    : `${formatPercent(cachedShare)} 確認できた入力のうちキャッシュを利用`}
                 </small>
               </div>
             </div>
 
             <div className="usage-chart-section">
               <div className="usage-section-heading">
-                <h2>Daily {metric === "cost" ? "cost" : "processed tokens"}</h2>
+                <h2>毎日 {metric === "cost" ? "cost" : "処理したトークン"}</h2>
                 <div className="usage-chart-controls">
                   <OcSegmented
                     className="usage-control-group is-compact"
-                    label="Chart metric"
+                    label="グラフの指標"
                     onChange={setMetric}
-                    options={[{ value: "cost", label: "Cost" }, { value: "tokens", label: "Tokens" }]}
+                    options={[{ value: "cost", label: "費用" }, { value: "tokens", label: "トークン" }]}
                     value={metric}
                   />
                   <span className="usage-legend"><OpenAIMark />Codex</span>
@@ -213,28 +214,28 @@ export function UsageView({ query }: { query: string }) {
 
           <section className="usage-metric-strip">
             <UsageMetricCell
-              detail={`${formatTokens(activeDays === 0 ? 0 : model.totals.totalTokens / activeDays)} per active day`}
-              label="Processed tokens"
+              detail={`${formatTokens(activeDays === 0 ? 0 : model.totals.totalTokens / activeDays)} 稼働日あたり`}
+              label="処理したトークン"
               value={formatTokens(model.totals.totalTokens)}
             />
             <UsageMetricCell
-              detail={`${formatPercent(cachedShare)} of observed input`}
-              label="Cached input"
+              detail={`${formatPercent(cachedShare)} 確認できた入力のうち`}
+              label="キャッシュ済みの入力"
               value={formatTokens(model.totals.cachedInputTokens)}
             />
             <UsageMetricCell
-              detail={`${formatTokens(model.totals.cacheCreationTokens)} cache writes`}
-              label="Uncached input"
+              detail={`${formatTokens(model.totals.cacheCreationTokens)} キャッシュ書き込み`}
+              label="キャッシュ未使用の入力"
               value={formatTokens(model.totals.uncachedInputTokens)}
             />
             <UsageMetricCell
-              detail={`includes ${formatTokens(model.totals.reasoningTokens)} reasoning`}
-              label="Output"
+              detail={`内訳 ${formatTokens(model.totals.reasoningTokens)} reasoning`}
+              label="出力"
               value={formatTokens(model.totals.outputTokens)}
             />
             <UsageMetricCell
-              detail={rawInputCost > 0 ? `${(model.totals.cacheSavingsUsd / rawInputCost * 100).toFixed(1)}% of full input cost` : "vs full input rates"}
-              label="Cache savings"
+              detail={rawInputCost > 0 ? `${(model.totals.cacheSavingsUsd / rawInputCost * 100).toFixed(1)}%（通常の入力料金に対して）` : "通常の入力単価との比較"}
+              label="キャッシュによる節約"
               value={model.hasPricedUsage ? formatUsd(model.totals.cacheSavingsUsd) : "—"}
             />
           </section>
@@ -242,12 +243,12 @@ export function UsageView({ query }: { query: string }) {
           <section className="usage-detail-grid">
             <div className="usage-breakdown">
               <div className="usage-section-heading">
-                <h2>Breakdown</h2>
+                <h2>内訳</h2>
                 <OcSegmented
                   className="usage-control-group is-compact"
-                  label="Usage breakdown"
+                  label="使用状況の内訳"
                   onChange={setBreakdown}
-                  options={[{ value: "model", label: "Model" }, { value: "day", label: "Day" }]}
+                  options={[{ value: "model", label: "モデル" }, { value: "day", label: "日付" }]}
                   value={breakdown}
                 />
               </div>
@@ -259,17 +260,17 @@ export function UsageView({ query }: { query: string }) {
             </div>
 
             <aside className="usage-quality">
-              <h2>Cost quality</h2>
+              <h2>費用の算出状況</h2>
               <dl>
-                <QualityRow label="Model priced" value={formatPercent(pricedShare)} />
-                <QualityRow label="Unpriced" value={formatPercent(unpricedShare)} />
-                <QualityRow label="Cache savings" value={model.hasPricedUsage ? formatUsd(model.totals.cacheSavingsUsd) : "—"} />
-                <QualityRow label="Pricing" value={formatPricingStatus(state.snapshot)} />
+                <QualityRow label="モデル単価で算出" value={formatPercent(pricedShare)} />
+                <QualityRow label="単価未設定" value={formatPercent(unpricedShare)} />
+                <QualityRow label="キャッシュによる節約" value={model.hasPricedUsage ? formatUsd(model.totals.cacheSavingsUsd) : "—"} />
+                <QualityRow label="料金" value={formatPricingStatus(state.snapshot)} />
               </dl>
               <div className="usage-source-detail">
-                <span>Local source</span>
-                <b>{formatCount((state.snapshot?.source.scannedFiles ?? 0) + (state.snapshot?.source.cachedFiles ?? 0))} files</b>
-                <small>{state.snapshot ? `${state.snapshot.scanDurationMs.toLocaleString()} ms · ${state.snapshot.source.path}` : "Waiting for desktop source"}</small>
+                <span>ローカルのソース</span>
+                <b>{formatCount((state.snapshot?.source.scannedFiles ?? 0) + (state.snapshot?.source.cachedFiles ?? 0))} ファイル</b>
+                <small>{state.snapshot ? `${state.snapshot.scanDurationMs.toLocaleString(APP_LOCALE)} ms · ${state.snapshot.source.path}` : "デスクトップからの情報を待っています"}</small>
               </div>
             </aside>
           </section>
@@ -300,13 +301,13 @@ function QualityRow({ label, value }: { label: string; value: string }) {
 function ModelTable({ rows, totalCost }: { rows: UsageRow[]; totalCost: number }) {
   return (
     <table className="usage-table">
-      <thead><tr><th scope="col">Model</th><th scope="col">Cost</th><th scope="col">Share</th><th scope="col">Tokens</th></tr></thead>
+      <thead><tr><th scope="col">モデル</th><th scope="col">費用</th><th scope="col">共有</th><th scope="col">トークン</th></tr></thead>
       <tbody>
         {rows.length === 0 ? <EmptyTableRow /> : rows.map((row) => (
           <tr key={row.id}>
             <td><span className="usage-model-name"><OpenAIMark />{row.label}</span></td>
             <td>{row.priced ? formatUsd(row.costUsd) : "—"}</td>
-            <td>{row.priced && totalCost > 0 ? formatPercent(row.costUsd / totalCost) : "Unpriced"}</td>
+            <td>{row.priced && totalCost > 0 ? formatPercent(row.costUsd / totalCost) : "単価未設定"}</td>
             <td>{formatTokens(row.totalTokens)}</td>
           </tr>
         ))}
@@ -318,7 +319,7 @@ function ModelTable({ rows, totalCost }: { rows: UsageRow[]; totalCost: number }
 function DayTable({ rows }: { rows: DailyPoint[] }) {
   return (
     <table className="usage-table">
-      <thead><tr><th scope="col">Day</th><th scope="col">Cost</th><th scope="col">Cached input</th><th scope="col">Tokens</th></tr></thead>
+      <thead><tr><th scope="col">日付</th><th scope="col">費用</th><th scope="col">キャッシュ済みの入力</th><th scope="col">トークン</th></tr></thead>
       <tbody>
         {rows.length === 0 ? <EmptyTableRow /> : rows.map((row) => (
           <tr key={row.day}>
@@ -334,7 +335,7 @@ function DayTable({ rows }: { rows: DailyPoint[] }) {
 }
 
 function EmptyTableRow() {
-  return <tr><td className="usage-empty-row" colSpan={4}>No matching activity in this window.</td></tr>;
+  return <tr><td className="usage-empty-row" colSpan={4}>この期間に一致するアクティビティはありません。</td></tr>;
 }
 
 function UsageChart({ daily, metric }: { daily: DailyPoint[]; metric: UsageMetric }) {
@@ -357,7 +358,7 @@ function UsageChart({ daily, metric }: { daily: DailyPoint[]; metric: UsageMetri
         {chart.ticks.map((tick) => <span key={tick} style={{ top: `${chart.toY(tick) / VIEW_HEIGHT * 100}%` }}>{tick === 0 ? "0" : format(tick)}</span>)}
       </div>
       <div
-        aria-label={`Daily Codex ${metric === "cost" ? "API-equivalent cost" : "processed tokens"}`}
+        aria-label={`日別の Codex ${metric === "cost" ? "API 料金換算" : "処理したトークン"}`}
         className="usage-chart-plot"
         onBlur={() => setActiveIndex(null)}
         onKeyDown={(event) => {
@@ -532,7 +533,7 @@ function enumerateDays(sinceDay: string, untilDay: string): string[] {
 }
 
 function formatWindow(snapshot: OctopusCodexUsageSnapshot | null, windowDays: number): string {
-  if (!snapshot) return `Last ${windowDays} days`;
+  if (!snapshot) return `Last ${windowDays} 日`;
   return `${formatDayShort(snapshot.sinceDay)} to ${formatDayShort(snapshot.untilDay)}`;
 }
 
@@ -544,7 +545,7 @@ function formatPricingStatus(snapshot: OctopusCodexUsageSnapshot | null): string
 
 function formatDayShort(day: string): string {
   const parsed = Date.parse(`${day}T00:00:00Z`);
-  return Number.isFinite(parsed) ? new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(parsed) : day;
+  return Number.isFinite(parsed) ? new Intl.DateTimeFormat(APP_LOCALE, { month: "short", day: "numeric", timeZone: "UTC" }).format(parsed) : day;
 }
 
 function formatTokens(value: number): string {
@@ -558,11 +559,11 @@ function formatTokens(value: number): string {
 }
 
 function formatUsd(value: number): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+  return new Intl.NumberFormat(APP_LOCALE, { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
 }
 
 function formatCount(value: number): string {
-  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(value));
+  return new Intl.NumberFormat(APP_LOCALE, { maximumFractionDigits: 0 }).format(Math.round(value));
 }
 
 function formatPercent(value: number): string {

@@ -49,22 +49,22 @@ export function ComputerUseSettingsSection() {
   }
 
   return <section className="settings-section">
-    <SettingsHeading title="Computer use" description="Manage how Octopus uses other applications on your computer." />
-    <OcGroup title="Control">
+    <SettingsHeading title="コンピューター操作" description="Octopus がこのコンピューターの他のアプリを操作する方法を管理します。" />
+    <OcGroup title="操作">
       <OcCard {...settingsTargetProps("computer-use.setup")}>
-        <OcSettingsRow label={<span className="flex items-center gap-3"><Glyph name="desktop" size={20} />Any App</span>}
-          description="Let Octopus use apps on your computer. You choose which apps it can access."
+        <OcSettingsRow label={<span className="flex items-center gap-3"><Glyph name="desktop" size={20} />すべてのアプリ</span>}
+          description="Octopus にコンピューター上のアプリを操作させます。アクセスを許可するアプリは自分で選べます。"
           control={<div className="settings-inline-actions">
-            <OcSwitch label="Enable Computer use" checked={status?.enabled ?? false} disabled={busy || !status} onCheckedChange={enabled => void toggle(enabled)} />
+            <OcSwitch label="コンピューター操作を有効にする" checked={status?.enabled ?? false} disabled={busy || !status} onCheckedChange={enabled => void toggle(enabled)} />
           </div>} />
-        {status?.enabled ? <OcSettingsRow label="macOS permissions" description={status.ready ? "Ready to use apps you approve." : "Allow Screen Recording and Accessibility before starting a task."}
-          control={<OcButton disabled={busy} onClick={() => void setup()} variant="secondary">{busy ? "Opening…" : "Manage"}</OcButton>} /> : null}
+        {status?.enabled ? <OcSettingsRow label="macOS の権限" description={status.ready ? "許可したアプリを操作する準備ができています。" : "タスクを始める前に、画面収録とアクセシビリティを許可してください。"}
+          control={<OcButton disabled={busy} onClick={() => void setup()} variant="secondary">{busy ? "開いています…" : "管理"}</OcButton>} /> : null}
         {status?.permissions.map(permission => <OcSettingsRow key={permission.kind}
-          label={permission.kind === "screen_capture" ? "Screen Recording" : "Accessibility"}
-          control={<OcStatus label={permission.status === "granted" ? "Allowed" : "Off"} tone={permission.status === "granted" ? "success" : "muted"} />} />)}
+          label={permission.kind === "screen_capture" ? "画面収録" : "アクセシビリティ"}
+          control={<OcStatus label={permission.status === "granted" ? "許可済み" : "オフ"} tone={permission.status === "granted" ? "success" : "muted"} />} />)}
       </OcCard>
-      {error ? <div className="px-3 text-sm text-token-description-foreground" role="alert"><p>Computer use is unavailable.</p><details><summary>Error details</summary><p>{error}</p></details>
-        <OcButton onClick={() => setRevision(value => value + 1)} variant="ghost" size="sm">Try again</OcButton></div> : null}
+      {error ? <div className="px-3 text-sm text-token-description-foreground" role="alert"><p>コンピューター操作を利用できません。</p><details><summary>エラーの詳細</summary><p>{error}</p></details>
+        <OcButton onClick={() => setRevision(value => value + 1)} variant="ghost" size="sm">再試行</OcButton></div> : null}
     </OcGroup>
     <SavedApplicationPermissionsSection />
   </section>;

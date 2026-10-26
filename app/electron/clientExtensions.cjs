@@ -369,7 +369,7 @@ function createClientExtensionStore(options) {
         if (!packageStat.isDirectory() || packageStat.isSymbolicLink()) throw new Error("extension package must be a real directory");
         const stat = await fsPromises.lstat(manifestPath);
         if (!stat.isFile() || stat.isSymbolicLink()) throw new Error("extension.json must be a regular file");
-        if (stat.size > MAX_MANIFEST_BYTES) throw new Error(`extension.json is ${stat.size} bytes; maximum is ${MAX_MANIFEST_BYTES}`);
+        if (stat.size > MAX_MANIFEST_BYTES) throw new Error(`extension.json is ${stat.size} バイト。上限： ${MAX_MANIFEST_BYTES}`);
         const bytes = await stableReadFile(manifestPath, MAX_MANIFEST_BYTES, "extension.json");
         manifests.push({
           path: path.relative(root, manifestPath),
@@ -533,7 +533,7 @@ function createClientExtensionStore(options) {
     const manifestPath = path.join(packageRoot, "extension.json");
     const stat = await fsPromises.lstat(manifestPath);
     if (!stat.isFile() || stat.isSymbolicLink()) throw new Error("Client extension manifest is not a regular file.");
-    if (stat.size > MAX_MANIFEST_BYTES) throw new Error(`extension.json is ${stat.size} bytes; maximum is ${MAX_MANIFEST_BYTES}`);
+    if (stat.size > MAX_MANIFEST_BYTES) throw new Error(`extension.json is ${stat.size} バイト。上限： ${MAX_MANIFEST_BYTES}`);
     const bytes = await stableReadFile(manifestPath, MAX_MANIFEST_BYTES, "extension.json");
     let manifest;
     try {

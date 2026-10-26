@@ -69,8 +69,8 @@ function BrowserConnectionState({ title, description, children, onRetry }: {
       <h2>{title}</h2>
       <p>{description}</p>
     </div>
-    {onRetry ? <OcButton onClick={onRetry} size="sm" variant="secondary">Try again</OcButton> : null}
-    {children ? <details className="we-browser-details"><summary>Technical details</summary>{children}</details> : null}
+    {onRetry ? <OcButton onClick={onRetry} size="sm" variant="secondary">再試行</OcButton> : null}
+    {children ? <details className="we-browser-details"><summary>技術的な詳細</summary>{children}</details> : null}
   </section>;
 }
 
@@ -79,29 +79,29 @@ function UnavailableNativeBrowserSurface({ environment, surface }: { environment
   const lastAddress = dataText(surface.data, "last_known_url");
   const lastTitle = dataText(surface.data, "last_known_title");
   return <div className="we-browser-shell is-native is-unavailable">
-    <div className="we-browser-toolbar" role="toolbar" aria-label="Browser navigation">
-      <div className="we-browser-history" role="group" aria-label="Navigation">
-        <BrowserToolbarButton disabled glyph="navigateBack" label="Back" />
-        <BrowserToolbarButton disabled glyph="navigateBack" reverse label="Forward" />
+    <div className="we-browser-toolbar" role="toolbar" aria-label="ブラウザーのナビゲーション">
+      <div className="we-browser-history" role="group" aria-label="ナビゲーション">
+        <BrowserToolbarButton disabled glyph="navigateBack" label="戻る" />
+        <BrowserToolbarButton disabled glyph="navigateBack" reverse label="進む" />
         <span className="we-browser-navigation-divider" aria-hidden="true" />
-        <BrowserToolbarButton disabled glyph="refresh" label="Reload page" />
+        <BrowserToolbarButton disabled glyph="refresh" label="ページを再読み込み" />
       </div>
       <div className="we-browser-address-slot"><div className="we-browser-address">
-        <input aria-label="Last known browser address" readOnly placeholder="Enter a URL" value={lastAddress} onFocus={(event) => event.currentTarget.select()} />
+        <input aria-label="最後に確認したブラウザーのアドレス" readOnly placeholder="URL を入力" value={lastAddress} onFocus={(event) => event.currentTarget.select()} />
       </div></div>
-      <div className="we-browser-actions"><BrowserToolbarButton disabled glyph="download" label="Downloads" /></div>
-      <div className="we-browser-actions"><BrowserToolbarButton disabled glyph="more" label="More browser actions" /></div>
+      <div className="we-browser-actions"><BrowserToolbarButton disabled glyph="download" label="ダウンロード" /></div>
+      <div className="we-browser-actions"><BrowserToolbarButton disabled glyph="more" label="その他のブラウザー操作" /></div>
     </div>
     <div className="we-browser-body">
-      <BrowserConnectionState title={previousSession ? "Browser session disconnected" : "Browser unavailable"}
+      <BrowserConnectionState title={previousSession ? "ブラウザーセッションが切断されました" : "ブラウザーを利用できません"}
         description={previousSession
-          ? "This page belonged to a previous browser session that is no longer connected. Ask Octopus to open a new browser page in this task to continue."
-          : "This browser page is unavailable. Ask Octopus to open a new browser page in this task to continue."}>
+          ? "このページのブラウザーセッションは切断されています。続けるには、このタスクで新しいブラウザーページを開くよう Octopus に依頼してください。"
+          : "このブラウザーページは利用できません。続けるには、このタスクで新しいページを開くよう Octopus に依頼してください。"}>
         <dl>
-          {lastTitle ? <><dt>Last page</dt><dd>{lastTitle}</dd></> : null}
-          {lastAddress ? <><dt>Last address</dt><dd>{lastAddress}</dd></> : null}
-          <dt>Reason</dt><dd>{dataText(surface.data, "detail") || "No live browser connection is available."}</dd>
-          <dt>Task</dt><dd>{environment.runId}</dd><dt>Room</dt><dd>{environment.id}</dd>
+          {lastTitle ? <><dt>最後のページ</dt><dd>{lastTitle}</dd></> : null}
+          {lastAddress ? <><dt>最後のアドレス</dt><dd>{lastAddress}</dd></> : null}
+          <dt>理由</dt><dd>{dataText(surface.data, "detail") || "有効なブラウザー接続がありません。"}</dd>
+          <dt>タスク</dt><dd>{environment.runId}</dd><dt>作業環境</dt><dd>{environment.id}</dd>
         </dl>
       </BrowserConnectionState>
     </div>
@@ -332,8 +332,8 @@ function ProjectedBrowserSurface({ active, environment, surface }: { active: boo
     if (!requested) return;
     const page = fixturePages.find((candidate) => candidate.url === requested) ?? {
       url: requested,
-      title: "Unavailable Test page",
-      heading: "Page is not in this Test fixture",
+      title: "テストページを利用できません",
+      heading: "このページはテストデータに含まれていません",
       body: "The isolated browser does not contact the network. Add this URL to the projected fixture descriptor to simulate it.",
     };
     setFixtureHistory((current) => [...current.slice(0, fixtureCursor + 1), page]);
@@ -497,30 +497,30 @@ function ProjectedBrowserSurface({ active, environment, surface }: { active: boo
         openBrowserFind();
       }}
     >
-      <div className="we-browser-toolbar" role="toolbar" aria-label="Browser navigation">
-        <div className="we-browser-history" role="group" aria-label="Navigation">
+      <div className="we-browser-toolbar" role="toolbar" aria-label="ブラウザーのナビゲーション">
+        <div className="we-browser-history" role="group" aria-label="ナビゲーション">
           <BrowserToolbarButton
-            label="Back"
+            label="戻る"
             glyph="navigateBack"
             disabled={fixtureInteractive ? fixtureCursor === 0 : readOnly || !cdpState?.canGoBack}
             onClick={() => moveBrowserHistory(-1)}
           />
           <BrowserToolbarButton
-            label="Forward"
+            label="進む"
             glyph="navigateBack"
             reverse
             disabled={fixtureInteractive ? fixtureCursor >= fixtureHistory.length - 1 : readOnly || !cdpState?.canGoForward}
             onClick={() => moveBrowserHistory(1)}
           />
           <span className="we-browser-navigation-divider" aria-hidden="true" />
-          <BrowserToolbarButton label={loading && cdpState?.connected ? "Stop loading page" : "Reload page"} glyph={loading && cdpState?.connected ? "close" : "refresh"} disabled={!fixtureInteractive && (readOnly || !(directViewer || cdpState?.connected))} onClick={() => {
+          <BrowserToolbarButton label={loading && cdpState?.connected ? "ページの読み込みを停止" : "ページを再読み込み"} glyph={loading && cdpState?.connected ? "close" : "refresh"} disabled={!fixtureInteractive && (readOnly || !(directViewer || cdpState?.connected))} onClick={() => {
             if (loading && cdpState?.connected) void runManualCdpAction({ sessionId: cdpState.sessionId, action: "stop" });
             else reloadBrowser();
           }} />
         </div>
         <div className="we-browser-address-slot"><div className="we-browser-address">
           <input
-            aria-label="Browser address"
+            aria-label="ブラウザーのアドレス"
             autoCapitalize="none"
             autoComplete="off"
             readOnly={!fixtureInteractive && (readOnly || !cdpState?.connected)}
@@ -544,35 +544,35 @@ function ProjectedBrowserSurface({ active, environment, surface }: { active: boo
               navigateBrowser();
               event.currentTarget.blur();
             }}
-            placeholder="Enter a URL"
+            placeholder="URL を入力"
             ref={addressInputRef}
             spellCheck={false}
             type="text"
             value={address}
           />
           {externalAddress ? <BrowserToolbarButton
-            label="Open in default browser"
+            label="既定のブラウザーで開く"
             glyph="openExternal"
             onClick={() => window.open(externalAddress, "_blank", "noopener,noreferrer")}
           /> : null}
         </div></div>
         <div className="we-browser-actions" ref={menuRef}>
-          <BrowserToolbarButton aria-expanded={menuOpen} aria-haspopup="menu" label="More browser actions" glyph="more" onClick={() => setMenuOpen((current) => !current)} />
+          <BrowserToolbarButton aria-expanded={menuOpen} aria-haspopup="menu" label="その他のブラウザー操作" glyph="more" onClick={() => setMenuOpen((current) => !current)} />
           {menuOpen ? (
-            <OcMenuSurface aria-label="Browser actions" className="we-browser-menu" role="menu">
+            <OcMenuSurface aria-label="ブラウザーの操作" className="we-browser-menu" role="menu">
               <OcMenuItem
                 disabled={readOnly || !cdpState?.connected}
-                label="Find in page"
+                label="ページ内を検索"
                 onClick={openBrowserFind}
                 role="menuitem"
                 trailing={<span>⌘F</span>}
               />
               <div aria-hidden="true" className="mx-1 my-1 h-px bg-token-border" />
-              <div aria-label="Zoom" className="flex items-center gap-1 rounded-lg px-[var(--padding-row-x)] py-0.5 text-sm" role="group">
-                <span className="min-w-0 flex-1 truncate">Zoom</span>
+              <div aria-label="拡大・縮小" className="flex items-center gap-1 rounded-lg px-[var(--padding-row-x)] py-0.5 text-sm" role="group">
+                <span className="min-w-0 flex-1 truncate">拡大・縮小</span>
                 <div className="flex shrink-0 items-center overflow-hidden rounded-md border border-token-border bg-token-foreground/5 text-xs">
                   <button
-                    aria-label="Zoom out"
+                    aria-label="縮小"
                     className="flex h-6 w-6 cursor-interaction items-center justify-center border-0 bg-transparent text-token-description-foreground outline-none hover:bg-token-list-hover-background disabled:cursor-not-allowed disabled:opacity-40"
                     disabled={readOnly || !cdpState?.connected || (cdpState.zoom ?? 1) <= 0.5}
                     onClick={() => setBrowserZoom((cdpState?.zoom ?? 1) - 0.1)}
@@ -580,7 +580,7 @@ function ProjectedBrowserSurface({ active, environment, surface }: { active: boo
                   >−</button>
                   <div className="w-11 border-x border-token-border py-0.5 text-center tabular-nums">{Math.round((cdpState?.zoom ?? 1) * 100)}%</div>
                   <button
-                    aria-label="Zoom in"
+                    aria-label="拡大"
                     className="flex h-6 w-6 cursor-interaction items-center justify-center border-0 bg-transparent text-token-description-foreground outline-none hover:bg-token-list-hover-background disabled:cursor-not-allowed disabled:opacity-40"
                     disabled={readOnly || !cdpState?.connected || (cdpState.zoom ?? 1) >= 2.5}
                     onClick={() => setBrowserZoom((cdpState?.zoom ?? 1) + 0.1)}
@@ -588,7 +588,7 @@ function ProjectedBrowserSurface({ active, environment, surface }: { active: boo
                   >+</button>
                 </div>
                 <button
-                  aria-label="Reset"
+                  aria-label="リセット"
                   className="flex h-6 w-6 shrink-0 cursor-interaction items-center justify-center rounded-md border-0 bg-transparent text-token-description-foreground outline-none hover:bg-token-list-hover-background disabled:cursor-not-allowed disabled:opacity-40"
                   disabled={readOnly || !cdpState?.connected || Math.abs((cdpState.zoom ?? 1) - 1) < 0.01}
                   onClick={() => setBrowserZoom(1)}
@@ -603,22 +603,22 @@ function ProjectedBrowserSurface({ active, environment, surface }: { active: boo
       <div className="we-browser-status" role="status">
         <span className={activity?.status === "running" ? "we-browser-tool-active" : ""}>
           <Glyph name="browser" size={13} />
-          {fixtureInteractive ? "Test fixture" : manualControlEnabled ? "Manual input enabled" : cdpOpening ? "Connecting to browser" : activity?.status === "running" ? "Browser tool running" : cdpState?.connected ? framePainted ? "Live browser" : "Waiting for browser frame" : evidencePage ? "Browser evidence" : "Browser not connected"}
+          {fixtureInteractive ? "テストデータ" : manualControlEnabled ? "手動入力が有効" : cdpOpening ? "ブラウザーに接続しています" : activity?.status === "running" ? "ブラウザーツールを実行中" : cdpState?.connected ? framePainted ? "リアルタイムのブラウザー" : "ブラウザーの映像を待っています" : evidencePage ? "ブラウザーの記録" : "ブラウザーは未接続です"}
         </span>
-        {manualControlEnabled ? <button onClick={releaseManualControl} type="button">Release manual input</button> : null}
+        {manualControlEnabled ? <button onClick={releaseManualControl} type="button">手動入力を終了</button> : null}
         <details>
-          <summary>Details</summary>
+          <summary>詳細</summary>
           <dl>
-            <dt>Task</dt><dd>{environment.runId}</dd>
-            <dt>Room</dt><dd>{environment.id}</dd>
-            <dt>Target</dt><dd>{cdpState?.targetId || projectedTargetId || "Not projected"}</dd>
-            <dt>Input</dt><dd>{manualControlEnabled ? "Your actions are outside the artifact log. Worker tools remain independent." : readOnly ? "Read-only viewer" : cdpState?.manualControllerPresent ? "Manual input belongs to another viewer" : "Watching; manual input is disabled"}</dd>
-            {activity ? <><dt>Tool</dt><dd>{activity.tool} · {activity.status} · movement {activity.sequence}</dd></> : null}
-            {tabs.length ? <><dt>Observed tabs</dt><dd><ul>{tabs.map((tab) => <li key={tab.id} aria-current={tab.id === projectedTargetId ? "page" : undefined}>{tab.title || tab.url || tab.id}{tab.id === projectedTargetId ? " · room target" : ""}</li>)}</ul></dd></> : null}
+            <dt>タスク</dt><dd>{environment.runId}</dd>
+            <dt>作業環境</dt><dd>{environment.id}</dd>
+            <dt>対象</dt><dd>{cdpState?.targetId || projectedTargetId || "情報なし"}</dd>
+            <dt>入力</dt><dd>{manualControlEnabled ? "手動操作は成果物のログに記録されません。ワーカーのツールとは独立して動作します。" : readOnly ? "読み取り専用のビューアー" : cdpState?.manualControllerPresent ? "手動入力は別のビューアーで使用中です" : "閲覧中（手動入力は無効）"}</dd>
+            {activity ? <><dt>ツール</dt><dd>{activity.tool} · {activity.status} · 移動 {activity.sequence}</dd></> : null}
+            {tabs.length ? <><dt>確認済みのタブ</dt><dd><ul>{tabs.map((tab) => <li key={tab.id} aria-current={tab.id === projectedTargetId ? "page" : undefined}>{tab.title || tab.url || tab.id}{tab.id === projectedTargetId ? " · 作業環境の接続先" : ""}</li>)}</ul></dd></> : null}
           </dl>
         </details>
       </div>
-      {cdpError ? <div className="we-browser-control-error" role="alert"><span>{cdpError}</span>{!cdpState?.connected && cdpTransportAvailable && projectedTargetId && environment.lifecycle === "active" ? <button disabled={cdpOpening} onClick={() => setCdpGeneration((current) => current + 1)} type="button">Reconnect</button> : cdpState?.connected ? <button onClick={() => setCdpError("")} type="button">Dismiss</button> : null}</div> : null}
+      {cdpError ? <div className="we-browser-control-error" role="alert"><span>{cdpError}</span>{!cdpState?.connected && cdpTransportAvailable && projectedTargetId && environment.lifecycle === "active" ? <button disabled={cdpOpening} onClick={() => setCdpGeneration((current) => current + 1)} type="button">再接続</button> : cdpState?.connected ? <button onClick={() => setCdpError("")} type="button">閉じる</button> : null}</div> : null}
       <div className="we-browser-body">
         {findOpen ? (
           <form
@@ -630,7 +630,7 @@ function ProjectedBrowserSurface({ active, environment, surface }: { active: boo
           >
             <Glyph name="search" size={14} />
             <input
-              aria-label="Find in page"
+              aria-label="ページ内を検索"
               onChange={(event) => {
                 setFindQuery(event.currentTarget.value);
                 setFindFound(null);
@@ -640,14 +640,14 @@ function ProjectedBrowserSurface({ active, environment, surface }: { active: boo
                 event.preventDefault();
                 setFindOpen(false);
               }}
-              placeholder="Find"
+              placeholder="検索"
               ref={findInputRef}
               value={findQuery}
             />
-            <span>{findFound === false ? "No match" : findFound === true ? "Match" : ""}</span>
-            <button aria-label="Previous match" disabled={!findQuery.trim()} onClick={() => submitBrowserFind(true)} type="button"><Glyph name="chevronUp" size={14} /></button>
-            <button aria-label="Next match" disabled={!findQuery.trim()} onClick={() => submitBrowserFind(false)} type="button"><Glyph name="chevronDown" size={14} /></button>
-            <button aria-label="Close find" onClick={() => setFindOpen(false)} type="button"><Glyph name="close" size={13} /></button>
+            <span>{findFound === false ? "一致なし" : findFound === true ? "一致" : ""}</span>
+            <button aria-label="前の一致箇所" disabled={!findQuery.trim()} onClick={() => submitBrowserFind(true)} type="button"><Glyph name="chevronUp" size={14} /></button>
+            <button aria-label="次の一致箇所" disabled={!findQuery.trim()} onClick={() => submitBrowserFind(false)} type="button"><Glyph name="chevronDown" size={14} /></button>
+            <button aria-label="検索を閉じる" onClick={() => setFindOpen(false)} type="button"><Glyph name="close" size={13} /></button>
           </form>
         ) : null}
         {loadError ? (
@@ -670,30 +670,30 @@ function ProjectedBrowserSurface({ active, environment, surface }: { active: boo
         ) : requiresNativeAttach && cdpTransportAvailable && cdpState?.connected ? (
           <CdpBrowserViewer frame={cdpFrame} interactionEnabled={manualControlEnabled && !readOnly && active} onAction={runManualCdpAction} onPainted={setFramePainted} sessionId={cdpState.sessionId} />
         ) : requiresNativeAttach && cdpTransportAvailable && cdpOpening ? (
-          <LiveSurfaceEmpty glyph="browser" title="Connecting to browser" detail="Attaching to the exact CDP target projected by this Worker Environment…" />
+          <LiveSurfaceEmpty glyph="browser" title="ブラウザーに接続しています" detail="この作業環境で指定された CDP の接続先に接続しています…" />
         ) : (
           <LiveSurfaceEmpty
             glyph="browser"
             title={requiresNativeAttach
-              ? "Browser attach is unavailable"
+              ? "ブラウザーに接続できません"
               : environment.session
-                ? "Direct browser view is not advertised"
-                : "No live browser session"}
+                ? "ブラウザーの直接表示には対応していません"
+                : "有効なブラウザーセッションがありません"}
             detail={requiresNativeAttach
-              ? "The projected CDP target could not be attached in this client."
+              ? "このクライアントから、指定された CDP の接続先に接続できませんでした。"
               : environment.session
-                ? "This room projects a browser session, but no supported viewer URL."
-                : "A live page appears here when this room opens a browser session."}
+                ? "ブラウザーセッションはありますが、対応する表示用 URL がありません。"
+                : "この作業環境でブラウザーセッションが始まると、ページをここに表示します。"}
           />
         )}
         {manualControlAvailable && !manualControlEnabled && active ? (
           <button
-            aria-label="Enable manual browser control"
+            aria-label="ブラウザーの手動操作を有効にする"
             className="we-browser-manual-gate"
             onClick={() => setManualControlWarningOpen(true)}
             type="button"
           >
-            <span><Glyph name="browser" size={14} />Enable manual control</span>
+            <span><Glyph name="browser" size={14} />手動操作を有効にする</span>
           </button>
         ) : null}
       </div>
@@ -702,7 +702,7 @@ function ProjectedBrowserSurface({ active, environment, surface }: { active: boo
         onCancel={cancelManualControl}
         onContinue={enableManualControl}
         open={manualControlWarningOpen}
-        title="Manual browser control"
+        title="ブラウザーの手動操作"
       />
     </div>
   );
@@ -1066,19 +1066,19 @@ function NativeBrowserSurface({ active, environment, surface }: { active: boolea
     const writable = connected && !readOnlyRef.current, zoomFactor = next?.zoomFactor ?? 1;
     const downloadsEnabled = next?.engine.capabilities.persistentDownloadHistory === true;
     const choices = [
-      { id: "downloads", label: "Downloads", enabled: downloadsEnabled, select: () => setDownloadRequest(value => value + 1) },
-      { id: "find", label: "Find in page", enabled: connected, accelerator: "CommandOrControl+F", select: openFind },
-      { id: "external", label: "Open in default browser", enabled: isViewerUrl(next?.url ?? ""), select: () => window.open(next?.url, "_blank", "noopener,noreferrer") },
-      { id: "zoom-out", label: "Zoom out", enabled: writable && zoomFactor > 0.5, select: () => { void action({ action: "zoom", params: { zoomFactor: Math.max(0.5, zoomFactor - 0.1) } }); } },
-      { id: "zoom-in", label: "Zoom in", enabled: writable && zoomFactor < 2.5, select: () => { void action({ action: "zoom", params: { zoomFactor: Math.min(2.5, zoomFactor + 0.1) } }); } },
-      { id: "zoom-reset", label: "Reset zoom", enabled: writable, select: () => { void action({ action: "zoom", params: { zoomFactor: 1 } }); } },
-      { id: "details", label: "Browser details", enabled: true, select: () => setDetails(value => !value) },
+      { id: "downloads", label: "ダウンロード", enabled: downloadsEnabled, select: () => setDownloadRequest(value => value + 1) },
+      { id: "find", label: "ページ内を検索", enabled: connected, accelerator: "CommandOrControl+F", select: openFind },
+      { id: "external", label: "既定のブラウザーで開く", enabled: isViewerUrl(next?.url ?? ""), select: () => window.open(next?.url, "_blank", "noopener,noreferrer") },
+      { id: "zoom-out", label: "縮小", enabled: writable && zoomFactor > 0.5, select: () => { void action({ action: "zoom", params: { zoomFactor: Math.max(0.5, zoomFactor - 0.1) } }); } },
+      { id: "zoom-in", label: "拡大", enabled: writable && zoomFactor < 2.5, select: () => { void action({ action: "zoom", params: { zoomFactor: Math.min(2.5, zoomFactor + 0.1) } }); } },
+      { id: "zoom-reset", label: "拡大率をリセット", enabled: writable, select: () => { void action({ action: "zoom", params: { zoomFactor: 1 } }); } },
+      { id: "details", label: "ブラウザーの詳細", enabled: true, select: () => setDetails(value => !value) },
     ];
     const itemsFor = (ids: string[]): OctopusClientContextMenuItem[] => choices.filter(choice => ids.includes(choice.id)).map(({ select: _select, ...item }) => item);
     const items: OctopusClientContextMenuItem[] = [
       ...itemsFor(downloadsEnabled ? ["downloads", "find", "external"] : ["find", "external"]),
       { type: "separator" },
-      { id: "zoom", label: `Zoom (${Math.round(zoomFactor * 100)}%)`, submenu: itemsFor(["zoom-out", "zoom-in", "zoom-reset"]) },
+      { id: "zoom", label: `拡大率（${Math.round(zoomFactor * 100)}%)`, submenu: itemsFor(["zoom-out", "zoom-in", "zoom-reset"]) },
       { type: "separator" }, ...itemsFor(["details"]),
     ];
     const bounds = anchor.getBoundingClientRect(), pending = { requestId: crypto.randomUUID(), signature: browserMenuSignature(), transport };
@@ -1131,15 +1131,15 @@ function NativeBrowserSurface({ active, environment, surface }: { active: boolea
     event.preventDefault(); event.stopPropagation();
     if (key === "l") { address.current?.focus(); address.current?.select(); } else openFind();
   }}>
-    <div className="we-browser-toolbar" role="toolbar" aria-label="Browser navigation">
-      <div className="we-browser-history" role="group" aria-label="Navigation">
-        <BrowserToolbarButton label="Back" glyph="navigateBack" disabled={readOnly || !ready || !state?.canGoBack} onClick={() => { void action({ action: "back" }); }} />
-        <BrowserToolbarButton label="Forward" glyph="navigateBack" reverse disabled={readOnly || !ready || !state?.canGoForward} onClick={() => { void action({ action: "forward" }); }} />
+    <div className="we-browser-toolbar" role="toolbar" aria-label="ブラウザーのナビゲーション">
+      <div className="we-browser-history" role="group" aria-label="ナビゲーション">
+        <BrowserToolbarButton label="戻る" glyph="navigateBack" disabled={readOnly || !ready || !state?.canGoBack} onClick={() => { void action({ action: "back" }); }} />
+        <BrowserToolbarButton label="進む" glyph="navigateBack" reverse disabled={readOnly || !ready || !state?.canGoForward} onClick={() => { void action({ action: "forward" }); }} />
         <span className="we-browser-navigation-divider" aria-hidden="true" />
-        <BrowserToolbarButton label={state?.loading ? "Stop loading page" : "Reload page"} glyph={state?.loading ? "close" : "refresh"} disabled={readOnly || !ready} onClick={() => { void action({ action: state?.loading ? "stop" : "reload" }); }} />
+        <BrowserToolbarButton label={state?.loading ? "ページの読み込みを停止" : "ページを再読み込み"} glyph={state?.loading ? "close" : "refresh"} disabled={readOnly || !ready} onClick={() => { void action({ action: state?.loading ? "stop" : "reload" }); }} />
       </div>
       <div className="we-browser-address-slot"><div className="we-browser-address">
-        <input aria-label="Browser address" autoCapitalize="none" autoComplete="off" placeholder="Enter a URL" ref={address} spellCheck={false} type="text" value={draft === "about:blank" ? "" : draft} readOnly={readOnly || !ready}
+        <input aria-label="ブラウザーのアドレス" autoCapitalize="none" autoComplete="off" placeholder="URL を入力" ref={address} spellCheck={false} type="text" value={draft === "about:blank" ? "" : draft} readOnly={readOnly || !ready}
           onChange={(event) => setDraft(event.currentTarget.value)} onFocus={(event) => { editing.current = true; event.currentTarget.select(); }}
           onBlur={() => { editing.current = false; setDraft(current.current?.url || dataText(surface.data, "url")); }}
           onKeyDown={(event) => {
@@ -1147,29 +1147,29 @@ function NativeBrowserSurface({ active, environment, surface }: { active: boolea
             if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setDraft(state?.url || dataText(surface.data, "url")); event.currentTarget.blur(); void action({ action: "focus" }); }
             else if (event.key === "Enter") { event.preventDefault(); void navigate(); event.currentTarget.blur(); }
           }} />
-        {isViewerUrl(state?.url ?? "") ? <BrowserToolbarButton label="Open in default browser" glyph="openExternal" onClick={() => window.open(state?.url, "_blank", "noopener,noreferrer")} /> : null}
+        {isViewerUrl(state?.url ?? "") ? <BrowserToolbarButton label="既定のブラウザーで開く" glyph="openExternal" onClick={() => window.open(state?.url, "_blank", "noopener,noreferrer")} /> : null}
       </div></div>
-      {state?.engine.capabilities.persistentDownloadHistory ? <div className="we-browser-downloads" title="Downloads"><BrowserDownloads active={active} environment={environment} surface={surface} openRequest={downloadRequest} /></div> : !ready ? <div className="we-browser-actions"><BrowserToolbarButton label="Downloads" glyph="download" disabled /></div> : null}
+      {state?.engine.capabilities.persistentDownloadHistory ? <div className="we-browser-downloads" title="ダウンロード"><BrowserDownloads active={active} environment={environment} surface={surface} openRequest={downloadRequest} /></div> : !ready ? <div className="we-browser-actions"><BrowserToolbarButton label="ダウンロード" glyph="download" disabled /></div> : null}
       <div className="we-browser-actions">
-        <BrowserToolbarButton aria-expanded={menu} aria-haspopup="menu" label="More browser actions" glyph="more" onClick={(event) => { void toggleBrowserMenu(event.currentTarget); }} />
+        <BrowserToolbarButton aria-expanded={menu} aria-haspopup="menu" label="その他のブラウザー操作" glyph="more" onClick={(event) => { void toggleBrowserMenu(event.currentTarget); }} />
       </div>
       <span aria-hidden="true" className={`we-browser-loading${opening || state?.loading ? " is-visible" : ""}`}><i /></span>
     </div>
     {ready && readOnly ? <div className="we-browser-status" role="status">
-      <span><Glyph name="lock" size={13} />Read-only browser</span>
+      <span><Glyph name="lock" size={13} />読み取り専用のブラウザー</span>
     </div> : null}
-    {details ? <details className="we-browser-details we-browser-details-panel" open onToggle={(event) => { if (!event.currentTarget.open) setDetails(false); }}><summary>Technical details</summary><dl>
-        <dt>Task</dt><dd>{environment.runId}</dd><dt>Room</dt><dd>{environment.id}</dd><dt>Target</dt><dd>{targetId}</dd>
-        <dt>Input</dt><dd>Your page interactions are outside the artifact log. Worker tools remain independent.</dd>
-        {state ? <><dt>Browser</dt><dd>{state.engine.mode === "standard" ? "Standard Chromium" : "Owned Chromium"}</dd><dt>Capabilities</dt><dd>{state.engine.limits.join(" ")}</dd></> : null}
-        {activity ? <><dt>Tool</dt><dd>{activity.tool} · {activity.status} · movement {activity.sequence}</dd></> : null}
-        {previewError ? <><dt>Preview</dt><dd>{previewError}</dd></> : null}
+    {details ? <details className="we-browser-details we-browser-details-panel" open onToggle={(event) => { if (!event.currentTarget.open) setDetails(false); }}><summary>技術的な詳細</summary><dl>
+        <dt>タスク</dt><dd>{environment.runId}</dd><dt>作業環境</dt><dd>{environment.id}</dd><dt>対象</dt><dd>{targetId}</dd>
+        <dt>入力</dt><dd>手動のページ操作は成果物のログに記録されません。ワーカーのツールとは独立して動作します。</dd>
+        {state ? <><dt>ブラウザー</dt><dd>{state.engine.mode === "standard" ? "標準の Chromium" : "専用の Chromium"}</dd><dt>機能</dt><dd>{state.engine.limits.join(" ")}</dd></> : null}
+        {activity ? <><dt>ツール</dt><dd>{activity.tool} · {activity.status} · 移動 {activity.sequence}</dd></> : null}
+        {previewError ? <><dt>プレビュー</dt><dd>{previewError}</dd></> : null}
       </dl></details> : null}
-    {error && ready ? <div className="we-browser-control-error" role="alert"><span>Couldn’t complete that browser action.</span><details className="we-browser-details"><summary>Technical details</summary><p>{error}</p></details><button onClick={() => setError("")} type="button">Dismiss</button></div> : null}
+    {error && ready ? <div className="we-browser-control-error" role="alert"><span>ブラウザーの操作を完了できませんでした。</span><details className="we-browser-details"><summary>技術的な詳細</summary><p>{error}</p></details><button onClick={() => setError("")} type="button">閉じる</button></div> : null}
     <div className={`we-browser-body${state?.engine.capabilities.nativeView ? " has-native-view" : ""}`}>
       {find ? <form className="we-browser-find" onSubmit={(event) => { event.preventDefault(); findPage(); }}>
         <Glyph name="search" size={14} />
-        <input aria-label="Find in page" placeholder="Find" ref={findInput} value={query} maxLength={10000}
+        <input aria-label="ページ内を検索" placeholder="検索" ref={findInput} value={query} maxLength={10000}
           onChange={(event) => {
             const value = event.currentTarget.value;
             setQuery(value);
@@ -1184,21 +1184,21 @@ function NativeBrowserSurface({ active, environment, surface }: { active: boolea
             }
           }} />
         <span>{state?.findMatches !== undefined ? `${state.findActiveOrdinal ?? 0} / ${state.findMatches}` : ""}</span>
-        <button aria-label="Previous match" disabled={!query} onClick={() => findPage(true)} type="button"><Glyph name="chevronUp" size={14} /></button>
-        <button aria-label="Next match" disabled={!query} onClick={() => findPage()} type="button"><Glyph name="chevronDown" size={14} /></button>
-        <button aria-label="Close find" onClick={closeFind} type="button"><Glyph name="close" size={13} /></button>
+        <button aria-label="前の一致箇所" disabled={!query} onClick={() => findPage(true)} type="button"><Glyph name="chevronUp" size={14} /></button>
+        <button aria-label="次の一致箇所" disabled={!query} onClick={() => findPage()} type="button"><Glyph name="chevronDown" size={14} /></button>
+        <button aria-label="検索を閉じる" onClick={closeFind} type="button"><Glyph name="close" size={13} /></button>
       </form> : null}
-      <div className="we-native-browser-viewport" ref={viewport} aria-label="Native browser page">
-        {createElement("webview", { ref: page, className: "we-native-browser-guest", "aria-label": "Browser page" })}
+      <div className="we-native-browser-viewport" ref={viewport} aria-label="ネイティブのブラウザーページ">
+        {createElement("webview", { ref: page, className: "we-native-browser-guest", "aria-label": "ブラウザーページ" })}
         <div className="we-native-browser-cursor" ref={cursorLayer} aria-hidden="true" />
         {!ready ? <BrowserConnectionState
-          title={pageClosed ? "Browser page closed" : opening ? "Connecting to browser…" : errorCode === "host_unavailable" ? "Browser session disconnected" : state?.connected ? "Preparing browser…" : "Browser unavailable"}
-          description={opening || state?.connected ? "The page will appear here when the connection is ready."
-            : pageClosed ? "This browser page was closed and can no longer be used."
-            : errorCode === "host_unavailable" ? "The previous browser session is no longer connected. Ask Octopus to open a new browser page in this task to continue."
-            : environment.lifecycle !== "active" ? "This task’s browser is no longer active. Ask Octopus to open a new browser page to continue."
-            : !available ? "Open this task in the Octopus desktop app to view its browser."
-            : "This page couldn’t connect. Try again, or ask Octopus to open a new browser page in this task."}
+          title={pageClosed ? "ブラウザーページは閉じられました" : opening ? "ブラウザーに接続しています…" : errorCode === "host_unavailable" ? "ブラウザーセッションが切断されました" : state?.connected ? "ブラウザーを準備しています…" : "ブラウザーを利用できません"}
+          description={opening || state?.connected ? "接続の準備ができると、ページをここに表示します。"
+            : pageClosed ? "このブラウザーページは閉じられているため、利用できません。"
+            : errorCode === "host_unavailable" ? "以前のブラウザーセッションは切断されています。続けるには、このタスクで新しいページを開くよう Octopus に依頼してください。"
+            : environment.lifecycle !== "active" ? "このタスクのブラウザーは終了しています。続けるには、新しいページを開くよう Octopus に依頼してください。"
+            : !available ? "ブラウザーを表示するには、このタスクを Octopus のデスクトップアプリで開いてください。"
+            : "ページに接続できませんでした。再試行するか、このタスクで新しいページを開くよう Octopus に依頼してください。"}
           onRetry={!pageClosed && !opening && !state?.connected && errorCode !== "host_unavailable" && available && !!targetId && environment.lifecycle === "active" ? () => setRetry(value => value + 1) : undefined}>
           {error ? <p>{error}</p> : null}
         </BrowserConnectionState> : null}
@@ -1215,10 +1215,10 @@ function BrowserLoadError({ detail, onReload, url }: { detail: string; onReload:
   return (
     <section className="we-browser-load-error" role="alert">
       <Glyph name="browser" size={22} />
-      <h2>This site can&apos;t be reached</h2>
-      <p><strong>{host}</strong> could not be loaded.</p>
+      <h2>このサイトにアクセスできません</h2>
+      <p><strong>{host}</strong> を読み込めませんでした。</p>
       <small>{detail}</small>
-      {onReload ? <OcButton leadingIcon="refresh" onClick={onReload} size="sm" variant="primary">Reload</OcButton> : null}
+      {onReload ? <OcButton leadingIcon="refresh" onClick={onReload} size="sm" variant="primary">再読み込み</OcButton> : null}
     </section>
   );
 }
@@ -1347,7 +1347,7 @@ function CdpBrowserViewer({ frame, interactionEnabled, onAction, onPainted, sess
 
   return (
     <div
-      aria-label="Live Worker Environment browser"
+      aria-label="作業環境のリアルタイムブラウザー"
       className="we-cdp-viewer"
       onContextMenu={(event) => event.preventDefault()}
       onKeyDown={(event) => {
@@ -1433,8 +1433,8 @@ function CdpBrowserViewer({ frame, interactionEnabled, onAction, onPainted, sess
       role="application"
       tabIndex={interactionEnabled ? 0 : -1}
     >
-      <canvas aria-label="Live browser page" hidden={!painted} ref={canvasRef} />
-      {paintError ? <span className="we-browser-frame-error" role="alert">{paintError}</span> : !painted ? <span role="status">Waiting for the first browser frame…</span> : null}
+      <canvas aria-label="リアルタイムのブラウザーページ" hidden={!painted} ref={canvasRef} />
+      {paintError ? <span className="we-browser-frame-error" role="alert">{paintError}</span> : !painted ? <span role="status">ブラウザーの最初の映像を待っています…</span> : null}
     </div>
   );
 }
@@ -1483,7 +1483,7 @@ function browserFixturePages(surface?: WorkerEnvironmentSurfaceProjection): Brow
     return [{
       url,
       title: typeof record.title === "string" && record.title.trim() ? record.title.trim() : surface.label,
-      heading: typeof record.heading === "string" && record.heading.trim() ? record.heading.trim() : "Worker Environment browser",
+      heading: typeof record.heading === "string" && record.heading.trim() ? record.heading.trim() : "作業環境のブラウザー",
       body: typeof record.body === "string" && record.body.trim() ? record.body.trim() : "Isolated Test browser surface.",
     }];
   });
@@ -1494,7 +1494,7 @@ export function browserPageFromSurface(surface?: WorkerEnvironmentSurfaceProject
   return {
     url: surface ? dataText(surface.data, "url") : "",
     title: surface ? dataText(surface.data, "title") || surface.label : "Browser",
-    heading: surface ? dataText(surface.data, "heading") || "Worker Environment browser" : "Worker Environment browser",
+    heading: surface ? dataText(surface.data, "heading") || "作業環境のブラウザー" : "作業環境のブラウザー",
     body: surface ? dataText(surface.data, "body") || dataText(surface.data, "detail") || "Projected browser evidence." : "Projected browser evidence.",
   };
 }

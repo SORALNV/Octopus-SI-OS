@@ -219,7 +219,7 @@ export function ChatComposer({
     : resumeActionAvailable
       ? "Resume"
       : submissionMode === "steer"
-        ? "Steer current reply"
+        ? "現在の応答に指示を追加"
         : submissionMode === "queue"
           ? "Queue follow-up"
           : "Send";
@@ -343,7 +343,7 @@ export function ChatComposer({
       ref={composerRef}
     >
       <input
-        aria-label="Attach files"
+        aria-label="ファイルを添付"
         className="composer-file-input"
         multiple
         onChange={(event) => onFilesPicked(event.currentTarget.files)}
@@ -415,7 +415,7 @@ export function ChatComposer({
                     type="button"
                   >
                     <Glyph className="icon-xs shrink-0" name="paperclip" size={16} />
-                    <span className="truncate">Files and folders</span>
+                    <span className="truncate">ファイルとフォルダー</span>
                   </button>
                   {availableProjectedFileSources.map((source) => (
                     <button
@@ -432,7 +432,7 @@ export function ChatComposer({
                     >
                       <Glyph className="icon-xs shrink-0" name="folder" size={16} />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate">Projected file</span>
+                        <span className="block truncate">作業環境のファイル</span>
                         <span className="block truncate text-xs text-token-description-foreground">{source.label}</span>
                       </span>
                     </button>
@@ -489,9 +489,9 @@ export function ChatComposer({
 
                 {voiceLayoutActive ? (
                   <div className="composer-voice-footer flex items-center gap-2 px-2 py-1">
-                    <ShellTooltip label="Cancel dictation">
+                    <ShellTooltip label="音声入力をキャンセル">
                       <button
-                        aria-label="Cancel dictation"
+                        aria-label="音声入力をキャンセル"
                         className="no-drag cursor-interaction flex items-center gap-1 border whitespace-nowrap select-none focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 rounded-full text-token-foreground bg-token-foreground/5 enabled:hover:bg-token-foreground/10 border-transparent h-token-button-composer px-2 py-0 text-sm leading-[18px] aspect-square items-center justify-center !px-0"
                         disabled={dictation.isTranscribing}
                         onClick={dictation.abortDictation}
@@ -505,12 +505,12 @@ export function ChatComposer({
                       role={dictation.isTranscribing ? "status" : undefined}
                     >
                       {dictation.isTranscribing
-                        ? <span>Transcribing</span>
+                        ? <span>文字起こし中</span>
                         : <canvas className="composer-waveform" ref={dictation.waveformCanvasRef} />}
                     </div>
-                    <ShellTooltip label="Stop dictation">
+                    <ShellTooltip label="音声入力を停止">
                       <button
-                        aria-label="Stop dictation"
+                        aria-label="音声入力を停止"
                         className="no-drag cursor-interaction flex items-center gap-1 border whitespace-nowrap select-none focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 rounded-full text-token-foreground bg-token-foreground/5 enabled:hover:bg-token-foreground/10 border-transparent h-token-button-composer px-2 py-0 text-sm leading-[18px] aspect-square items-center justify-center !px-0"
                         disabled={dictation.isTranscribing}
                         onClick={() => dictation.stopDictation("insert")}
@@ -519,9 +519,9 @@ export function ChatComposer({
                         <Glyph className="icon-xs" name="stop" size={16} />
                       </button>
                     </ShellTooltip>
-                    <ShellTooltip label="Transcribe and send">
+                    <ShellTooltip label="文字起こしして送信">
                       <button
-                        aria-label="Transcribe and send"
+                        aria-label="文字起こしして送信"
                         className={`bg-token-foreground focus-visible:outline-token-button-background cursor-interaction size-token-button-composer flex items-center justify-center rounded-full p-0.5 transition-opacity focus-visible:outline-2${dictation.isTranscribing ? " cursor-default opacity-50" : ""}`}
                         disabled={dictation.isTranscribing}
                         onClick={() => dictation.stopDictation("send")}
@@ -535,10 +535,10 @@ export function ChatComposer({
                 <div className="composer-footer grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-2 py-1 select-none">
                   <div className="flex min-w-0 items-center gap-2">
                     <div className="composer-context-anchor">
-                      <ShellTooltip label="Add files and more" disabled={contextMenuOpen}>
+                      <ShellTooltip label="ファイルなどを追加" disabled={contextMenuOpen}>
                         <button
                           aria-expanded={contextMenuOpen}
-                          aria-label="Add files and more"
+                          aria-label="ファイルなどを追加"
                           className="border-token-border no-drag cursor-interaction flex items-center gap-1 border whitespace-nowrap select-none focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 rounded-full text-token-text-tertiary enabled:hover:bg-token-list-hover-background data-[state=open]:bg-token-list-hover-background border-transparent h-token-button-composer px-2 py-0 text-sm leading-[18px] aspect-square items-center justify-center !px-0"
                           data-composer-navigation-target="add-context"
                           data-state={contextMenuOpen ? "open" : "closed"}
@@ -583,18 +583,18 @@ export function ChatComposer({
                           onStart={dictation.startDictation}
                           onStop={() => dictation.stopDictation("insert")}
                         />
-                        {editingQueuedTurn ? <button className="composer-queue-action" type="button" onClick={onCancelQueuedEdit}>Cancel edit</button> : null}
+                        {editingQueuedTurn ? <button className="composer-queue-action" type="button" onClick={onCancelQueuedEdit}>編集をキャンセル</button> : null}
                         {turnOpen && hasSubmissionPayload && onInterrupt ? (
-                          <ShellTooltip label="Stop">
-                            <button aria-label="Stop" className="composer-queue-action is-icon" disabled={interruptPending} onClick={onInterrupt} type="button">
+                          <ShellTooltip label="停止">
+                            <button aria-label="停止" className="composer-queue-action is-icon" disabled={interruptPending} onClick={onInterrupt} type="button">
                               <Glyph name="stop" size={16} />
                             </button>
                           </ShellTooltip>
                         ) : null}
                         {variant === "home" && !isSubmitting && !stopAvailable && !resumeActionAvailable && !hasSubmissionPayload ? (
-                          <ShellTooltip label="Open Voice">
+                          <ShellTooltip label="音声通話を開く">
                             <button
-                              aria-label="Open Voice"
+                              aria-label="音声通話を開く"
                               className="focus-visible:outline-token-button-background cursor-interaction size-token-button-composer flex items-center justify-center rounded-full bg-token-foreground p-0.5 transition-opacity focus-visible:outline-2 disabled:cursor-default disabled:opacity-50"
                               disabled={voiceStartDisabled || !onVoiceStart}
                               onClick={onVoiceStart}
@@ -651,9 +651,9 @@ export function ChatComposer({
     </div>
     {onQueue && turnOpen && !editingQueuedTurn ? (
       <OcDropdown anchorRef={sendButtonRef} align="end" open={sendMenuOpen} onOpenChange={setSendMenuOpen}>
-        <OcMenuItem role="menuitem" label="Send now" description="Steer the current reply" leadingIcon="sendNow" disabled={!canSteer || !onSteer || isSubmitting}
+        <OcMenuItem role="menuitem" label="今すぐ送信" description="現在の応答に指示を追加" leadingIcon="sendNow" disabled={!canSteer || !onSteer || isSubmitting}
           onClick={() => { setSendMenuOpen(false); onSteer?.(); }} />
-        <OcMenuItem role="menuitem" label="Queue message" description="Send after the current reply finishes" leadingIcon="steer" disabled={!canQueue}
+        <OcMenuItem role="menuitem" label="メッセージを送信待ちに追加" description="現在の応答が終わってから送信" leadingIcon="steer" disabled={!canQueue}
           onClick={() => { setSendMenuOpen(false); onQueue(); }} />
       </OcDropdown>
     ) : null}
@@ -728,14 +728,14 @@ function PausedQueueSubmissionDialog({ count, onResolve }: {
     >
       <OcDialogHeader
         className="p-0"
-        description={`You are about to send a message. Do you want to clear the ${count === 1 ? "1 message" : `${count} messages`} previously queued?`}
-        title="Send message?"
+        description={`メッセージを送信します。送信待ちの ${count === 1 ? "1 件のメッセージ" : `${count} 件のメッセージ`} を削除しますか？`}
+        title="メッセージを送信しますか？"
         titleId="paused-queue-submit-title"
       />
       <OcDialogFooter className="mt-5 min-h-0 border-0 p-0">
-        <OcButton buttonRef={cancelRef} onClick={() => onResolve?.("cancel")} variant="ghost">Cancel</OcButton>
-        <OcButton onClick={() => onResolve?.("clear")} tone="danger" variant="secondary">Clear queue</OcButton>
-        <OcButton onClick={() => onResolve?.("send")} variant="primary">Send message</OcButton>
+        <OcButton buttonRef={cancelRef} onClick={() => onResolve?.("cancel")} variant="ghost">キャンセル</OcButton>
+        <OcButton onClick={() => onResolve?.("clear")} tone="danger" variant="secondary">送信待ちをすべて削除</OcButton>
+        <OcButton onClick={() => onResolve?.("send")} variant="primary">メッセージを送信</OcButton>
       </OcDialogFooter>
     </OcDialog>
   );
@@ -827,9 +827,9 @@ function DictationButton({
   };
 
   return (
-    <ShellTooltip label={canRetry ? "Retry dictation" : "Click to dictate or hold"} disabled={isTranscribing}>
+    <ShellTooltip label={canRetry ? "音声入力を再試行" : "クリックまたは長押しで音声入力"} disabled={isTranscribing}>
       <button
-        aria-label={canRetry ? "Retry dictation" : "Dictate"}
+        aria-label={canRetry ? "音声入力を再試行" : "音声入力"}
         className="composer-round-button"
         disabled={isTranscribing}
         onClick={() => {

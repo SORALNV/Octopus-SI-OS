@@ -17,16 +17,16 @@ type CallPresentation = Readonly<{
 }>;
 
 const presentations: Record<VoicePhase, CallPresentation> = {
-  idle: { active: false, canMute: false, canEnd: false, canStart: true, title: "Talk to Home", detail: "Start a voice call with Home." },
-  requesting: { active: true, canMute: false, canEnd: true, canStart: false, title: "Opening microphone", detail: "Allow microphone access to start the call." },
-  connecting: { active: true, canMute: false, canEnd: true, canStart: false, title: "Connecting call", detail: "Waiting for the voice connection." },
-  listening: { active: true, canMute: true, canEnd: true, canStart: false, title: "Connected", detail: "The voice connection is active." },
-  muted: { active: true, canMute: true, canEnd: true, canStart: false, title: "Microphone muted", detail: "You can still hear Home. Unmute to speak." },
-  recovering: { active: true, canMute: false, canEnd: true, canStart: false, title: "Reconnecting call", detail: "Waiting for the voice connection to recover." },
-  ending: { active: false, canMute: false, canEnd: false, canStart: false, title: "Closing connection…", detail: "Your microphone is off. The voice connection is still closing." },
-  closure_unconfirmed: { active: false, canMute: false, canEnd: true, canStart: false, title: "Closure unconfirmed", detail: "Your microphone is off. Retry closing this call before starting another." },
-  ended: { active: false, canMute: false, canEnd: false, canStart: true, title: "Call ended", detail: "Your conversation and tasks remain available." },
-  error: { active: false, canMute: false, canEnd: false, canStart: true, title: "Voice unavailable", detail: "You can keep typing, or try calling again." },
+  idle: { active: false, canMute: false, canEnd: false, canStart: true, title: "ホームと話す", detail: "ホームとの音声通話を開始します。" },
+  requesting: { active: true, canMute: false, canEnd: true, canStart: false, title: "マイクを準備しています", detail: "通話を始めるには、マイクへのアクセスを許可してください。" },
+  connecting: { active: true, canMute: false, canEnd: true, canStart: false, title: "通話に接続しています", detail: "音声の接続を待っています。" },
+  listening: { active: true, canMute: true, canEnd: true, canStart: false, title: "接続済み", detail: "音声通話に接続しています。" },
+  muted: { active: true, canMute: true, canEnd: true, canStart: false, title: "マイクはミュート中", detail: "ホームの音声は引き続き聞こえます。話すにはミュートを解除してください。" },
+  recovering: { active: true, canMute: false, canEnd: true, canStart: false, title: "通話に再接続しています", detail: "音声の接続が回復するのを待っています。" },
+  ending: { active: false, canMute: false, canEnd: false, canStart: false, title: "接続を終了しています…", detail: "マイクはオフです。音声の接続はまだ終了処理中です。" },
+  closure_unconfirmed: { active: false, canMute: false, canEnd: true, canStart: false, title: "終了を確認できません", detail: "マイクはオフです。別の通話を始める前に、この通話の終了を再試行してください。" },
+  ended: { active: false, canMute: false, canEnd: false, canStart: true, title: "通話が終了しました", detail: "会話とタスクは引き続き利用できます。" },
+  error: { active: false, canMute: false, canEnd: false, canStart: true, title: "音声通話を利用できません", detail: "文字で会話を続けるか、もう一度通話をお試しください。" },
 };
 
 export function voicePresentation(phase: VoicePhase): CallPresentation {

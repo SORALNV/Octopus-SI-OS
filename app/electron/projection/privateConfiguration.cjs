@@ -197,7 +197,7 @@ async function readInterfacePrivateEnvironmentDocument(directory, interfaceId, d
 function validateInterfacePrivateFileStat(file, stat) {
   if (stat.isSymbolicLink() || !stat.isFile()) throw new Error(`interface private environment '${file}' must be a regular file`);
   if (stat.size > INTERFACE_PRIVATE_ENVIRONMENT_MAX_BYTES) {
-    throw new Error(`interface private environment '${file}' exceeds ${INTERFACE_PRIVATE_ENVIRONMENT_MAX_BYTES} bytes`);
+    throw new Error(`interface private environment '${file}' exceeds ${INTERFACE_PRIVATE_ENVIRONMENT_MAX_BYTES} バイト`);
   }
   validateOwnerOnlyStat(file, stat, false);
 }
@@ -345,7 +345,7 @@ async function mutateApplicationPrivateConfigurationUnlocked(registryRootValue, 
   };
   const body = Buffer.from(`${JSON.stringify(document, null, 2)}\n`, "utf8");
   if (body.byteLength > INTERFACE_PRIVATE_ENVIRONMENT_MAX_BYTES) {
-    throw new Error(`application private configuration '${interfaceId}' exceeds ${INTERFACE_PRIVATE_ENVIRONMENT_MAX_BYTES} bytes`);
+    throw new Error(`application private configuration '${interfaceId}' exceeds ${INTERFACE_PRIVATE_ENVIRONMENT_MAX_BYTES} バイト`);
   }
   if (!current.present && values.size > 0) await validateInterfacePrivateDirectory(interfacePrivateDirectory, true);
   if (current.present) await validateInterfacePrivateDirectory(interfacePrivateDirectory, false);

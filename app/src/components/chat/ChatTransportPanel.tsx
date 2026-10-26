@@ -32,11 +32,11 @@ export function ChatTransportPanel({
   return (
     <div className="chat-transport-panel">
       <label>
-        <span>endpoint</span>
+        <span>エンドポイント</span>
         <input value={endpoint} onChange={(event) => onEndpointChange(event.target.value)} spellCheck={false} />
       </label>
       <label>
-        <span>provider interface</span>
+        <span>プロバイダーのインターフェース</span>
         {providerInterfaces.length ? (
           <select value={providerInterfaceId} onChange={(event) => onProviderInterfaceChange(event.target.value)}>
             {providerInterfaces.map((provider) => (
@@ -48,18 +48,18 @@ export function ChatTransportPanel({
         )}
       </label>
       <label>
-        <span>bearer token</span>
+        <span>Bearer トークン</span>
         <input value={token} onChange={(event) => onTokenChange(event.target.value)} spellCheck={false} type="password" />
       </label>
       <div className="chat-provider-kinds">
-        <span>artifact transfer</span>
+        <span>成果物の転送</span>
         <strong title={artifactTransfer.path || artifactTransfer.reason}>
           {artifactTransfer.status}{artifactTransfer.reason ? ` / ${artifactTransfer.reason}` : ""}
         </strong>
       </div>
       <div className="chat-provider-kinds">
-        <span>handler ref</span>
-        <strong>{activeProvider?.runtimeHandlerRef || "not projected"}</strong>
+        <span>ハンドラーの参照</span>
+        <strong>{activeProvider?.runtimeHandlerRef || "情報なし"}</strong>
       </div>
     </div>
   );

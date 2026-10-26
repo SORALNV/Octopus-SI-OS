@@ -17,7 +17,7 @@ function RetainedFilesTab({ accessProfile, active, tab }: Pick<Props, "accessPro
   if (tab.target.kind !== "files" || !active && !visited && !tab.target.snapshot) return null;
   return <div aria-hidden={!active || undefined} className="flex min-h-0 flex-1 flex-col overflow-hidden" hidden={!active} inert={!active} style={{ display: active ? "flex" : "none" }}>
     <SurfaceRenderBoundary resetKey={tab.id}>
-      <Suspense fallback={<SurfaceLoadingState label="Loading files…" />}>
+      <Suspense fallback={<SurfaceLoadingState label="ファイルを読み込んでいます…" />}>
         <FilesView accessProfile={accessProfile} active={active} paneKey={filesPaneKey(accessProfile, tab.id)} snapshot={tab.target.snapshot} target={tab.target.openTarget} />
       </Suspense>
     </SurfaceRenderBoundary>

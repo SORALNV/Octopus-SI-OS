@@ -169,8 +169,8 @@ const APPLY_IDLE: WorkspaceSetupApplyState = {
 
 const AWAITING_SIGN_IN: WorkspaceSetupApplyState = {
   state: "awaiting_sign_in",
-  label: "Your space is ready. Connect ChatGPT.",
-  detail: "Continue with your ChatGPT account to start working with Home. No API key is needed.",
+  label: "準備ができました。ChatGPT に接続しましょう。",
+  detail: "ChatGPT アカウントでログインすると、ホームを使い始められます。API キーは不要です。",
   percent: null,
   error: "",
 };
@@ -200,14 +200,14 @@ function WorkspaceHomeGate({ runtimeHome, children }: Pick<Props, "runtimeHome" 
     });
     return () => { active = false; };
   }, [structureGeneration, retry]);
-  if (error) return <GateState title="Workspace could not be checked" detail={error} tone="danger"
-    action={<OcButton onClick={() => setRetry((value) => value + 1)}>Try again</OcButton>} />;
+  if (error) return <GateState title="ワークスペースを確認できませんでした" detail={error} tone="danger"
+    action={<OcButton onClick={() => setRetry((value) => value + 1)}>再試行</OcButton>} />;
   if (!snapshot) return <OpeningState />;
   if (snapshot.clientSetup?.status === "complete") {
     const matrix = completedSetupMatrix(snapshot, null);
     if (matrix.mode === "shell") return <>{children}</>;
     return <GateState title={matrix.title} detail={matrix.detail} tone="danger"
-      action={<OcButton onClick={() => setRetry((value) => value + 1)}>Check again</OcButton>} />;
+      action={<OcButton onClick={() => setRetry((value) => value + 1)}>もう一度確認</OcButton>} />;
   }
   return <WorkspaceAccountSetupGate runtimeHome={runtimeHome}>{children}</WorkspaceAccountSetupGate>;
 }
@@ -320,8 +320,8 @@ function WorkspaceSetupFlow({ accessProfile, children }: Omit<Props, "runtimeHom
     }
     setApplyState({
       state: "running",
-      label: "Resuming setup",
-      detail: "Your saved choices are being verified before Octopus continues.",
+      label: "セットアップを再開しています",
+      detail: "保存された設定を確認してから、セットアップを続行します。",
       percent: 0,
       error: "",
     });
@@ -346,7 +346,7 @@ function WorkspaceSetupFlow({ accessProfile, children }: Omit<Props, "runtimeHom
       }).catch(() => {});
       setApplyState({
         state: "failed",
-        label: "Setup needs attention",
+        label: "セットアップの確認が必要",
         detail: "",
         percent: null,
         error: error instanceof ProductSetupError
@@ -370,8 +370,8 @@ function WorkspaceSetupFlow({ accessProfile, children }: Omit<Props, "runtimeHom
     if (inFlight.current) return inFlight.current;
     setApplyState({
       state: "running",
-      label: allowSignIn ? "Connecting ChatGPT" : "Resuming setup",
-      detail: allowSignIn ? "Finish signing in in your browser. Octopus will continue once your account is verified." : "Octopus is continuing from the last verified step on this device.",
+      label: allowSignIn ? "ChatGPT に接続しています" : "セットアップを再開しています",
+      detail: allowSignIn ? "ブラウザーでログインを完了してください。アカウントを確認できると、Octopus が続行します。" : "このデバイスで最後に確認できたステップから続けています。",
       percent: 0,
       error: "",
     });
@@ -399,8 +399,8 @@ function WorkspaceSetupFlow({ accessProfile, children }: Omit<Props, "runtimeHom
       setDraftState({ draft: null, error: "" });
       setApplyState({
         state: "running",
-        label: "Workspace verified",
-        detail: "Home, projects, local capabilities, and sign-in are ready.",
+        label: "ワークスペースを確認しました",
+        detail: "ホーム、プロジェクト、ローカル機能、ログインの準備ができました。",
         percent: 100,
         error: "",
       });
@@ -412,7 +412,7 @@ function WorkspaceSetupFlow({ accessProfile, children }: Omit<Props, "runtimeHom
       }).catch(() => {});
       setApplyState({
         state: "failed",
-        label: "Setup needs attention",
+        label: "セットアップの確認が必要",
         detail: "",
         percent: null,
         error: error instanceof ProductSetupError
@@ -490,7 +490,7 @@ function WorkspaceSetupFlow({ accessProfile, children }: Omit<Props, "runtimeHom
     ) {
       setApplyState({
         state: "failed",
-        label: "Setup needs attention",
+        label: "セットアップの確認が必要",
         detail: "",
         percent: null,
         error: catalogResult.error,
@@ -503,9 +503,9 @@ function WorkspaceSetupFlow({ accessProfile, children }: Omit<Props, "runtimeHom
   if (draftState.error && snapshot !== null && !snapshot.clientSetup) {
     return (
       <GateState
-        action={<OcButton onClick={() => resetDraft(setDraftState, setApplyState)}>Start setup again</OcButton>}
-        detail="The saved setup draft is malformed or incomplete. Reset only these unfinished setup choices to continue."
-        title="Setup choices could not be opened"
+        action={<OcButton onClick={() => resetDraft(setDraftState, setApplyState)}>セットアップをやり直す</OcButton>}
+        detail="保存されたセットアップの下書きが不正、または未完了です。未完了の設定だけをリセットして続けてください。"
+        title="セットアップの設定を開けませんでした"
         tone="danger"
       />
     );
@@ -514,9 +514,9 @@ function WorkspaceSetupFlow({ accessProfile, children }: Omit<Props, "runtimeHom
   if (snapshotError) {
     return (
       <GateState
-        action={<OcButton onClick={() => void refresh(true).catch(() => {})}>Try again</OcButton>}
+        action={<OcButton onClick={() => void refresh(true).catch(() => {})}>再試行</OcButton>}
         detail={snapshotError}
-        title="Workspace could not be checked"
+        title="ワークスペースを確認できませんでした"
         tone="danger"
       />
     );
@@ -532,9 +532,9 @@ function WorkspaceSetupFlow({ accessProfile, children }: Omit<Props, "runtimeHom
     return (
       <GateState
         action={applyState.state === "awaiting_sign_in" && snapshot.clientSetup
-          ? <OcButton variant="primary" onClick={() => void resumeCurrent(snapshot.clientSetup!, draftState.draft, true)}>Sign in with ChatGPT</OcButton>
+          ? <OcButton variant="primary" onClick={() => void resumeCurrent(snapshot.clientSetup!, draftState.draft, true)}>ChatGPT でログイン</OcButton>
           : applyState.state === "failed" && snapshot.clientSetup
-          ? <OcButton onClick={() => void resumeCurrent(snapshot.clientSetup!)}>Try again</OcButton>
+          ? <OcButton onClick={() => void resumeCurrent(snapshot.clientSetup!)}>再試行</OcButton>
           : undefined}
         detail={applyState.error || applyState.detail || matrix.detail}
         title={applyState.label || matrix.title}
@@ -546,8 +546,8 @@ function WorkspaceSetupFlow({ accessProfile, children }: Omit<Props, "runtimeHom
     return (
       <GateState
         action={matrix.recovery === "discard_draft"
-          ? <OcButton onClick={() => resetApplyingDraft(setDraftState, setApplyState)}>Continue with existing setup</OcButton>
-          : <OcButton onClick={() => void refresh(true).catch(() => {})}>Check again</OcButton>}
+          ? <OcButton onClick={() => resetApplyingDraft(setDraftState, setApplyState)}>既存の設定で続ける</OcButton>
+          : <OcButton onClick={() => void refresh(true).catch(() => {})}>もう一度確認</OcButton>}
         detail={matrix.detail}
         title={matrix.title}
         tone="danger"
@@ -572,7 +572,7 @@ function WorkspaceSetupFlow({ accessProfile, children }: Omit<Props, "runtimeHom
           if (!setup) throw new Error("The prepared setup is no longer available.");
           await resumeCurrent(setup, draftState.draft, true);
         } catch {
-          setApplyState({ state: "failed", label: "Sign-in could not start", detail: "", percent: null, error: "Octopus could not reopen the prepared setup. Your choices are saved; try again." });
+          setApplyState({ state: "failed", label: "ログインを開始できませんでした", detail: "", percent: null, error: "Octopus could not reopen the prepared setup. Your choices are saved; try again." });
         }
       }}
       onChange={changeDraft}
@@ -625,8 +625,8 @@ async function performApply({
   await refresh(false, (proven) => proveCompletedClientSetup(finished, proven, draft));
   setApplyState({
     state: "running",
-    label: "Workspace verified",
-    detail: "Home, projects, local capabilities, and sign-in are ready.",
+    label: "ワークスペースを確認しました",
+    detail: "ホーム、プロジェクト、ローカル機能、ログインの準備ができました。",
     percent: 100,
     error: "",
   });
@@ -786,24 +786,24 @@ function completedSetupMatrix(snapshot: GateSnapshot, draft: WorkspaceSetupDraft
   ) {
     return {
       mode: "blocked",
-      title: "Completed setup does not match Home",
-      detail: "The aggregate setup receipt and the visible workspace disagree, so Octopus will not guess which one is current.",
+      title: "完了した設定とホームが一致しません",
+      detail: "セットアップの記録と現在のワークスペースが一致していません。どちらが正しいかを自動で判断することはできません。",
     };
   }
   if (draft?.step === "applying") {
     if (draft.operationId !== setup.operationId) {
       return {
         mode: "blocked",
-        title: "Another workspace is already configured",
-        detail: "The unfinished choices belong to a different setup and were not applied.",
+        title: "別のワークスペースが設定済みです",
+        detail: "未完了の設定は別のセットアップのものなので、適用していません。",
         recovery: "discard_draft",
       };
     }
     if (!workspaceProjectMappingsMatchScope(receipt, snapshot.scope) || !sameProjectKeys(receipt, draft)) {
       return {
         mode: "blocked",
-        title: "Completed setup does not match the reviewed projects",
-        detail: "The initial project tree differs from the choices being applied, so Octopus did not open the workspace.",
+        title: "完了した設定と確認済みのプロジェクトが一致しません",
+        detail: "初期プロジェクトの構成が適用する設定と異なるため、ワークスペースを開きませんでした。",
       };
     }
   }
@@ -814,15 +814,15 @@ function workspaceFailure(snapshot: GateSnapshot): GateMatrix | null {
   if (snapshot.workspace.status === "degraded") {
     return {
       mode: "blocked",
-      title: "Workspace setup needs repair",
-      detail: snapshot.workspace.errors.join("\n") || "The saved workspace setup could not be verified.",
+      title: "ワークスペースの設定に修復が必要です",
+      detail: snapshot.workspace.errors.join("\n") || "保存されたワークスペースの設定を確認できませんでした。",
     };
   }
   if (snapshot.scope.status === "invalid") {
     return {
       mode: "blocked",
-      title: "Home and projects need attention",
-      detail: snapshot.scope.errors.join("\n") || "The current workspace does not form one valid Octopus OS scope.",
+      title: "ホームとプロジェクトの確認が必要です",
+      detail: snapshot.scope.errors.join("\n") || "現在のワークスペースは、有効な Octopus OS の範囲として構成されていません。",
     };
   }
   return null;
@@ -841,23 +841,23 @@ function resolveGateMatrix(
     if (draft && draft.operationId !== setup.operationId) {
       return {
         mode: "blocked",
-        title: "Another setup is already in progress",
-        detail: "Octopus kept the earlier setup plan and will not mix it with different saved choices.",
+        title: "別のセットアップが進行中です",
+        detail: "先に作成したセットアップ計画を保持しています。別の保存済み設定と混在させることはできません。",
         recovery: "discard_draft",
       };
     }
     if (snapshot.workspace.status === "configured" && snapshot.workspace.receipt?.operationId !== setup.operationId) {
       return {
         mode: "blocked",
-        title: "Setup proof does not match Home",
-        detail: "The unfinished setup and the configured Home belong to different operations.",
+        title: "セットアップの検証記録とホームが一致しません",
+        detail: "未完了のセットアップと設定済みのホームは、別の操作で作成されています。",
       };
     }
     if (draft?.step === "applying") {
       const mismatch = savedDraftMismatch(setup, draft, snapshot, catalogResult, extensions);
       if (mismatch) return mismatch;
     }
-    return { mode: "resume", title: "Finishing setup", detail: "Octopus is continuing from the last verified step." };
+    return { mode: "resume", title: "設定を完了しています", detail: "最後に確認できたステップから続けています。" };
   }
   if (setup?.status === "complete") return completedSetupMatrix(snapshot, draft);
   if (snapshot.workspace.status === "configured") {
@@ -865,38 +865,38 @@ function resolveGateMatrix(
     if (!receipt || !workspaceIdentityMatchesScope(receipt, snapshot.scope)) {
       return {
         mode: "blocked",
-        title: "Workspace proof does not match Home",
-        detail: "The configured receipt and the visible Home identity disagree. Octopus will not open a different workspace silently.",
+        title: "ワークスペースの検証記録とホームが一致しません",
+        detail: "設定の記録と現在のホームの識別情報が一致していません。確認なしに別のワークスペースを開くことはありません。",
       };
     }
     if (draft?.step === "applying" && receipt.operationId !== draft.operationId) {
       return {
         mode: "blocked",
-        title: "Another workspace is already configured",
-        detail: "The unfinished setup draft belongs to a different operation and was not applied.",
+        title: "別のワークスペースが設定済みです",
+        detail: "未完了のセットアップの下書きは別の操作のものなので、適用していません。",
       };
     }
     if (draft?.step === "applying") return { mode: "setup", title: "", detail: "" };
     return {
       mode: "blocked",
-      title: "Workspace verification is incomplete",
-      detail: "Home exists, but Octopus has no complete setup receipt for its local capabilities and provider account.",
+      title: "ワークスペースの確認が未完了です",
+      detail: "ホームは存在しますが、ローカル機能とプロバイダーアカウントの設定完了記録がありません。",
     };
   }
   if (snapshot.scope.status === "ready") {
     return {
       mode: "blocked",
-      title: "Home has no setup receipt",
+      title: "ホームにセットアップの記録がありません",
       detail: draft?.step === "applying"
-        ? "The visible Home cannot be merged with the saved setup choices without durable proof."
-        : "Octopus found Home data without the durable setup proof required to open the workspace.",
+        ? "永続的な検証記録がないため、現在のホームと保存済みの設定を統合できません。"
+        : "ホームのデータはありますが、ワークスペースを開くために必要なセットアップの検証記録がありません。",
     };
   }
   if (snapshot.scope.status === "unbound") return { mode: "setup", title: "", detail: "" };
   return {
     mode: "blocked",
-    title: "Home is not ready",
-    detail: "Octopus found workspace data without a valid Home surface. Check the state again after local recovery finishes.",
+    title: "ホームの準備ができていません",
+    detail: "ワークスペースのデータはありますが、有効なホーム画面がありません。ローカルの復旧が完了してから、もう一度状態を確認してください。",
   };
 }
 
@@ -910,15 +910,15 @@ function savedDraftMismatch(
   if (extensions.loading) {
     return {
       mode: "resume",
-      title: "Checking saved choices",
-      detail: "Octopus is verifying the saved setup choices against the setup already on this device.",
+      title: "保存された設定を確認しています",
+      detail: "保存されたセットアップの選択内容を、このデバイスの設定と照合しています。",
     };
   }
   if (catalogResult.error || !catalogResult.pack) {
     return {
       mode: "blocked",
-      title: "Saved setup choices could not be checked",
-      detail: catalogResult.error || "The local setup catalog is unavailable, so Octopus did not discard or resume the saved choices.",
+      title: "保存された設定を確認できませんでした",
+      detail: catalogResult.error || "ローカルのセットアップカタログを利用できないため、保存済みの設定の破棄や再開は行っていません。",
       recovery: "discard_draft",
     };
   }
@@ -928,10 +928,10 @@ function savedDraftMismatch(
   } catch (error) {
     return {
       mode: "blocked",
-      title: "Saved setup choices changed",
+      title: "保存された設定が変更されました",
       detail: error instanceof ProductSetupError
         ? error.productMessage
-        : "The saved choices no longer match the immutable setup on this device. Octopus did not replace either version.",
+        : "保存済みの設定が、このデバイスで確定した設定と一致しなくなりました。どちらも置き換えていません。",
       recovery: "discard_draft",
     };
   }
@@ -1270,7 +1270,7 @@ function clientSetupProgressLabel(
   step: OctopusClientSetupProgress["step"],
   phase: OctopusClientSetupProgress["phase"],
 ): string {
-  if (phase === "sealed") return "Workspace verified";
+  if (phase === "sealed") return "ワークスペースを確認しました";
   if (step === "packages") return phase === "verifying" ? "Checking local components" : "Installing local components";
   if (step === "extensions") return phase === "verifying" ? "Checking client additions" : "Applying client additions";
   if (step === "provider") return phase === "verifying" ? "Checking provider sign-in" : "Finishing provider sign-in";
@@ -1300,7 +1300,7 @@ function GateState({
       <div className="welcome-stage">
         <section className="welcome-centered">
           {tone === "danger" ? (
-            <span className="welcome-tag">Needs attention</span>
+            <span className="welcome-tag">確認が必要</span>
           ) : (
             <span className="setup-loading-logo"><OctopusLoadingLogo /></span>
           )}
@@ -1316,7 +1316,7 @@ function GateState({
 function OpeningState() {
   return (
     <main className="welcome flex min-h-0 items-center justify-center bg-token-main-surface-primary text-token-foreground">
-      <OctopusLoadingState className="app-loading-state" label="Opening Octopus" />
+      <OctopusLoadingState className="app-loading-state" label="Octopus を開いています" />
     </main>
   );
 }

@@ -20,7 +20,7 @@ async function submitClientInterfaceArtifact(options, request) {
   const transferPath = requiredString(target.transfer_path, "artifact target transfer_path");
   const bytes = Buffer.from(JSON.stringify(payload));
   if (bytes.byteLength > MAX_PAYLOAD_BYTES) {
-    throw new Error(`Artifact payload is ${bytes.byteLength} bytes; maximum is ${MAX_PAYLOAD_BYTES}.`);
+    throw new Error(`Artifact payload is ${bytes.byteLength} バイト。上限： ${MAX_PAYLOAD_BYTES}.`);
   }
   const digest = crypto.createHash("sha256").update(bytes).digest("hex");
   const payloadRoot = path.join(artifactRoot, "interface-artifacts");
@@ -130,7 +130,7 @@ function createClientArtifactStreamStore(options) {
     if (entry.failure) throw entry.failure;
     const input = streamBytes(request?.bytes, request?.base64);
     if (input.byteLength > MAX_STREAM_CHUNK_BYTES) {
-      throw new Error(`Artifact stream chunk is ${input.byteLength} bytes; maximum is ${MAX_STREAM_CHUNK_BYTES}.`);
+      throw new Error(`Artifact stream chunk is ${input.byteLength} バイト。上限： ${MAX_STREAM_CHUNK_BYTES}.`);
     }
     if (entry.acceptedBytes + input.byteLength > MAX_STREAM_BYTES) {
       entry.failure = new Error(`Artifact stream exceeds the ${MAX_STREAM_BYTES} byte client limit.`);
@@ -225,13 +225,13 @@ async function resolveReadyTarget(options, interfaceId) {
   const ready = targets.filter((candidate) => candidate?.interface_id === interfaceId && candidate?.status === "ready");
   const paths = new Set(ready.map((candidate) => optionalString(candidate?.transfer_path)).filter(Boolean));
   if (paths.size === 1) return ready[0];
-  if (paths.size > 1) throw new Error(`Interface ${interfaceId} declares multiple ready artifact hand-in sockets.`);
+  if (paths.size > 1) throw new Error(`インターフェース ${interfaceId} declares multiple ready artifact hand-in sockets.`);
   const all = await projectionStore().read(projectionReadRequest(
     "projection.interfaces.artifact_transfer.targets",
     { interface_id: interfaceId, limit: 50 },
   ));
   const known = Array.isArray(all?.artifact_transfer_targets) ? all.artifact_transfer_targets[0] : null;
-  throw new Error(known?.reason || `Interface ${interfaceId} has no ready artifact hand-in socket.`);
+  throw new Error(known?.reason || `インターフェース ${interfaceId} has no ready artifact hand-in socket.`);
 }
 
 async function authorizeSubmission(options, request) {

@@ -79,36 +79,36 @@ export function HomeCallControls({ session, onStart, speakerEnabled, onSpeakerCh
     }}>{(present) => <>
       {live && showCaptions && latestUtterance && !transcriptOpen ? (
         <p key={latestUtterance.id} aria-live="polite" aria-atomic="true" className={`home-call__caption is-${latestUtterance.role}`} title={latestUtterance.text}>
-          <span className="home-call__caption-speaker">{latestUtterance.role === "user" ? "You: " : "Home: "}</span>
+          <span className="home-call__caption-speaker">{latestUtterance.role === "user" ? "あなた： " : "ホーム： "}</span>
           {captionText}
         </p>
       ) : null}
       {transcriptOpen ? (
-        <section aria-label="Call transcript" className="home-call__sheet home-call__transcript" id={transcriptId} ref={transcriptPanel} tabIndex={0}>
+        <section aria-label="通話の文字起こし" className="home-call__sheet home-call__transcript" id={transcriptId} ref={transcriptPanel} tabIndex={0}>
           {transcript.map((entry) => (
             <article className={`is-${entry.role}`} key={entry.id}>
-              <strong>{entry.role === "user" ? "You" : "Home"}</strong>
+              <strong>{entry.role === "user" ? "あなた" : "ホーム"}</strong>
               <p>{entry.text}</p>
             </article>
           ))}
         </section>
       ) : null}
       {devicesOpen ? (
-        <div aria-label="Audio devices" className="home-call__sheet home-call__devices" id={devicesId} ref={devicesPanel} role="group" tabIndex={-1}>
+        <div aria-label="音声デバイス" className="home-call__sheet home-call__devices" id={devicesId} ref={devicesPanel} role="group" tabIndex={-1}>
           <div className="home-call__devices-heading">
-            <span className="home-call__devices-title">Audio</span>
-            {state.active ? <OcButton aria-pressed={!speakerEnabled} className="home-call__speaker" disabled={!state.canEnd} leadingIcon={speakerEnabled ? "volume" : "volumeOff"} onClick={() => onSpeakerChange(!speakerEnabled)} size="sm" variant="ghost">{speakerEnabled ? "Mute speaker" : "Unmute speaker"}</OcButton> : null}
+            <span className="home-call__devices-title">音声</span>
+            {state.active ? <OcButton aria-pressed={!speakerEnabled} className="home-call__speaker" disabled={!state.canEnd} leadingIcon={speakerEnabled ? "volume" : "volumeOff"} onClick={() => onSpeakerChange(!speakerEnabled)} size="sm" variant="ghost">{speakerEnabled ? "スピーカーをミュート" : "スピーカーのミュートを解除"}</OcButton> : null}
           </div>
-          <OcSelect aria-label="Microphone" disabled={!state.canMute && !state.canStart} label="Microphone" onChange={(id) => { void session.selectInputDevice(id); }} options={session.inputDevices.map((device) => ({ value: device.deviceId, label: device.label }))} showLabel stretch title={session.inputDevices.find((device) => device.deviceId === session.selectedInputId)?.label} value={session.selectedInputId} />
-          <OcSelect aria-label="Speaker" disabled={!state.canMute && !state.canStart} label="Speaker" onChange={(id) => { void session.selectOutputDevice(id); }} options={session.outputDevices.map((device) => ({ value: device.deviceId, label: device.label }))} showLabel stretch title={session.outputDevices.find((device) => device.deviceId === session.selectedOutputId)?.label} value={session.selectedOutputId} />
-          {session.inputDevices.length === 0 ? <p>No microphone is available. Check your device and microphone permissions.</p> : null}
+          <OcSelect aria-label="マイク" disabled={!state.canMute && !state.canStart} label="マイク" onChange={(id) => { void session.selectInputDevice(id); }} options={session.inputDevices.map((device) => ({ value: device.deviceId, label: device.label }))} showLabel stretch title={session.inputDevices.find((device) => device.deviceId === session.selectedInputId)?.label} value={session.selectedInputId} />
+          <OcSelect aria-label="スピーカー" disabled={!state.canMute && !state.canStart} label="スピーカー" onChange={(id) => { void session.selectOutputDevice(id); }} options={session.outputDevices.map((device) => ({ value: device.deviceId, label: device.label }))} showLabel stretch title={session.outputDevices.find((device) => device.deviceId === session.selectedOutputId)?.label} value={session.selectedOutputId} />
+          {session.inputDevices.length === 0 ? <p>マイクを利用できません。デバイスとマイクのアクセス権を確認してください。</p> : null}
         </div>
       ) : null}
       {live ? (
-        <nav aria-label="Voice controls" className="home-call__bar is-layout-ready" data-voice-forming={present || undefined} data-voice-leaving={!present || undefined}>
+        <nav aria-label="通話の操作" className="home-call__bar is-layout-ready" data-voice-forming={present || undefined} data-voice-leaving={!present || undefined}>
           <div className="home-call__clock" title={state.detail}>
             <span aria-hidden="true" className="home-call__dot" />
-            <span aria-label="Call duration" className="home-call__duration">{ticking ? formatCallDuration(nowMs - session.startedAtMs) : "–:––"}</span>
+            <span aria-label="通話時間" className="home-call__duration">{ticking ? formatCallDuration(nowMs - session.startedAtMs) : "–:––"}</span>
             <span className="home-call__status" role="status">{state.title}</span>
           </div>
           <span aria-hidden="true" className="home-call__divider" />
@@ -118,7 +118,7 @@ export function HomeCallControls({ session, onStart, speakerEnabled, onSpeakerCh
               className="home-call__control"
               disabled={!state.canMute}
               glyph={muted ? "microphoneOff" : "microphone"}
-              label={muted ? "Unmute microphone" : "Mute microphone"}
+              label={muted ? "マイクのミュートを解除" : "マイクをミュート"}
               onClick={session.toggleMute}
               selected={muted}
               size="md"
@@ -132,7 +132,7 @@ export function HomeCallControls({ session, onStart, speakerEnabled, onSpeakerCh
               buttonRef={transcriptButton}
               className="home-call__control"
               glyph="transcript"
-              label={transcriptOpen ? "Hide call transcript" : "Show call transcript"}
+              label={transcriptOpen ? "通話の文字起こしを隠す" : "通話の文字起こしを表示"}
               onClick={() => setPanel(transcriptOpen ? null : "transcript")}
               selected={transcriptOpen}
               size="md"
@@ -140,8 +140,8 @@ export function HomeCallControls({ session, onStart, speakerEnabled, onSpeakerCh
             />
           ) : null}
           {session.phase === "closure_unconfirmed"
-            ? <OcButton className="home-call__end" leadingIcon="phoneEnd" onClick={() => { void session.end(); }} size="sm" title={state.detail} variant="ghost">Retry closure</OcButton>
-            : <OcButton aria-label="End call" className="home-call__end" disabled={!state.canEnd} leadingIcon="phoneEnd" onClick={() => { void session.end(); }} size="sm" variant="ghost">End</OcButton>}
+            ? <OcButton className="home-call__end" leadingIcon="phoneEnd" onClick={() => { void session.end(); }} size="sm" title={state.detail} variant="ghost">終了を再試行</OcButton>
+            : <OcButton aria-label="通話を終了" className="home-call__end" disabled={!state.canEnd} leadingIcon="phoneEnd" onClick={() => { void session.end(); }} size="sm" variant="ghost">終了</OcButton>}
           <span aria-hidden="true" className="home-call__divider" />
           <OcIconButton
             aria-controls={devicesOpen ? devicesId : undefined}
@@ -149,7 +149,7 @@ export function HomeCallControls({ session, onStart, speakerEnabled, onSpeakerCh
             buttonRef={devicesButton}
             className="home-call__control"
             glyph="sliders"
-            label={devicesOpen ? "Collapse audio controls" : "More audio controls"}
+            label={devicesOpen ? "音声の操作を折りたたむ" : "音声の操作をさらに表示"}
             onClick={() => { setPanel(devicesOpen ? null : "devices"); if (!devicesOpen) void session.refreshDevices(); }}
             selected={devicesOpen}
             size="md"
@@ -160,12 +160,12 @@ export function HomeCallControls({ session, onStart, speakerEnabled, onSpeakerCh
       {showFailure ? (
         <div className="home-call__failure">
           <div className="home-call__failure-row">
-            <p className="home-call__error" role="alert">{session.error ? session.phase === "closure_unconfirmed" ? "Call closure is unconfirmed." : "Voice call failed." : "Check your audio devices."}</p>
-            {session.phase === "error" ? <OcButton className="home-call__retry" leadingIcon="retry" onClick={() => { setPanel(null); onStart(); }} size="sm" variant="ghost">Retry call</OcButton> : null}
-            {live ? null : <OcIconButton className="home-call__dismiss" glyph="close" label="Dismiss" onClick={() => { setDismissedFailure(failure); session.dismissError(); }} size="xs" variant="ghost" />}
+            <p className="home-call__error" role="alert">{session.error ? session.phase === "closure_unconfirmed" ? "通話の終了を確認できません。" : "音声通話に失敗しました。" : "音声デバイスを確認してください。"}</p>
+            {session.phase === "error" ? <OcButton className="home-call__retry" leadingIcon="retry" onClick={() => { setPanel(null); onStart(); }} size="sm" variant="ghost">通話を再試行</OcButton> : null}
+            {live ? null : <OcIconButton className="home-call__dismiss" glyph="close" label="閉じる" onClick={() => { setDismissedFailure(failure); session.dismissError(); }} size="xs" variant="ghost" />}
           </div>
           <details className="home-call__diagnostics">
-            <summary>Error details</summary>
+            <summary>エラーの詳細</summary>
             <pre>{failure}</pre>
           </details>
         </div>
@@ -181,7 +181,7 @@ function HomeCallTransition({ children, className, onKeyDown }: {
 }) {
   const present = useIsPresent();
   const reducedMotion = useShouldReduceMotion();
-  return <motion.section {...homeSurfaceFade(reducedMotion)} aria-label="Home call" className={className}
+  return <motion.section {...homeSurfaceFade(reducedMotion)} aria-label="ホームの通話" className={className}
     data-leaving={!present || undefined} inert={!present || undefined} onKeyDown={onKeyDown}>
     {children(present)}
   </motion.section>;

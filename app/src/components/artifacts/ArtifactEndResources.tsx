@@ -42,7 +42,7 @@ export function ArtifactEndResources({ resources }: { resources: ArtifactEndReso
       {visible.map((resource) => <ArtifactEndResourceCard key={resource.reference.artifactId} resource={resource} />)}
       {hidden > 0 ? (
         <button className="cursor-interaction border-0 bg-transparent px-4 py-2.5 text-left text-sm text-token-text-secondary hover:bg-token-list-hover-background/30" onClick={() => setExpanded(true)} type="button">
-          Show {hidden} more
+          表示 {hidden} その他
         </button>
       ) : null}
     </div>
@@ -167,7 +167,7 @@ function ArtifactEndResourceCard({ resource }: { resource: ArtifactEndResource }
   return (
     <div className="group/end-resource relative flex min-h-16 w-full min-w-0 items-center gap-4 p-4">
       <button
-        aria-label={`Open ${resource.filename}`}
+        aria-label={`開く ${resource.filename}`}
         className="peer/end-resource absolute inset-0 cursor-interaction border-0 bg-transparent group-hover/end-resource:bg-token-list-hover-background/30 focus-visible:ring-1 focus-visible:ring-token-focus-border focus-visible:outline-none focus-visible:ring-inset"
         draggable={Boolean(window.octopusTransport?.startClientFileDrag)}
         onClick={() => setPreviewOpen(true)}
@@ -187,7 +187,7 @@ function ArtifactEndResourceCard({ resource }: { resource: ArtifactEndResource }
         <span className="truncate text-base leading-5 text-token-text-primary">{resource.filename}</span>
         <span className="truncate text-sm leading-5 text-token-text-tertiary peer-hover/end-resource:[&_.end-resource-default-subtitle]:hidden peer-hover/end-resource:[&_.end-resource-hover-subtitle]:inline-flex">
           <span className="end-resource-default-subtitle">{subtitle}</span>
-          <span className="end-resource-hover-subtitle hidden">Open preview</span>
+          <span className="end-resource-hover-subtitle hidden">プレビューを開く</span>
         </span>
       </span>
       <button
@@ -205,7 +205,7 @@ function ArtifactEndResourceCard({ resource }: { resource: ArtifactEndResource }
         ref={triggerRef}
         type="button"
       >
-        Open in <Glyph className="opacity-50" name="chevronDown" size={11} />
+        次のアプリで開く <Glyph className="opacity-50" name="chevronDown" size={11} />
       </button>
       {menuOpen ? (
         <ArtifactEndResourceMenu
@@ -264,8 +264,8 @@ function ArtifactEndResourceMenu({ error, loading, onAction, onClose, onOpenWith
   }, [onClose, trigger]);
 
   return createPortal(
-    <OcMenuSurface aria-label="Open artifact" className="fixed z-100 w-56" role="menu" style={position} surfaceRef={menuRef}>
-      {loading ? <OcLoadingRows label="Loading available apps…" rows={2} /> : null}
+    <OcMenuSurface aria-label="成果物を開く" className="fixed z-100 w-56" role="menu" style={position} surfaceRef={menuRef}>
+      {loading ? <OcLoadingRows label="利用できるアプリを読み込んでいます…" rows={2} /> : null}
       {error && !loading ? <OcMenuMessage>{error}</OcMenuMessage> : null}
       {openTargets?.applications.map((application) => (
         <OcMenuItem
@@ -290,7 +290,7 @@ function ArtifactEndResourceMenu({ error, loading, onAction, onClose, onOpenWith
       <div className="my-1 h-px bg-token-border" />
       <OcMenuItem
         disabled={Boolean(pending)}
-        label={<NativeOpenTargetLabel icon={openTargets?.downloadsFolderIcon ?? null} label={pending === "download" ? "Downloading…" : "Download a copy"} />}
+        label={<NativeOpenTargetLabel icon={openTargets?.downloadsFolderIcon ?? null} label={pending === "download" ? "ダウンロードしています…" : "コピーをダウンロード"} />}
         onClick={() => onAction("download")}
         role="menuitem"
       />
@@ -325,7 +325,7 @@ function resourceSubtitle(filename: string, kind: ArtifactRendererKind): string 
 }
 
 function revealLabel(): string {
-  if (/Mac|iPhone|iPad/.test(navigator.platform)) return "Show in Finder";
+  if (/Mac|iPhone|iPad/.test(navigator.platform)) return "Finder で表示";
   if (/Win/.test(navigator.platform)) return "Show in File Explorer";
   return "Show in File Manager";
 }

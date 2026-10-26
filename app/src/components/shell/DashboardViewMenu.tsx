@@ -35,16 +35,16 @@ export function DashboardViewMenu({ activeSurfaceId, pinnedSurfaceIds, surfaces,
   const pinned = pinnedSurfaceIds.includes(activeSurfaceId);
 
   return <span className="dashboard-view-menu no-drag" onPointerDown={(event) => event.stopPropagation()}>
-    <ShellTooltip label="Switch Dashboard view" disabled={open}>
+    <ShellTooltip label="ダッシュボードの表示を切り替え" disabled={open}>
       <button
-        aria-label="Switch Dashboard view"
+        aria-label="ダッシュボードの表示を切り替え"
         className="app-titlebar-action no-drag"
         onClick={() => setOpen(!open)}
         ref={trigger}
         type="button"
       ><Glyph name="chevronDown" size={16} /></button>
     </ShellTooltip>
-    <OcDropdown anchorRef={trigger} aria-label="Dashboard views" contentWidth="menuWide" open={open} onOpenChange={setOpen} sideOffset={6}>
+    <OcDropdown anchorRef={trigger} aria-label="ダッシュボードの画面" contentWidth="menuWide" open={open} onOpenChange={setOpen} sideOffset={6}>
       {views.map((view) => <OcMenuItem
         aria-checked={view.id === activeSurfaceId}
         key={view.id}
@@ -57,7 +57,7 @@ export function DashboardViewMenu({ activeSurfaceId, pinnedSurfaceIds, surfaces,
       {activeView && !isFixedDashboardSurfaceId(activeSurfaceId) ? <>
         <div className="navigation-account-separator" role="separator" />
         <OcMenuItem
-          label={`${pinned ? "Unpin" : "Pin"} ${activeView.label}`}
+          label={`${pinned ? "固定を解除" : "固定"} ${activeView.label}`}
           leadingIcon="pin"
           onClick={() => {
             setOpen(false);

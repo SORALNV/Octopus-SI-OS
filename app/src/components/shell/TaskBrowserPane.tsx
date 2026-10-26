@@ -33,7 +33,7 @@ export function TaskBrowserPane({ accessProfile, active, children, onChange, sna
   const selected = state.tabs.find((tab) => tab.id === state.activeTabId);
   const tabs = state.tabs.map((tab) => {
     const room = resolveWorkerEnvironment(snapshot, tab.target.workerEnvironmentId);
-    return { id: tab.id, showWhenSingle: true, ...(room ? paneTargetTitle(room.workerEnvironment, tab.target) : { title: "Environment", glyph: "browser" as const }) };
+    return { id: tab.id, showWhenSingle: true, ...(room ? paneTargetTitle(room.workerEnvironment, tab.target) : { title: "環境", glyph: "browser" as const }) };
   });
   const close = () => { setFocused(false); onChange((current) => ({ ...current, open: false })); };
   const closeTabs = async (ids: string[]) => {
@@ -81,7 +81,7 @@ export function TaskBrowserPane({ accessProfile, active, children, onChange, sna
       })}
       onTabSelect={(id) => onChange((current) => current.tabs.some((tab) => tab.id === id) ? { ...current, activeTabId: id } : current)}
     >
-      <Suspense fallback={<SurfaceLoadingState label="Opening environment…" />}>
+      <Suspense fallback={<SurfaceLoadingState label="環境を開いています…" />}>
         {active && state.open && selected ? <WorkerEnvironmentPaneTab accessProfile={accessProfile} snapshot={snapshot} surfaces={surfaces} target={selected.target} /> : null}
       </Suspense>
     </WorkspaceSurfacePane>}

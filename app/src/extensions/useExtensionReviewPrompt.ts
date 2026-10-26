@@ -13,7 +13,7 @@ export function useExtensionReviewPrompt(
 
   useEffect(() => {
     if (!enabled || !registry.hydrated || !registry.mutable) return;
-    const review = { label: "Review", onSelect: () => open.current() };
+    const review = { label: "レビュー", onSelect: () => open.current() };
     for (const extension of registry.extensions) {
       if (extension.admission !== "pending" || extension.lifecycle.receiptState === "invalid") continue;
       const key = `review:${extension.manifest.id}:${extension.sourceDigest}`;
@@ -38,7 +38,7 @@ export function useExtensionReviewPrompt(
       appToast.warning(
         `Extension package “${id}” was refused: ${reason.slice(0, 200)}`,
         0,
-        { action: { label: "Details", onSelect: () => open.current() }, dedupeKey: `extension-refused:${id}` },
+        { action: { label: "詳細", onSelect: () => open.current() }, dedupeKey: `extension-refused:${id}` },
       );
     }
   }, [enabled, registry.errors, registry.extensions, registry.hydrated, registry.mutable]);

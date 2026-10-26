@@ -53,8 +53,8 @@ function RoomSummary({ environment, workspaces, available, customViews, defaultC
           <Glyph className={`task-environment-chevron${expanded ? " is-expanded" : ""}`} name="chevronDown" size={12} />
         </button>
         {state ? <span className="task-environment-state" title={identity}>{state}</span> : null}
-        <ShellTooltip label={`Details for ${name}`}>
-          <OcIconButton appearance="compact" glyph="more" label={`Details for ${name}`} onClick={() => onOpen(environment.id, "overview")} title="" />
+        <ShellTooltip label={`詳細： ${name}`}>
+          <OcIconButton appearance="compact" glyph="more" label={`詳細： ${name}`} onClick={() => onOpen(environment.id, "overview")} title="" />
         </ShellTooltip>
       </header>
       <div className="task-environment-room-body" id={contentId} hidden={!expanded}>
@@ -68,7 +68,7 @@ function RoomSummary({ environment, workspaces, available, customViews, defaultC
             { documentId: view.document.id, revision: view.document.revision, sourceDigest: view.sourceDigest },
           )} />;
         })}
-        {!workspaces.length && !available.length && !customViews.length ? <p className="task-environment-empty">No surfaces reported</p> : null}
+        {!workspaces.length && !available.length && !customViews.length ? <p className="task-environment-empty">利用できる画面がありません</p> : null}
       </div>
     </section>
   );
@@ -87,7 +87,7 @@ function WorkspaceSummary({ workspace, showHeading, onOpen }: {
       <div className="task-environment-root" title={root}>{root}</div>
       {revision.branch || revision.conflict ? <EnvironmentRow
         glyph="worktree"
-        label={revision.conflict ? "Conflicting branch reports" : revision.branch}
+        label={revision.conflict ? "ブランチ情報が矛盾しています" : revision.branch}
         meta={!revision.conflict && revision.base ? `from ${revision.base}` : ""}
       /> : null}
       <SurfaceList environment={environment} surfaces={surfaces} showRoots={false} onOpen={onOpen} />
@@ -106,7 +106,7 @@ function SurfaceList({ environment, surfaces, showRoots = true, onOpen }: {
   return <>
     {visible.map((surface) => <SurfaceRow key={surface.id} surface={surface} environment={environment} showRoot={showRoots} onOpen={onOpen} />)}
     {surfaces.length > 4 ? <button className="task-environment-show-more" onClick={() => setShowAll((value) => !value)} type="button">
-      {showAll ? "Show less" : `Show ${surfaces.length - visible.length} more`}
+      {showAll ? "表示を減らす" : `表示 ${surfaces.length - visible.length} その他`}
     </button> : null}
   </>;
 }
@@ -122,7 +122,7 @@ function SurfaceRow({ environment, surface, showRoot, onOpen }: {
     : [readableState(surface.status), surface.readOnly ? "Read-only" : ""].filter(Boolean).join(" · ");
   return <EnvironmentRow
     glyph={workerEnvironmentSurfaceGlyph(surface)}
-    label={panel === "changes" ? "Changes" : paneWorkerEnvironmentSurfaceLabel(environment, surface)}
+    label={panel === "changes" ? "変更" : paneWorkerEnvironmentSurfaceLabel(environment, surface)}
     meta={meta}
     detail={showRoot ? surface.root || (panel === "terminal" && typeof surface.data.workspace === "string" ? surface.data.workspace : "") : ""}
     title={[surface.label, surface.id, surface.root, surface.status].filter(Boolean).join(" · ")}

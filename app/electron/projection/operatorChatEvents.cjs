@@ -693,7 +693,7 @@ function operatorTurnControlEndsTurn(outcome) {
 function operatorChatAttachments(payload) {
   return arrayValue(payload?.attachments).map((item, index) => ({
     id: stringValue(item?.payload_content_hash) || `${stringValue(item?.name) || "attachment"}:${index}`,
-    name: stringValue(item?.name) || `Attachment ${index + 1}`,
+    name: stringValue(item?.name) || `添付ファイル ${index + 1}`,
     size: numberValue(item?.size, 0),
     type: stringValue(item?.mime_type) || "application/octet-stream",
     label: stringValue(item?.label) || "operator.file",

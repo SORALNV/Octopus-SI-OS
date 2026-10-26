@@ -118,7 +118,7 @@ function ProviderCredentialRepairDialog({
         className="absolute top-4 right-4"
         disabled={running}
         glyph="close"
-        label="Close repair dialog"
+        label="修復ダイアログを閉じる"
         onClick={close}
         size="xs"
         variant="ghost"
@@ -140,7 +140,7 @@ function ProviderCredentialRepairDialog({
         </div>
         <div className="flex w-full items-center justify-end gap-3 pt-3">
           {succeeded ? (
-            <OcButton className="w-full justify-center" onClick={close} variant="primary">Done</OcButton>
+            <OcButton className="w-full justify-center" onClick={close} variant="primary">完了</OcButton>
           ) : failed ? (
             <>
               <OcButton
@@ -148,15 +148,15 @@ function ProviderCredentialRepairDialog({
                 onClick={close}
                 variant="secondary"
               >
-                Close
+                閉じる
               </OcButton>
-              {operation.retryable ? <OcButton onClick={repair} variant="primary">Try again</OcButton> : null}
+              {operation.retryable ? <OcButton onClick={repair} variant="primary">再試行</OcButton> : null}
             </>
           ) : (
             <>
-              <OcButton className={OCTOPUS_DIALOG_OUTLINE_ACTION} disabled={running} onClick={close} variant="secondary">Cancel</OcButton>
+              <OcButton className={OCTOPUS_DIALOG_OUTLINE_ACTION} disabled={running} onClick={close} variant="secondary">キャンセル</OcButton>
               <OcButton disabled={running} onClick={repair} variant="primary">
-                {running ? "Checking…" : "Check sign-in"}
+                {running ? "確認しています…" : "ログインを確認"}
               </OcButton>
             </>
           )}

@@ -101,7 +101,7 @@ export function RegistryView({ accessProfile, onOpenFiles, query }: {
   useFloatingMenu(Boolean(fileMenu), fileMenuRef, () => setFileMenu(null), fileMenu ? { left: fileMenu.x, top: fileMenu.y } : null);
 
   if (!window.octopusTransport?.listOsFiles) {
-    return <RuntimeEmpty title="Files bridge unavailable" detail="Registry is the admitted registry/ directory tree." />;
+    return <RuntimeEmpty title="ファイル接続を利用できません" detail="レジストリは、アクセスが許可された registry/ ディレクトリの構造です。" />;
   }
 
   return (
@@ -172,7 +172,7 @@ export function RegistryView({ accessProfile, onOpenFiles, query }: {
       {descriptorTarget ? <RegistryJsonColumn onOpenFiles={onOpenFiles} target={descriptorTarget} /> : null}
       {fileMenu ? createPortal(
         <OcMenuSurface
-          aria-label={`Registry file actions for ${fileMenu.path}`}
+          aria-label={`レジストリのファイル操作： ${fileMenu.path}`}
           className="registry-file-context-menu"
           data-settings-layer="true"
           role="menu"
@@ -183,7 +183,7 @@ export function RegistryView({ accessProfile, onOpenFiles, query }: {
           }}
         >
           <OcMenuItem
-            label="Open in Files"
+            label="ファイル画面で開く"
             leadingIcon="file"
             onClick={() => {
               const path = fileMenu.path;
@@ -246,7 +246,7 @@ function RegistryJsonColumn({ onOpenFiles, target }: { onOpenFiles: (target: Fil
       <header className="rg-col-head">
         <div>
           <div className="rg-col-title">{title}</div>
-          <div className="rg-col-meta">{loading ? <OcLoadingText label="Loading descriptor metadata…">Metadata</OcLoadingText> : error ? "unavailable" : registryFileMeta(file)}</div>
+          <div className="rg-col-meta">{loading ? <OcLoadingText label="記述子のメタデータを読み込んでいます…">メタデータ</OcLoadingText> : error ? "unavailable" : registryFileMeta(file)}</div>
         </div>
       </header>
       <div className="rg-detail-body">
@@ -261,27 +261,27 @@ function RegistryJsonColumn({ onOpenFiles, target }: { onOpenFiles: (target: Fil
             detail={error}
             onRetry={() => setReloadTick((value) => value + 1)}
             retrying={loading}
-            title="Descriptor unavailable"
+            title="記述子を利用できません"
           />
         ) : <div className="rg-error">{error}</div> : null}
-        {!error && loading ? <OcLoadingRows label="Loading descriptor…" /> : null}
+        {!error && loading ? <OcLoadingRows label="記述子を読み込んでいます…" /> : null}
         {!error && !loading && file?.kind === "binary" ? (
-          <div className="rg-empty">Binary registry files cannot be rendered as JSON.</div>
+          <div className="rg-empty">レジストリ内のバイナリファイルは JSON として表示できません。</div>
         ) : null}
         {!error && !loading && file?.truncated ? (
-          <div className="rg-error">The descriptor exceeds the safe Registry preview limit.</div>
+          <div className="rg-error">記述子がレジストリのプレビュー上限を超えています。</div>
         ) : null}
         {!error && !loading && file?.kind === "text" && !file.truncated ? (
           <>
             {target.interfaceItem ? (
               <OcButton className="self-start" onClick={() => setShowRaw((current) => !current)} size="sm" variant="ghost">
-                {showRaw ? "Hide raw JSON" : "Show raw JSON"}
+                {showRaw ? "生の JSON を隠す" : "生の JSON を表示"}
               </OcButton>
             ) : null}
             {!target.interfaceItem || showRaw ? (
               <>
                 <div className="rg-detail-title">
-                  <span>Registry descriptor</span>
+                  <span>レジストリの記述子</span>
                   <strong>{file.path}</strong>
                 </div>
                 <JsonPanel text={body} copyLabel="Copy descriptor JSON" />
@@ -388,20 +388,20 @@ function RegistryInterfaceColumn({ accessProfile, activePath, onContextMenu, onS
     <section aria-busy={loading} className="rg-col min-w-[360px] flex-[0_0_max(360px,var(--rg-col-w))]">
       <header className="rg-col-head">
         <div>
-          <div className="rg-col-title">Interfaces</div>
+          <div className="rg-col-title">インターフェース</div>
           <div className="rg-col-meta">
             {loading
               ? items.length ? "refreshing" : "loading"
               : issue?.kind === "fatal" && !items.length
                 ? "unavailable"
-                : `${filteredItems.length} registered${issue ? " · incomplete" : ""}`}
+                : `${filteredItems.length} registered${issue ? " · 未完了" : ""}`}
           </div>
         </div>
         <input
-          aria-label="Filter interfaces"
+          aria-label="インターフェースを絞り込む"
           className="rg-col-filter"
           onChange={(event) => setLocalFilter(event.currentTarget.value)}
-          placeholder="filter"
+          placeholder="絞り込み"
           spellCheck={false}
           value={localFilter}
         />
@@ -411,7 +411,7 @@ function RegistryInterfaceColumn({ accessProfile, activePath, onContextMenu, onS
           detail={issue.message}
           onRetry={() => setReloadTick((value) => value + 1)}
           retrying={loading}
-          title={issue.kind === "fatal" ? "Interfaces could not be refreshed" : "Some interface facts could not be loaded"}
+          title={issue.kind === "fatal" ? "インターフェースを更新できませんでした" : "一部のインターフェースの情報を読み込めませんでした"}
         />
       ) : null}
       <div className="rg-col-body" onScroll={virtualRows.onScroll} ref={virtualRows.setScrollRef}>
@@ -420,12 +420,12 @@ function RegistryInterfaceColumn({ accessProfile, activePath, onContextMenu, onS
             detail={issue.message}
             onRetry={() => setReloadTick((value) => value + 1)}
             retrying={loading}
-            title="Interfaces unavailable"
+            title="インターフェースを利用できません"
           />
         ) : null}
-        {loading && !items.length ? <OcLoadingRows label="Loading registered interfaces…" /> : null}
-        {!loading && issue?.kind !== "fatal" && !items.length ? <div className="rg-empty">No interfaces are registered.</div> : null}
-        {!loading && items.length > 0 && !filteredItems.length ? <div className="rg-empty">No interfaces match this filter.</div> : null}
+        {loading && !items.length ? <OcLoadingRows label="登録済みのインターフェースを読み込んでいます…" /> : null}
+        {!loading && issue?.kind !== "fatal" && !items.length ? <div className="rg-empty">登録済みのインターフェースがありません。</div> : null}
+        {!loading && items.length > 0 && !filteredItems.length ? <div className="rg-empty">条件に一致するインターフェースがありません。</div> : null}
         {filteredItems.length ? (
           <div style={{ height: virtualRows.totalSize, position: "relative" }}>
             <div style={{ position: "absolute", top: virtualRows.start * rowHeight, width: "100%" }}>
@@ -464,8 +464,8 @@ function RegistryInterfaceColumn({ accessProfile, activePath, onContextMenu, onS
                         <span className="truncate">{readiness.label}</span>
                       </span>
                       <span>{item.bindingsProjected
-                        ? item.bindings.length ? `${item.bindings.length} ${item.bindings.length === 1 ? "binding" : "bindings"}` : "No bindings"
-                        : "Bindings unavailable"}</span>
+                        ? item.bindings.length ? `${item.bindings.length} ${item.bindings.length === 1 ? "binding" : "bindings"}` : "紐付けがありません"
+                        : "紐付けを取得できません"}</span>
                     </span>
                   </button>
                 );
@@ -491,42 +491,42 @@ function InterfaceDescriptorOverview({ item, onOpenFiles }: { item: InterfaceCat
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-2">
             <strong className="truncate text-sm font-medium text-token-foreground">{interfaceProductName(item)}</strong>
-            <span className="shrink-0 rounded-full bg-token-foreground/5 px-2 py-0.5 text-[10px] text-token-text-secondary">Registered</span>
+            <span className="shrink-0 rounded-full bg-token-foreground/5 px-2 py-0.5 text-[10px] text-token-text-secondary">登録済み</span>
           </div>
           {description ? <p className="mt-1 text-xs leading-4 text-token-text-secondary">{description}</p> : null}
         </div>
       </div>
       <div className="overflow-hidden rounded-lg border border-token-border/70">
-        <InterfaceFactRow label="Exact interface" value={item.id} mono />
-        <InterfaceFactRow label="Classification" value={interfaceClassification(record)} />
-        <InterfaceFactRow label="Source" value={interfaceSourceNames(record).join(", ") || "Not declared"} />
-        {item.applications.length ? <InterfaceFactRow label="Applications" value={item.applications.map((application) => `${application.name} · ${registryDisplayName(application.category)}`).join(", ")} /> : null}
-        <InterfaceFactRow label="Available in" value={item.availabilityProjected
+        <InterfaceFactRow label="対象インターフェース" value={item.id} mono />
+        <InterfaceFactRow label="分類" value={interfaceClassification(record)} />
+        <InterfaceFactRow label="ソース" value={interfaceSourceNames(record).join(", ") || "Not declared"} />
+        {item.applications.length ? <InterfaceFactRow label="アプリケーション" value={item.applications.map((application) => `${application.name} · ${registryDisplayName(application.category)}`).join(", ")} /> : null}
+        <InterfaceFactRow label="使用できる場所" value={item.availabilityProjected
           ? item.availableIn.length ? item.availableIn.join(", ") : "No Octopus OS project policy currently admits this exact id"
           : "Project availability projection unavailable"} />
-        <InterfaceFactRow label="Artifact hand-in" value={handIn.detail} />
-        <InterfaceFactRow label="Bindings" value={item.bindingsProjected
+        <InterfaceFactRow label="成果物の提出" value={handIn.detail} />
+        <InterfaceFactRow label="紐付け" value={item.bindingsProjected
           ? item.bindings.length ? `${item.bindings.length} exact checkpoint ${item.bindings.length === 1 ? "binding" : "bindings"}` : "No run checkpoint currently binds this interface"
           : "Binding projection unavailable"} />
       </div>
       {item.bindings.length ? (
         <section className="flex flex-col gap-2">
-          <div className="text-[10px] font-medium uppercase tracking-wide text-token-description-foreground">Exact bindings</div>
+          <div className="text-[10px] font-medium uppercase tracking-wide text-token-description-foreground">紐付けの詳細</div>
           <div className="overflow-hidden rounded-lg border border-token-border/70">
             {item.bindings.slice(0, 20).map((binding, index) => (
               <div className="border-b border-token-border/60 px-3 py-2 last:border-b-0" key={`${binding.run_id}:${binding.checkpoint_id}:${binding.direction}:${index}`}>
                 <div className="flex items-center justify-between gap-2 text-[10px] text-token-text-primary">
                   <span className="truncate">{registryDisplayName(binding.direction || "binding")} · {registryDisplayName(binding.status || "projected")}</span>
-                  <span className="shrink-0 font-mono text-token-description-foreground">{binding.checkpoint_id || "checkpoint"}</span>
+                  <span className="shrink-0 font-mono text-token-description-foreground">{binding.checkpoint_id || "チェックポイント"}</span>
                 </div>
-                <div className="mt-0.5 truncate font-mono text-[9px] text-token-description-foreground">{binding.run_id || "unknown run"}</div>
+                <div className="mt-0.5 truncate font-mono text-[9px] text-token-description-foreground">{binding.run_id || "不明な実行"}</div>
               </div>
             ))}
-            {item.bindings.length > 20 ? <div className="px-3 py-2 text-[9px] text-token-description-foreground">+{item.bindings.length - 20} more bindings</div> : null}
+            {item.bindings.length > 20 ? <div className="px-3 py-2 text-[9px] text-token-description-foreground">+{item.bindings.length - 20} 件の追加の紐付け</div> : null}
           </div>
         </section>
       ) : null}
-      <OcButton className="self-start" onClick={onOpenFiles} size="sm" variant="secondary">Open in Files</OcButton>
+      <OcButton className="self-start" onClick={onOpenFiles} size="sm" variant="secondary">ファイル画面で開く</OcButton>
     </div>
   );
 }
@@ -650,10 +650,10 @@ function RegistryDirectoryColumn({ activePath, frame, index, onFileContextMenu, 
               <div className="rg-col-meta">{meta}</div>
             </div>
             <input
-              aria-label={`Filter ${title}`}
+              aria-label={`絞り込み ${title}`}
               className="rg-col-filter"
               onChange={(event) => setLocalFilter(event.currentTarget.value)}
-              placeholder="filter"
+              placeholder="絞り込み"
               spellCheck={false}
               value={localFilter}
             />
@@ -662,7 +662,7 @@ function RegistryDirectoryColumn({ activePath, frame, index, onFileContextMenu, 
       </header>
       <div className="rg-col-body" ref={virtualRows.setScrollRef} onScroll={virtualRows.onScroll}>
         {error ? <div className="rg-error">{error}</div> : null}
-        {!error && !loading && sortedEntries.length === 0 ? <div className="rg-empty">No registry entries</div> : null}
+        {!error && !loading && sortedEntries.length === 0 ? <div className="rg-empty">レジストリに項目がありません</div> : null}
         {sortedEntries.length ? (
           <div style={{ height: virtualRows.totalSize, position: "relative" }}>
             <div style={{ position: "absolute", top: virtualRows.start * rowHeight, width: "100%" }}>
@@ -772,7 +772,7 @@ function buildInterfaceCatalog(
     const allowed = objectValue(environment.formed_envelope).allowed_interfaces;
     if (Array.isArray(allowed) && !allowed.map(stringValue).includes(interfaceId)) return [];
     if (eeId === rootEeId) return ["Home"];
-    return [projectNames.get(eeId) || `Project ${compactIdentity(eeId)}`];
+    return [projectNames.get(eeId) || `プロジェクト ${compactIdentity(eeId)}`];
   });
   return records.flatMap((record): InterfaceCatalogItem[] => {
     const id = stringValue(record.rule_id ?? record.id);
@@ -844,8 +844,8 @@ function interfaceArtifactHandInFact(record: InterfaceCatalogRecord): {
   const status = stringValue(record.artifact_transfer_protocol_status).toLocaleLowerCase();
   if (!status) {
     return {
-      detail: "No artifact transfer readiness fact is projected for this interface",
-      label: "Not projected",
+      detail: "このインターフェースには成果物の転送準備状況がありません",
+      label: "情報なし",
       tone: "muted",
     };
   }
@@ -854,15 +854,15 @@ function interfaceArtifactHandInFact(record: InterfaceCatalogRecord): {
   if (status === "ready") {
     const count = readyTargets || targetCount;
     return {
-      detail: count ? `Ready · ${count} ${count === 1 ? "target" : "targets"}` : "Ready",
+      detail: count ? `準備完了 · ${count} ${count === 1 ? "target" : "targets"}` : "Ready",
       label: count ? `${count} ready ${count === 1 ? "target" : "targets"}` : "Ready",
       tone: "ready",
     };
   }
   if (status === "not_declared") {
     return {
-      detail: "Artifact hand-in is not declared for this interface",
-      label: "Not declared",
+      detail: "このインターフェースでは成果物の提出が定義されていません",
+      label: "未定義",
       tone: "muted",
     };
   }
@@ -975,7 +975,7 @@ function RegistryPartialFailure({ detail, onRetry, retrying, title }: {
         <div className="mt-1 break-words text-[10px] leading-4 text-token-text-secondary">{detail}</div>
       </div>
       <OcButton disabled={retrying} onClick={onRetry} size="xs" variant="secondary">
-        {retrying ? "Retrying…" : "Retry"}
+        {retrying ? "再試行しています…" : "再試行"}
       </OcButton>
     </div>
   );
@@ -995,7 +995,7 @@ function RegistryFailureState({ detail, onRetry, retrying, title }: {
         <span className="break-words text-[10px] leading-4 text-token-text-secondary">{detail}</span>
       </div>
       <OcButton disabled={retrying} leadingIcon="retry" onClick={onRetry} size="sm" variant="secondary">
-        {retrying ? "Retrying…" : "Retry"}
+        {retrying ? "再試行しています…" : "再試行"}
       </OcButton>
     </div>
   );

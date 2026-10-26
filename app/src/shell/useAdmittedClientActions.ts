@@ -219,7 +219,7 @@ export function useAdmittedClientActions(options: ClientActionOptions): void {
               if (!action || action.action !== "open_surface") continue;
               const surfaceId = action.surface_id;
               const surface = latest.current.surfaces.find((candidate) => candidate.id === surfaceId);
-              if (!surface) throw new Error(`Surface ${surfaceId} is unavailable.`);
+              if (!surface) throw new Error(`Surface ${surfaceId} は利用できません。`);
               latest.current.openSurface(surface);
             } catch (error) {
               refuse(error instanceof Error ? error.message : String(error));

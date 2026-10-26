@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../../locale";
 import { useId, useRef, useState, type ReactNode } from "react";
 import { OcMenuItem, cx } from "../../design-system/components";
 import { OcDropdown } from "../../design-system/OcDropdown";
@@ -110,7 +111,7 @@ export function ScheduleFormNumber({ ariaLabel, decimal = false, min, onChange, 
 export function ScheduleFormDate({ ariaLabel, onChange, value }: { ariaLabel: string; onChange: (value: string) => void; value: string }) {
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  const label = value ? new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${value}T00:00:00`)) : "Choose a date";
+  const label = value ? new Intl.DateTimeFormat(APP_LOCALE, { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${value}T00:00:00`)) : "Choose a date";
   return (
     <div aria-label={ariaLabel} className="relative -me-1.5 text-base text-secondary" role="group">
       <button

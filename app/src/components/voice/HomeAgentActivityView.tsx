@@ -13,7 +13,7 @@ export function HomeAgentActivityView({ commandsActive = true, onOpenFiles, sear
   workspace: ChatWorkspace;
 }) {
   return (
-    <section aria-label="Home activity" className="home-activity-view">
+    <section aria-label="ホームのアクティビティ" className="home-activity-view">
       <div className="home-activity-view__body">
         <ChatView
           commandsActive={commandsActive}

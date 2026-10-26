@@ -121,7 +121,7 @@ export function AirHandVoiceController({ accessProfile, stageRef }: Props) {
         phase: "move",
       });
       updateTarget(targetElement, active.element, "drag");
-      setCursor({ label: "Move", mode: "drag", target: true, visible: true, x: raw.x, y: raw.y });
+      setCursor({ label: "移動", mode: "drag", target: true, visible: true, x: raw.x, y: raw.y });
       return;
     }
 
@@ -169,7 +169,7 @@ export function AirHandVoiceController({ accessProfile, stageRef }: Props) {
       updateTarget(targetElement, active.element, "resize");
       const rect = active.element.getBoundingClientRect();
       setCursor({
-        label: `Resize · ${Math.round(ratio * 100)}%`,
+        label: `サイズ変更 · ${Math.round(ratio * 100)}%`,
         mode: "resize",
         target: true,
         visible: true,

@@ -28,7 +28,7 @@ export function AssistantDirectiveSurfaces({ codeComments, inlineVisualizations,
           type="button"
         >
           <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-token-list-hover-background text-token-description-foreground"><Glyph name="changes" size={14} /></span>
-          <span className="min-w-0 flex-1"><strong className="block font-medium">Code review</strong><span className="block truncate text-xs text-token-description-foreground">{codeComments.length} inline {codeComments.length === 1 ? "comment" : "comments"}</span></span>
+          <span className="min-w-0 flex-1"><strong className="block font-medium">コードレビュー</strong><span className="block truncate text-xs text-token-description-foreground">{codeComments.length} 行内 {codeComments.length === 1 ? "comment" : "comments"}</span></span>
           <Glyph className="shrink-0 text-token-description-foreground" name="openExternal" size={13} />
         </button>
       ) : null}
@@ -110,13 +110,13 @@ function InlineVisualization({ onOpen, path, target }: { onOpen: () => void; pat
     <section className="overflow-hidden rounded-xl border border-token-border bg-token-foreground/[0.025]">
       <header className="flex min-h-10 items-center gap-2 border-b border-token-border px-3 py-2">
         <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-token-list-hover-background text-token-description-foreground"><Glyph name="insights" size={14} /></span>
-        <span className="min-w-0 flex-1"><strong className="block truncate text-sm font-medium">{label || "Interactive visualization"}</strong><span className="block truncate text-xs text-token-description-foreground">Interactive visualization</span></span>
-        <ShellTooltip label="Open in Files"><button aria-label={`Open ${path} in Files`} className="flex size-7 cursor-interaction items-center justify-center rounded-lg text-token-description-foreground outline-none hover:bg-token-list-hover-background hover:text-token-foreground focus-visible:ring-1 focus-visible:ring-token-focus-border" onClick={onOpen} type="button"><Glyph name="openExternal" size={13} /></button></ShellTooltip>
+        <span className="min-w-0 flex-1"><strong className="block truncate text-sm font-medium">{label || "操作できる図"}</strong><span className="block truncate text-xs text-token-description-foreground">操作できる図</span></span>
+        <ShellTooltip label="ファイル画面で開く"><button aria-label={`開く ${path} in Files`} className="flex size-7 cursor-interaction items-center justify-center rounded-lg text-token-description-foreground outline-none hover:bg-token-list-hover-background hover:text-token-foreground focus-visible:ring-1 focus-visible:ring-token-focus-border" onClick={onOpen} type="button"><Glyph name="openExternal" size={13} /></button></ShellTooltip>
       </header>
       {state === "loading" ? (
-        <div className="flex h-60 items-center justify-center gap-2 text-sm text-token-description-foreground"><Glyph className="is-spinning" name="refresh" size={14} />Loading visualization…</div>
+        <div className="flex h-60 items-center justify-center gap-2 text-sm text-token-description-foreground"><Glyph className="is-spinning" name="refresh" size={14} />図を読み込んでいます…</div>
       ) : state === "error" ? (
-        <div className="flex min-h-32 flex-col items-center justify-center gap-2 px-4 py-6 text-center"><Glyph className="text-token-description-foreground" name="warning" size={18} /><strong className="text-sm font-medium">Visualization unavailable</strong><span className="max-w-lg text-xs text-token-description-foreground">{error}</span></div>
+        <div className="flex min-h-32 flex-col items-center justify-center gap-2 px-4 py-6 text-center"><Glyph className="text-token-description-foreground" name="warning" size={18} /><strong className="text-sm font-medium">図を表示できません</strong><span className="max-w-lg text-xs text-token-description-foreground">{error}</span></div>
       ) : (
         <iframe
           className="block w-full border-0 bg-transparent"
@@ -125,7 +125,7 @@ function InlineVisualization({ onOpen, path, target }: { onOpen: () => void; pat
           sandbox="allow-scripts"
           srcDoc={documentSource}
           style={{ height }}
-          title={`Interactive visualization: ${label}`}
+          title={`操作できる図： ${label}`}
         />
       )}
     </section>

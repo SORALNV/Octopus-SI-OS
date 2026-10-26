@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../../locale";
 import { useEffect, useId, useState } from "react";
 import { loadChatRunMessages, type ChatRunMessage } from "../../chatRuns";
 import { OcButton, OcIconButton } from "../../design-system/components";
@@ -24,17 +25,17 @@ export function InboxSurface({ activity, selected, selectedGroup = [], onOpen }:
   const item = selected && activity.projectedItems.find((candidate) => candidate.id === selected.id);
 
   return (
-    <section className="inbox-surface" aria-label="Inbox details">
+    <section className="inbox-surface" aria-label="通知の詳細">
       {activity.error ? (
         <div className="inbox-placeholder" role="alert"><Glyph name="warning" size={16} /><span>{activity.error}</span></div>
       ) : !activity.loaded ? (
-        <OctopusLoadingState className="inbox-placeholder" label="Loading Inbox" />
+        <OctopusLoadingState className="inbox-placeholder" label="受信トレイを読み込んでいます" />
       ) : selected && !item ? (
-        <p className="inbox-placeholder" role="status">This notification is no longer in your Inbox</p>
+        <p className="inbox-placeholder" role="status">この通知は受信トレイにありません</p>
       ) : item ? (
         <InboxPreview item={item} group={selectedGroup.includes(item.id) ? selectedGroup : [item.id]} activity={activity} onOpen={onOpen} />
       ) : (
-        <p className="inbox-placeholder">{activity.listedCount ? "Select a notification to preview it" : "You're all caught up"}</p>
+        <p className="inbox-placeholder">{activity.listedCount ? "通知を選ぶと内容を確認できます" : "すべて確認済みです"}</p>
       )}
     </section>
   );
@@ -59,7 +60,7 @@ function InboxPreview({ item, group, activity, onOpen }: {
   const title = item.kind === "message" ? item.sourceTitle ?? "Home" : source?.title ?? presentation.label;
   const action = item.kind === "approval" ? "Review in task"
     : request ? "Answer in task"
-      : item.navigation.kind === "mark" ? "Open history" : homeRun ? "Open Home" : "Open task";
+      : item.navigation.kind === "mark" ? "Open history" : homeRun ? "ホームを開く" : "Open task";
   const author = activitySource(item);
   const occurrences = group.map((id) => activity.projectedItems.find((candidate) => candidate.id === id)?.createdAt ?? null)
     .filter((at): at is number => at !== null).sort((left, right) => left - right);
@@ -68,18 +69,18 @@ function InboxPreview({ item, group, activity, onOpen }: {
       <header className="inbox-preview-head">
         <h1>{title}{item.kind === "mark" && group.length > 1 ? <span className="inbox-preview-count">{`×${group.length}`}</span> : null}</h1>
         <div className="inbox-preview-actions">
-          <OcIconButton aria-controls={detailsId} aria-expanded={details} data-state={details ? "open" : "closed"} glyph="activityOptions" label="Technical details" onClick={() => setDetails(!details)} />
+          <OcIconButton aria-controls={detailsId} aria-expanded={details} data-state={details ? "open" : "closed"} glyph="activityOptions" label="技術的な詳細" onClick={() => setDetails(!details)} />
           <OcButton onClick={() => onOpen(item)} variant={request ? "primary" : "secondary"}>{action}</OcButton>
         </div>
       </header>
       <div className="inbox-preview-details" data-open={details || undefined} id={detailsId}>
         <div>
           <dl>
-            <div><dt>{item.kind === "mark" ? "Mark" : "Event"}</dt><dd>{item.name}</dd></div>
-            <div><dt>Worker</dt><dd>{item.worker}</dd></div>
-            <div><dt>Run</dt><dd>{item.runId}</dd></div>
-            {item.sequence !== null ? <div><dt>Movement</dt><dd>{item.sequence}</dd></div> : null}
-            {item.artifactId ? <div><dt>Artifact</dt><dd>{item.artifactId}</dd></div> : null}
+            <div><dt>{item.kind === "mark" ? "検証記録" : "イベント"}</dt><dd>{item.name}</dd></div>
+            <div><dt>ワーカー</dt><dd>{item.worker}</dd></div>
+            <div><dt>実行</dt><dd>{item.runId}</dd></div>
+            {item.sequence !== null ? <div><dt>移動</dt><dd>{item.sequence}</dd></div> : null}
+            {item.artifactId ? <div><dt>成果物</dt><dd>{item.artifactId}</dd></div> : null}
           </dl>
         </div>
       </div>
@@ -95,7 +96,7 @@ function InboxPreview({ item, group, activity, onOpen }: {
             {item.kind === "mark" ? (
               <p>
                 {presentation.description}
-                {occurrences.length > 1 ? ` It happened ${occurrences.length} times between ${clock(occurrences[0])} and ${clock(occurrences.at(-1) as number)}.` : ""}
+                {occurrences.length > 1 ? ` 発生回数： ${occurrences.length} 回。期間： ${clock(occurrences[0])} 〜 ${clock(occurrences.at(-1) as number)}.` : ""}
               </p>
             ) : item.kind === "message" ? (
               <MessageReply item={item} thread={thread} />
@@ -150,5 +151,5 @@ function useActivityThread(item: MarkActivityItem): ActivityThread | null {
 }
 
 function clock(at: number): string {
-  return new Intl.DateTimeFormat(undefined, { timeStyle: "short" }).format(at);
+  return new Intl.DateTimeFormat(APP_LOCALE, { timeStyle: "short" }).format(at);
 }

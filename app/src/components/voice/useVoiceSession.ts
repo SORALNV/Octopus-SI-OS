@@ -146,8 +146,8 @@ export function useVoiceSession(accessProfile: OctopusClientAccessProfile) {
 
   const refreshDevices = useCallback(async () => {
     if (accessProfile === "lab") {
-      const inputs = [{ deviceId: "test-microphone", label: "Test microphone" }];
-      const outputs = [{ deviceId: "test-speaker", label: "Test speaker" }];
+      const inputs = [{ deviceId: "test-microphone", label: "マイクをテスト" }];
+      const outputs = [{ deviceId: "test-speaker", label: "スピーカーをテスト" }];
       setInputDevices(inputs);
       setOutputDevices(outputs);
       setSelectedInputId("test-microphone");

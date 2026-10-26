@@ -30,7 +30,7 @@ export function WorkerEnvironmentPreview({ compact = false, environment, onOpen,
   } : {
     eyebrow: "No client surface",
     lines: environment.capabilities.slice(0, 3),
-    title: "Preview unavailable",
+    title: "プレビューを利用できません",
   };
   if (compact) {
     const meta = uniqueStrings([
@@ -71,14 +71,14 @@ export function WorkerEnvironmentPreview({ compact = false, environment, onOpen,
         <span className="we-preview-eyebrow">{body.eyebrow}</span>
         <strong>{body.title}</strong>
         <div className="we-preview-lines">
-          {body.lines.length ? body.lines.map((line, index) => <span key={`${line}:${index}`}>{line}</span>) : <span>No projected evidence</span>}
+          {body.lines.length ? body.lines.map((line, index) => <span key={`${line}:${index}`}>{line}</span>) : <span>表示できる記録がありません</span>}
         </div>
       </div>
       <footer className="we-preview-footer">
         <span>{surface?.protocol || (document ? `${document.document.render.kind} client surface` : environment.transport || "descriptor")}</span>
         {onOpen ? (
           <button onClick={onOpen} type="button">
-            Open
+            開く
             <Glyph name="chevronDown" size={12} />
           </button>
         ) : null}
@@ -94,7 +94,7 @@ function clientSurfacePreviewBody(document: ClientSurfaceDocument): { eyebrow: s
       : [])
     .slice(0, 4);
   return {
-    eyebrow: `${document.render.kind} · revision ${document.revision}`,
+    eyebrow: `${document.render.kind} · リビジョン ${document.revision}`,
     lines,
     title: document.title,
   };

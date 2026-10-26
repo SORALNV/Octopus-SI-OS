@@ -204,7 +204,7 @@ function validateCronField(field, minimum, maximum, sundayAlias, label) {
       lower = parseUnsignedCronInteger(bounds[0], `${label} range start`);
       upper = parseUnsignedCronInteger(bounds[1], `${label} range end`);
     } else {
-      lower = parseUnsignedCronInteger(base, `${label} value`);
+      lower = parseUnsignedCronInteger(base, `${label} 値`);
       upper = lower;
     }
     if (lower < minimum || upper > acceptedMaximum || lower > upper) throw new Error(`cron ${label} range is outside ${minimum}-${acceptedMaximum}`);

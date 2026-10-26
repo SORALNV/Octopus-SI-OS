@@ -193,7 +193,7 @@ async function collectBoundContextArtifacts(roots) {
       for (const binding of Array.isArray(checkpoint.artifact_bindings) ? checkpoint.artifact_bindings : []) {
         const artifactId = binding && typeof binding === "object" ? binding.id : "";
         if (await isContextArtifact(roots, artifactId)) {
-          addBinding(bound, artifactId, `run ${String(run.id || entry.name)} checkpoint ${String(checkpoint.id)}`);
+          addBinding(bound, artifactId, `実行 ${String(run.id || entry.name)} チェックポイント ${String(checkpoint.id)}`);
         }
       }
     }
@@ -299,7 +299,7 @@ function finding(code, subject, reason, nextStep, evidence = {}) {
 }
 
 function renderFinding(value) {
-  return `${value.code} [${value.subject}]: ${value.reason} Next manual step: ${value.next_step}`;
+  return `${value.code} [${value.subject}]: ${value.reason} 次に手動で行うこと： ${value.next_step}`;
 }
 
 function packageRoots(value) {

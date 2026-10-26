@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../locale";
 export type MovementEndpoint = {
   kind?: string;
   id?: string;
@@ -151,14 +152,14 @@ export function computeActivityMetrics({
       column.push({
         count,
         level: 0,
-        label: date.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+        label: date.toLocaleDateString(APP_LOCALE, { month: "short", day: "numeric" }),
       });
     }
     weeks.push(column);
     const firstDay = new Date(gridStart);
     firstDay.setDate(gridStart.getDate() + week * 7);
     const month = firstDay.getMonth();
-    monthLabels.push(month === lastMonth ? "" : firstDay.toLocaleDateString(undefined, { month: "short" }));
+    monthLabels.push(month === lastMonth ? "" : firstDay.toLocaleDateString(APP_LOCALE, { month: "short" }));
     lastMonth = month;
   }
 
@@ -182,11 +183,11 @@ export function computeActivityMetrics({
       bytes: 0,
       count: 0,
       label: seriesDuration <= DAY_MS
-        ? date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
-        : date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: seriesDuration > 180 * DAY_MS ? "numeric" : undefined }),
+        ? date.toLocaleTimeString(APP_LOCALE, { hour: "2-digit", minute: "2-digit" })
+        : date.toLocaleDateString(APP_LOCALE, { month: "short", day: "numeric", year: seriesDuration > 180 * DAY_MS ? "numeric" : undefined }),
       shortLabel: seriesDuration <= DAY_MS
-        ? date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
-        : date.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+        ? date.toLocaleTimeString(APP_LOCALE, { hour: "2-digit", minute: "2-digit" })
+        : date.toLocaleDateString(APP_LOCALE, { month: "short", day: "numeric" }),
       timestamp,
     };
   });

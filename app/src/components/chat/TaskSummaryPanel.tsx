@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../../locale";
 import { AnimatePresence, motion } from "motion/react";
 import { useMemo, useState } from "react";
 import type { RunProjection } from "../../data/topology";
@@ -82,7 +83,7 @@ export function TaskSummaryPanel({
     <div className="task-summary-shell">
       <div className="task-summary-scroll">
         <div className="task-summary-content">
-        <section className="task-summary-section" aria-label="Environments">
+        <section className="task-summary-section" aria-label="環境">
           <div className="task-summary-section-body">
             {workerEnvironments.length ? (
               <TaskEnvironmentSummary
@@ -91,12 +92,12 @@ export function TaskSummaryPanel({
                 surfaces={surfaces}
               />
             ) : null}
-            {!workerEnvironments.length ? <p className="task-environment-empty">{runProjection ? "No environments attached to this task" : "Environment information unavailable"}</p> : null}
+            {!workerEnvironments.length ? <p className="task-environment-empty">{runProjection ? "このタスクに作業環境は接続されていません" : "環境の情報を取得できません"}</p> : null}
           </div>
         </section>
 
         {outputs.length ? (
-          <SummarySection count={String(outputs.length)} title="Outputs">
+          <SummarySection count={String(outputs.length)} title="出力">
             <div className="task-summary-list">
               {outputs.map(({ message, resource }) => (
                 <div className="task-summary-artifact-row" key={message.id}>
@@ -108,7 +109,7 @@ export function TaskSummaryPanel({
                     </span>
                     <Glyph className="task-summary-row-chevron" name="chevronDown" size={13} />
                   </button>
-                  <OcIconButton className="task-summary-artifact-action" glyph="artifact" label="Open artifact" onClick={() => setArtifactTarget(resource.reference)} size="xs" variant="ghost" />
+                  <OcIconButton className="task-summary-artifact-action" glyph="artifact" label="成果物を開く" onClick={() => setArtifactTarget(resource.reference)} size="xs" variant="ghost" />
                 </div>
               ))}
             </div>
@@ -116,7 +117,7 @@ export function TaskSummaryPanel({
         ) : null}
 
         {plan ? (
-          <SummarySection title="Plan">
+          <SummarySection title="計画">
             <button className="task-summary-row task-summary-plan" onClick={() => onRevealMessage(plan.id)} type="button">
               <span className="task-summary-row-leading"><Glyph name="taskPlan" size={16} /></span>
               <span className="task-summary-plan-title" title={plan.text}>{planTitle}</span>
@@ -125,7 +126,7 @@ export function TaskSummaryPanel({
         ) : null}
 
         {subagents.length ? (
-          <SummarySection count={String(subagents.length)} title="Related agents">
+          <SummarySection count={String(subagents.length)} title="関連するエージェント">
             <SubagentSummary items={subagents} />
             <div className="task-summary-list task-summary-related-agents">
               {subagents.map((item) => (
@@ -142,7 +143,7 @@ export function TaskSummaryPanel({
         ) : null}
 
         {backgroundProcesses.length ? (
-          <SummarySection count={String(backgroundProcesses.length)} title="Background processes">
+          <SummarySection count={String(backgroundProcesses.length)} title="バックグラウンドの処理">
             <div className="task-summary-list">
               {backgroundProcesses.map((item) => (
                 <button className="task-summary-row" key={item.id} onClick={() => onRevealMessage(item.messageId)} type="button">
@@ -161,7 +162,7 @@ export function TaskSummaryPanel({
         ) : null}
 
         {sources.length ? (
-          <SummarySection count={String(sources.length)} title="Sources">
+          <SummarySection count={String(sources.length)} title="出典">
             <div className="task-summary-list">
               {visibleSources.map((source) => (
                 <ArtifactSourceRow key={source.id} onOpen={setArtifactTarget} source={source} />
@@ -242,9 +243,9 @@ function SubagentSummary({ items }: { items: SubagentSummaryRow[] }) {
         ))}
       </span>
       <span className="task-summary-subagent-counts">
-        {active.length ? <span>{active.length} working</span> : null}
-        {done.length ? <span>{done.length} finished</span> : null}
-        {observed.length ? <span>{observed.length} observed</span> : null}
+        {active.length ? <span>{active.length} 作業中</span> : null}
+        {done.length ? <span>{done.length} 完了</span> : null}
+        {observed.length ? <span>{observed.length} 確認済み</span> : null}
       </span>
     </div>
   );
@@ -254,7 +255,7 @@ function ViewAllButton({ onClick }: { onClick: () => void }) {
   return (
     <button className="task-summary-row task-summary-show-all" onClick={onClick} type="button">
       <span className="task-summary-row-leading"><Glyph name="viewAll" size={16} /></span>
-      <span className="task-summary-plan-title">View all</span>
+      <span className="task-summary-plan-title">すべて表示</span>
     </button>
   );
 }
@@ -365,5 +366,5 @@ function taskSummaryPlanTitle(message: ChatRenderMessage): string {
 
 function formatTime(value: number): string {
   if (!Number.isFinite(value) || value <= 0) return "Projected output";
-  return new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(value);
+  return new Intl.DateTimeFormat(APP_LOCALE, { hour: "numeric", minute: "2-digit" }).format(value);
 }

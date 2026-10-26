@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../../locale";
 import { settingsTargetProps } from "./settingsCatalog";
 import { useEffect, useMemo, useState } from "react";
 import { useClientPreferences, useSetClientPreferences, type DictationProvider } from "../../clientPreferences";
@@ -30,8 +31,8 @@ export function VoiceAudioSection({ accessProfile }: { accessProfile: OctopusCli
       setDeviceLoading(true);
       if (accessProfile === "lab") {
         if (!cancelled) {
-          setAudioInputs([{ deviceId: "test-microphone", label: "Test microphone" }]);
-          setAudioOutputs([{ deviceId: "test-speaker", label: "Test speaker" }]);
+          setAudioInputs([{ deviceId: "test-microphone", label: "マイクをテスト" }]);
+          setAudioOutputs([{ deviceId: "test-speaker", label: "スピーカーをテスト" }]);
           setDeviceError("");
           setDeviceLoading(false);
         }
@@ -66,11 +67,11 @@ export function VoiceAudioSection({ accessProfile }: { accessProfile: OctopusCli
   }, [accessProfile]);
 
   const inputOptions = useMemo(
-    () => settingsAudioOptions(audioInputs, preferences.audioInputDeviceId, "System default"),
+    () => settingsAudioOptions(audioInputs, preferences.audioInputDeviceId, "システムの既定値"),
     [audioInputs, preferences.audioInputDeviceId],
   );
   const outputOptions = useMemo(
-    () => settingsAudioOptions(audioOutputs, preferences.audioOutputDeviceId, "System default"),
+    () => settingsAudioOptions(audioOutputs, preferences.audioOutputDeviceId, "システムの既定値"),
     [audioOutputs, preferences.audioOutputDeviceId],
   );
 
@@ -107,82 +108,82 @@ export function VoiceAudioSection({ accessProfile }: { accessProfile: OctopusCli
   return (
     <section className="settings-section">
       <SettingsHeading
-        description="Microphone, dictation, and how calls behave across the app."
-        title="Voice & Audio"
+        description="マイク、音声入力、アプリ内での通話の動作を設定します。"
+        title="音声と通話"
       />
 
-      <OcGroup title="Devices" description="Capture and playback devices used by voice surfaces.">
+      <OcGroup title="デバイス" description="音声通話に使う録音・再生デバイスです。">
         <OcCard>
           <OcSettingsRow {...settingsTargetProps("voice.microphone")}
             control={(
               <OcSelect<string>
                 disabled={deviceLoading || inputOptions.length === 0}
-                label="Microphone"
+                label="マイク"
                 onChange={(audioInputDeviceId) => setClientPreferences({ audioInputDeviceId })}
                 options={inputOptions}
                 value={preferences.audioInputDeviceId}
               />
             )}
-            description="Used for dictation and Voice."
-            label="Microphone"
+            description="音声入力と音声通話に使います。"
+            label="マイク"
           />
           <OcSettingsRow {...settingsTargetProps("voice.speaker")}
             control={(
               <OcSelect<string>
                 disabled={deviceLoading || outputOptions.length === 0}
-                label="Speaker"
+                label="スピーカー"
                 onChange={(audioOutputDeviceId) => setClientPreferences({ audioOutputDeviceId })}
                 options={outputOptions}
                 value={preferences.audioOutputDeviceId}
               />
             )}
-            description="Playback device for voice replies and audio artifacts."
-            label="Speaker"
+            description="音声の応答や音声の成果物を再生するデバイスです。"
+            label="スピーカー"
           />
           <OcSettingsRow {...settingsTargetProps("voice.agent-voice")}
-            control={<OcStatus label="Not declared" tone="muted" />}
-            description="A selectable synthesized voice will appear only when the speech interface descriptor declares supported voices."
-            label="Agent voice"
+            control={<OcStatus label="未定義" tone="muted" />}
+            description="音声インターフェースで対応する声が定義されている場合に、合成音声を選べます。"
+            label="エージェントの声"
           />
         </OcCard>
       </OcGroup>
 
-      <OcGroup title="Dictation" description="Composer dictation is a local client convenience and does not enter the Octopus runtime.">
+      <OcGroup title="音声入力" description="入力欄の音声入力はアプリ内の機能で、Octopus の実行基盤には渡しません。">
         <OcCard>
           <OcSettingsRow {...settingsTargetProps("voice.transcription-provider")}
             control={(
               <OcSelect<DictationProvider>
-                label="Provider"
+                label="プロバイダー"
                 onChange={(dictationProvider) => setClientPreferences({ dictationProvider })}
                 options={[{ value: "codex", label: "Codex" }]}
                 value={preferences.dictationProvider}
               />
             )}
-            description="Uses the ChatGPT session already authorized in the local Codex app. Octopus stores no separate speech API key."
-            label="Transcription provider"
+            description="ローカルの Codex アプリで認証済みの ChatGPT セッションを使います。Octopus は音声専用の API キーを保存しません。"
+            label="文字起こしのプロバイダー"
           />
           <OcSettingsRow {...settingsTargetProps("voice.toggle-dictation")}
             control={<ShortcutKeys keys={formatKeyboardShortcuts(keyboardShortcuts.start_dictation ?? []) || "Unassigned"} />}
-            description="Start or stop dictation in the active composer."
-            label="Toggle dictation"
+            description="現在の入力欄で音声入力を開始・停止します。"
+            label="音声入力を切り替え"
           />
           <OcSettingsRow {...settingsTargetProps("voice.global-dictation")}
             control={(
               <OcSwitch
                 checked={preferences.globalQuickDictation}
                 disabled={(keyboardShortcuts.start_dictation ?? []).length === 0}
-                label="Global quick dictation"
+                label="どこからでも音声入力"
                 onCheckedChange={(globalQuickDictation) => setClientPreferences({ globalQuickDictation })}
               />
             )}
-            description="Bring Octopus forward, open the active task, and start the existing composer dictation from anywhere."
-            label="Global quick dictation"
+            description="どこからでも Octopus を手前に表示し、現在のタスクで音声入力を始められます。"
+            label="どこからでも音声入力"
             meta={(keyboardShortcuts.start_dictation ?? []).length ? "Only active while this profile is unlocked." : "Assign Toggle dictation first."}
           />
           <OcSettingsRow {...settingsTargetProps("voice.hold-dictate")}
-            control={<OcStatus label="Composer mic" tone="success" />}
-            description="Press and hold the microphone button to record, then release to insert the transcript. Desktop-wide hold remains unavailable without a native key-up hook."
-            label="Hold to dictate"
+            control={<OcStatus label="入力欄のマイク" tone="success" />}
+            description="マイクボタンを押している間録音し、離すと文字起こしを挿入します。デスクトップ全体での長押し入力には、ネイティブのキー解放イベントへの対応が必要です。"
+            label="長押しで音声入力"
           />
           <OcSettingsRow {...settingsTargetProps("voice.dictionary")}
             control={(
@@ -197,12 +198,12 @@ export function VoiceAudioSection({ accessProfile }: { accessProfile: OctopusCli
                   }
                   beginDictionaryEntry();
                 }}>
-                  {preferences.dictationDictionary.length && !dictionaryExpanded ? "Manage" : "Add entry"}
+                  {preferences.dictationDictionary.length && !dictionaryExpanded ? "管理" : "項目を追加"}
                 </OcButton>
               </div>
             )}
-            description="Replace recognized words or phrases before they enter the composer."
-            label="Dictation dictionary"
+            description="認識した単語やフレーズを、入力欄に挿入する前に置き換えます。"
+            label="音声入力の辞書"
           />
           {dictionaryExpanded ? (
             <div className="mx-3 mb-3 grid gap-1 rounded-xl bg-token-foreground/3 p-1.5">
@@ -210,22 +211,22 @@ export function VoiceAudioSection({ accessProfile }: { accessProfile: OctopusCli
                 <div className="group flex min-w-0 items-center gap-3 rounded-lg px-2 py-2 hover:bg-token-list-hover-background" key={entry.id}>
                   <button className="min-w-0 flex-1 cursor-interaction text-left" onClick={() => beginDictionaryEntry(entry.id)} type="button">
                     <span className="block truncate text-sm text-token-foreground">{entry.replacement}</span>
-                    <span className="mt-0.5 block truncate text-xs text-token-description-foreground">When dictation hears “{entry.phrase}”</span>
+                    <span className="mt-0.5 block truncate text-xs text-token-description-foreground">認識した言葉：「{entry.phrase}”</span>
                   </button>
-                  <OcButton onClick={() => beginDictionaryEntry(entry.id)} size="sm">Edit</OcButton>
+                  <OcButton onClick={() => beginDictionaryEntry(entry.id)} size="sm">編集</OcButton>
                   <OcButton
                     onClick={() => {
                       const previous = preferences.dictationDictionary;
                       setClientPreferences({ dictationDictionary: previous.filter((candidate) => candidate.id !== entry.id) });
                       if (dictionaryDraft?.id === entry.id) setDictionaryDraft(null);
                       appToast.info(`Removed “${entry.phrase}”`, 8, {
-                        action: { label: "Undo", onSelect: () => setClientPreferences({ dictationDictionary: previous }) },
+                        action: { label: "元に戻す", onSelect: () => setClientPreferences({ dictationDictionary: previous }) },
                         dedupeKey: `dictation-dictionary-remove:${entry.id}`,
                       });
                     }}
                     size="sm"
                   >
-                    Remove
+                    削除
                   </OcButton>
                 </div>
               ))}
@@ -234,43 +235,43 @@ export function VoiceAudioSection({ accessProfile }: { accessProfile: OctopusCli
                   <div className="grid grid-cols-2 gap-2 max-sm:grid-cols-1">
                     <OcTextField
                       autoFocus
-                      label="When dictation hears"
+                      label="認識する言葉"
                       maxLength={120}
                       onChange={(event) => setDictionaryDraft({ ...dictionaryDraft, phrase: event.currentTarget.value })}
-                      placeholder="spoken phrase"
+                      placeholder="話す言葉"
                       showLabel
                       value={dictionaryDraft.phrase}
                     />
                     <OcTextField
-                      label="Insert"
+                      label="挿入"
                       maxLength={120}
                       onChange={(event) => setDictionaryDraft({ ...dictionaryDraft, replacement: event.currentTarget.value })}
-                      placeholder="preferred spelling"
+                      placeholder="置き換え後の表記"
                       showLabel
                       value={dictionaryDraft.replacement}
                     />
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <span className={`text-xs ${dictionaryDraftDuplicate ? "text-token-error-foreground" : "text-token-description-foreground"}`}>
-                      {dictionaryDraftDuplicate ? "That phrase already has an entry." : "Matching ignores capitalization and respects word boundaries."}
+                      {dictionaryDraftDuplicate ? "そのフレーズは登録済みです。" : "大文字・小文字を区別せず、単語の区切りを考慮して照合します。"}
                     </span>
                     <div className="settings-inline-actions">
-                      <OcButton onClick={() => setDictionaryDraft(null)} size="sm">Cancel</OcButton>
+                      <OcButton onClick={() => setDictionaryDraft(null)} size="sm">キャンセル</OcButton>
                       <OcButton
                         disabled={!dictionaryDraft.phrase.trim() || !dictionaryDraft.replacement.trim() || dictionaryDraftDuplicate}
                         onClick={saveDictionaryEntry}
                         size="sm"
                         variant="primary"
                       >
-                        Save
+                        保存
                       </OcButton>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="flex justify-between gap-2 px-2 py-1.5">
-                  <OcButton onClick={() => beginDictionaryEntry()} size="sm">Add entry</OcButton>
-                  <OcButton onClick={() => setDictionaryExpanded(false)} size="sm">Done</OcButton>
+                  <OcButton onClick={() => beginDictionaryEntry()} size="sm">項目を追加</OcButton>
+                  <OcButton onClick={() => setDictionaryExpanded(false)} size="sm">完了</OcButton>
                 </div>
               )}
             </div>
@@ -279,29 +280,29 @@ export function VoiceAudioSection({ accessProfile }: { accessProfile: OctopusCli
             control={(
               <div className="settings-inline-actions">
                 <OcStatus
-                  label={preferences.dictationHistory.length ? `${preferences.dictationHistory.length} saved` : "No recent dictations"}
+                  label={preferences.dictationHistory.length ? `${preferences.dictationHistory.length} saved` : "最近の音声入力はありません"}
                   tone={preferences.dictationHistory.length ? "neutral" : "muted"}
                 />
                 {preferences.dictationHistory.length ? (
                   <>
                     <OcButton onClick={() => setHistoryExpanded((expanded) => !expanded)}>
-                      {historyExpanded ? "Hide" : "View"}
+                      {historyExpanded ? "非表示" : "表示"}
                     </OcButton>
                     <OcButton onClick={() => {
                       const previous = preferences.dictationHistory;
                       setClientPreferences({ dictationHistory: [] });
                       setHistoryExpanded(false);
                       appToast.info("Recent dictations cleared", 8, {
-                        action: { label: "Undo", onSelect: () => setClientPreferences({ dictationHistory: previous }) },
+                        action: { label: "元に戻す", onSelect: () => setClientPreferences({ dictationHistory: previous }) },
                         dedupeKey: `dictation-history-clear:${accessProfile}`,
                       });
-                    }}>Clear</OcButton>
+                    }}>消去</OcButton>
                   </>
                 ) : null}
               </div>
             )}
-            description="Recent dictations appear here for copying."
-            label="Recent dictations"
+            description="最近の音声入力をここに表示します。内容をコピーできます。"
+            label="最近の音声入力"
           />
           {historyExpanded && preferences.dictationHistory.length ? (
             <div className="mx-3 mb-3 grid gap-1 rounded-xl bg-token-foreground/3 p-1.5">
@@ -319,7 +320,7 @@ export function VoiceAudioSection({ accessProfile }: { accessProfile: OctopusCli
                     type="button"
                   >
                     <span className="line-clamp-2 block text-sm leading-5 text-token-foreground">{entry.text}</span>
-                    <span className="mt-0.5 block text-xs text-token-description-foreground">{new Date(entry.createdAtMs).toLocaleString()}</span>
+                    <span className="mt-0.5 block text-xs text-token-description-foreground">{new Date(entry.createdAtMs).toLocaleString(APP_LOCALE)}</span>
                   </button>
                   <span className="flex size-7 shrink-0 items-center justify-center text-token-description-foreground">
                     <Glyph name={copiedDictationId === entry.id ? "check" : "copy"} size={14} />
@@ -331,49 +332,49 @@ export function VoiceAudioSection({ accessProfile }: { accessProfile: OctopusCli
         </OcCard>
       </OcGroup>
 
-      <OcGroup title="Calls" description="How the active call behaves outside Home.">
+      <OcGroup title="通話" description="ホーム以外の画面での通話の動作を設定します。">
         <OcCard>
           <OcSettingsRow {...settingsTargetProps("voice.floating-call")}
             control={(
               <OcSwitch
                 checked={preferences.floatingCallPuck}
-                label="Floating call widget"
+                label="フローティング通話ウィジェット"
                 onCheckedChange={(floatingCallPuck) => setClientPreferences({ floatingCallPuck })}
               />
             )}
-            description="When you leave Home during a call, the call collapses into a small movable widget with the sphere, mute, and end call."
-            label="Floating call widget"
+            description="通話中にホームから離れると、球体、ミュート、終了ボタンを備えた小さなウィジェットに切り替わります。ウィジェットは移動できます。"
+            label="フローティング通話ウィジェット"
           />
           <OcSettingsRow {...settingsTargetProps("voice.incoming-audio")}
             control={(
               <OcSelect<"ask" | "play" | "never">
-                label="Incoming audio artifacts"
+                label="受信した音声の成果物"
                 onChange={(incomingAudioArtifactBehavior) => setClientPreferences({ incomingAudioArtifactBehavior })}
                 options={[
-                  { value: "ask", label: "Ask each time" },
-                  { value: "play", label: "Play automatically" },
-                  { value: "never", label: "Never play" },
+                  { value: "ask", label: "毎回確認する" },
+                  { value: "play", label: "自動再生する" },
+                  { value: "never", label: "再生しない" },
                 ]}
                 value={preferences.incomingAudioArtifactBehavior}
               />
             )}
-            description="What happens when an audio artifact arrives while a session is open."
-            label="Incoming audio artifacts"
+            description="セッション中に音声の成果物を受信したときの動作です。"
+            label="受信した音声の成果物"
           />
         </OcCard>
       </OcGroup>
 
-      <OcGroup title="Storage" description="Recordings and transcripts stay on this device.">
+      <OcGroup title="保存" description="録音と文字起こしは、このデバイスに保存されます。">
         <OcCard>
           <OcSettingsRow {...settingsTargetProps("voice.recordings")}
-            control={<OcStatus label="Artifact governed" tone="neutral" />}
-            description="Captured audio follows admitted voice artifact files. The client has no separate retention contract to pretend to configure."
-            label="Recordings"
+            control={<OcStatus label="成果物の規則に従う" tone="neutral" />}
+            description="録音は許可された音声の成果物ファイルとして管理します。アプリ独自の保存期間設定はありません。"
+            label="録音"
           />
           <OcSettingsRow {...settingsTargetProps("voice.transcripts")}
-            control={<OcStatus label="Projected + local history" tone="neutral" />}
-            description="Call transcripts are projected run messages; dictation history is bounded profile-local client state."
-            label="Transcripts"
+            control={<OcStatus label="実行記録とローカル履歴" tone="neutral" />}
+            description="通話の文字起こしは実行のメッセージとして表示します。音声入力の履歴はプロフィールごとのローカルデータとして、上限を設けて保存します。"
+            label="文字起こし"
           />
         </OcCard>
       </OcGroup>
@@ -396,7 +397,7 @@ function settingsAudioOptions(devices: Array<{ deviceId: string; label: string }
     ...devices.map((device) => ({ value: device.deviceId, label: device.label })),
   ];
   if (selected && !options.some((option) => option.value === selected)) {
-    options.push({ value: selected, label: `${selected} · unavailable`, disabled: true });
+    options.push({ value: selected, label: `${selected} · 利用できません`, disabled: true });
   }
   return options;
 }

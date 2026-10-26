@@ -66,8 +66,8 @@ export function HomeSurface({
   return (
     <div className="home-view-transition">
       <WorkspacePaneHeaderActions>
-        <ShellTooltip label="Activity" side="right">
-          <button aria-label="Activity" aria-expanded={activityOpen} className="app-titlebar-action no-drag"
+        <ShellTooltip label="アクティビティ" side="right">
+          <button aria-label="アクティビティ" aria-expanded={activityOpen} className="app-titlebar-action no-drag"
             data-state={activityOpen ? "open" : "closed"} type="button" onClick={() => {
               setWidgetsOpen(false);
               onHomeViewModeChange?.(activityOpen ? "voice" : "activity");
@@ -75,8 +75,8 @@ export function HomeSurface({
         </ShellTooltip>
         <span className="home-pane-swap-action" ref={setSwapActionHost}>
           {!activityOpen ? (
-            <ShellTooltip label="Home widgets">
-              <button aria-label="Home widgets" aria-expanded={widgetsOpen} className="app-titlebar-action no-drag"
+            <ShellTooltip label="ホームのウィジェット">
+              <button aria-label="ホームのウィジェット" aria-expanded={widgetsOpen} className="app-titlebar-action no-drag"
                 data-state={widgetsOpen ? "open" : "closed"} data-titlebar-surface-action="home-widgets" type="button" onClick={() => {
                   onHomeViewModeChange?.("voice");
                   setWidgetsOpen((open) => !open);
@@ -107,7 +107,7 @@ export function HomeSurface({
                 key="agent-activity"
                 transition={transition}
               >
-                <Suspense fallback={<SurfaceLoadingState label="Loading Home activity" />}>
+                <Suspense fallback={<SurfaceLoadingState label="ホームのアクティビティを読み込んでいます" />}>
                   <HomeActivityContent
                     commandsActive={commandsActive && homeViewMode === "activity"}
                     onOpenFiles={onOpenFiles}

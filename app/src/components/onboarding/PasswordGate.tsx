@@ -25,7 +25,7 @@ export function PasswordGate({ mode, onDone, onLaunchingChange }: Props) {
     if (busy || launching) return;
     if (isSet) {
       if (tooShort) {
-        appToast.danger(`Use at least ${MIN_LENGTH} characters.`);
+        appToast.danger(`最低文字数： ${MIN_LENGTH} characters.`);
         return;
       }
       setBusy(true);
@@ -63,14 +63,14 @@ export function PasswordGate({ mode, onDone, onLaunchingChange }: Props) {
 
   return (
     <div className="welcome-lock-form">
-      <span className="welcome-tag">{isSet ? "Set a password" : "Locked"}</span>
+      <span className="welcome-tag">{isSet ? "パスワードを設定" : "ロック中"}</span>
       <h1 id="welcome-title" className="welcome-title">
-        {isSet ? "Lock the controls" : "Welcome back"}
+        {isSet ? "操作をパスワードで保護" : "おかえりなさい"}
       </h1>
       <p className="welcome-body">
         {isSet
-          ? "Set a password for this device. Anyone who opens Octopus could otherwise drive the agent — this gates the controls. It's stored only here, never sent to your runtime or Gateway."
-          : "Enter the Administrator or Test password. Each profile opens a separate client data boundary on this device."}
+          ? "このデバイスのパスワードを設定し、Octopus を開いた人が自由にエージェントを操作できないようにします。パスワードはここにのみ保存され、実行基盤や Gateway には送信されません。"
+          : "管理者またはテスト用のパスワードを入力してください。各プロフィールのアプリデータは、このデバイス上で分離されています。"}
       </p>
 
       <div className="welcome-lock-actions">
@@ -81,17 +81,17 @@ export function PasswordGate({ mode, onDone, onLaunchingChange }: Props) {
             type={show ? "text" : "password"}
             spellCheck={false}
             autoFocus
-            placeholder={isSet ? "Choose a password" : "Password"}
+            placeholder={isSet ? "パスワードを設定" : "パスワード"}
             value={value}
             onChange={(event) => setValue(event.target.value)}
             onKeyDown={onKeyDown}
-            aria-label={isSet ? "Choose a password" : "Password"}
+            aria-label={isSet ? "パスワードを設定" : "パスワード"}
           />
           <button
             className="welcome-lock-eye"
             type="button"
             onClick={() => setShow((s) => !s)}
-            aria-label={show ? "Hide password" : "Show password"}
+            aria-label={show ? "パスワードを隠す" : "パスワードを表示"}
             tabIndex={-1}
           >
             {show ? <EyeOff /> : <Eye />}
@@ -102,7 +102,7 @@ export function PasswordGate({ mode, onDone, onLaunchingChange }: Props) {
           type="button"
           onClick={submit}
           disabled={busy || (isSet && tooShort)}
-          aria-label={isSet ? "Set password and enter" : "Unlock"}
+          aria-label={isSet ? "パスワードを設定して開始" : "ロックを解除"}
         >
           <KeyIcon />
         </button>
@@ -110,12 +110,11 @@ export function PasswordGate({ mode, onDone, onLaunchingChange }: Props) {
 
       <div className="welcome-lock-forgot-wrap">
         <button className="welcome-lock-forgot" type="button" onClick={() => setForgotOpen((o) => !o)}>
-          Forgot password?
+          パスワードを忘れた場合
         </button>
         {forgotOpen ? (
           <p className="welcome-lock-forgot-info">
-            The password lives only on this device and can't be recovered here. Reset the host credential file to
-            configure a new one; this screen has no recovery bypass.
+            パスワードはこのデバイスにのみ保存されており、この画面では復元できません。ホストの認証情報ファイルをリセットして、新しいパスワードを設定してください。この画面から認証を回避することはできません。
           </p>
         ) : null}
       </div>

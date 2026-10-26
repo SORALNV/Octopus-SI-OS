@@ -57,18 +57,18 @@ export function SurfacesSection({
   return (
     <section className="settings-section settings-surfaces-section">
       <SettingsHeading
-        description="Built-in navigation and verified client documents share one renderer registry without becoming runtime truth."
-        title="Surfaces"
+        description="組み込みのナビゲーションと検証済みの文書は、共通の表示レジストリを使います。実行基盤の記録とは別に管理します。"
+        title="画面"
       />
 
       <OcGroup
         actions={hiddenNavigationSurfaceIds.length > 0 ? (
           <OcButton onClick={() => setClientPreferences({ hiddenSurfaceIds: preferences.hiddenSurfaceIds.filter((surfaceId) => !navigationSurfaceIds.has(surfaceId)) })} variant="ghost">
-            Show all
+            すべて表示
           </OcButton>
         ) : null}
-        description="Choose the additional views shown in Tasks and Dashboard. Primary rail destinations remain available."
-        title="Navigation"
+        description="タスクとダッシュボードに追加で表示する画面を選びます。メインのナビゲーション項目は常に使えます。"
+        title="ナビゲーション"
       >
         <OcCard>
           {navigationSurfaces.map((surface) => {
@@ -80,11 +80,11 @@ export function SurfacesSection({
                   <OcSwitch
                     checked={visible}
                     disabled={required}
-                    label={`Show ${surface.label}`}
+                    label={`表示 ${surface.label}`}
                     onCheckedChange={(checked) => setSurfaceVisible(surface.id, checked)}
                   />
                 )}
-                description={required ? "This destination is always available in the navigation rail." : surfaceDescription(surface)}
+                description={required ? "この画面はナビゲーションからいつでも開けます。" : surfaceDescription(surface)}
                 key={surface.id}
                 label={(
                   <span className="settings-surface-label">
@@ -99,8 +99,8 @@ export function SurfacesSection({
       </OcGroup>
 
       <OcGroup
-        description="Documents are admitted by schema, revision, source digest, and target before entering any workspace, Voice, or Worker Environment renderer."
-        title="Client surface registry"
+        description="文書はワークスペース、音声通話、作業環境に表示する前に、スキーマ、リビジョン、ソースのダイジェスト、表示先を検証します。"
+        title="画面レジストリ"
       >
         <OcCard>
           {documents.length ? documents.map((admitted) => {
@@ -109,13 +109,13 @@ export function SurfacesSection({
               <OcSettingsRow
                 control={(
                   <div className="settings-inline-actions">
-                    <OcStatus label={document.release_channel === "stable" ? "Stable" : "Test"} tone={document.release_channel === "stable" ? "success" : "warning"} />
+                    <OcStatus label={document.release_channel === "stable" ? "安定版" : "テスト"} tone={document.release_channel === "stable" ? "success" : "warning"} />
                     <OcButton onClick={() => setSelectedDigest(admitted.sourceDigest)} size="sm" variant="ghost">
-                      Details
+                      詳細
                     </OcButton>
                   </div>
                 )}
-                description={`${surfaceTargetLabel(document)} · revision ${document.revision} · ${admitted.sourcePath}`}
+                description={`${surfaceTargetLabel(document)} · リビジョン ${document.revision} · ${admitted.sourcePath}`}
                 key={admitted.sourceDigest}
                 label={(
                   <span className="settings-surface-label">
@@ -127,11 +127,11 @@ export function SurfacesSection({
             );
           }) : (
             <OcSettingsRow
-              control={<OcStatus label="Empty" tone="muted" />}
+              control={<OcStatus label="空" tone="muted" />}
               description={accessProfile === "live"
-                ? "Administrator admits only stable documents projected from serialized evidence."
-                : "Add a .surface.json document to the Test document root to exercise the renderer."}
-              label="No admitted documents"
+                ? "管理者では、保存済みの検証記録に基づく安定版の文書のみを受け付けます。"
+                : "表示を試すには、テスト用の文書ルートに .surface.json ファイルを追加してください。"}
+              label="表示が許可された文書がありません"
             />
           )}
         </OcCard>
@@ -141,68 +141,68 @@ export function SurfacesSection({
         <OcGroup
           actions={(
             <OcButton onClick={() => void copy(JSON.stringify(selected.document, null, 2), "document")} size="sm" variant="ghost">
-              {copyState === "document" ? "Copied" : "Copy document"}
+              {copyState === "document" ? "コピーしました" : "文書をコピー"}
             </OcButton>
           )}
-          description="Read-only admission and provenance for the selected renderer document."
+          description="選択した表示文書について、許可状況と出典を読み取り専用で確認します。"
           title={selected.document.title}
         >
           <OcCard>
-            <SurfaceFact label="Document id" mono value={selected.document.id} />
-            <SurfaceFact label="Target" value={surfaceTargetLabel(selected.document)} />
-            <SurfaceFact label="Release" value={selected.document.release_channel} />
-            <SurfaceFact label="Revision" value={String(selected.document.revision)} />
-            <SurfaceFact label="Source" mono value={selected.sourcePath} />
-            <SurfaceFact label="Digest" mono value={selected.sourceDigest} />
-            <SurfaceFact label="Renderer" value={selected.document.render.kind} />
-            <SurfaceFact label="Verified nodes" value={`${selected.verdict.details.node_count} · depth ${selected.verdict.details.max_depth}`} />
-            {selected.sourceArtifactId ? <SurfaceFact label="Artifact" mono value={selected.sourceArtifactId} /> : null}
-            {selected.sourceRunId ? <SurfaceFact label="Run" mono value={selected.sourceRunId} /> : null}
-            {selected.sourceInterfaceId ? <SurfaceFact label="Interface" mono value={selected.sourceInterfaceId} /> : null}
+            <SurfaceFact label="文書 ID" mono value={selected.document.id} />
+            <SurfaceFact label="対象" value={surfaceTargetLabel(selected.document)} />
+            <SurfaceFact label="リリース" value={selected.document.release_channel} />
+            <SurfaceFact label="リビジョン" value={String(selected.document.revision)} />
+            <SurfaceFact label="ソース" mono value={selected.sourcePath} />
+            <SurfaceFact label="ダイジェスト" mono value={selected.sourceDigest} />
+            <SurfaceFact label="表示形式" value={selected.document.render.kind} />
+            <SurfaceFact label="検証済みのノード" value={`${selected.verdict.details.node_count} · depth ${selected.verdict.details.max_depth}`} />
+            {selected.sourceArtifactId ? <SurfaceFact label="成果物" mono value={selected.sourceArtifactId} /> : null}
+            {selected.sourceRunId ? <SurfaceFact label="実行" mono value={selected.sourceRunId} /> : null}
+            {selected.sourceInterfaceId ? <SurfaceFact label="インターフェース" mono value={selected.sourceInterfaceId} /> : null}
           </OcCard>
         </OcGroup>
       ) : null}
 
       <OcGroup
         description={accessProfile === "lab"
-          ? "Test watches this directory and atomically rematerializes only documents that pass the complete verifier contract."
-          : "Administrator reads stable surface documents from projection evidence; local authoring is intentionally unavailable."}
-        title="Document transport"
+          ? "テストではこのディレクトリを監視し、すべての検証に合格した文書だけを一括で再生成します。"
+          : "管理者は検証記録から安定版の画面文書を読み取ります。ローカルでの作成・編集には対応していません。"}
+        title="文書の転送"
       >
         <OcCard>
           <OcSettingsRow
             control={(
               <OcButton disabled={!documentRoot} onClick={() => void copy(documentRoot, "root")} size="sm" variant="secondary">
-                {copyState === "root" ? "Copied" : "Copy path"}
+                {copyState === "root" ? "コピーしました" : "パスをコピー"}
               </OcButton>
             )}
-            description={documentRoot || "The current process did not report a document root."}
-            label="Document root"
+            description={documentRoot || "現在のプロセスから文書のルートが報告されていません。"}
+            label="文書のルート"
           />
           {accessProfile === "lab" ? (
             <OcSettingsRow
               control={(
                 <OcButton onClick={() => void copy(JSON.stringify(testWidgetTemplate(), null, 2), "template")} size="sm" variant="secondary">
-                  {copyState === "template" ? "Copied" : "Copy template"}
+                  {copyState === "template" ? "コピーしました" : "テンプレートをコピー"}
                 </OcButton>
               )}
-              description="Copies a minimal native Voice widget that can be saved as a root-level .surface.json file."
-              label="Starter document"
+              description="ルート階層の .surface.json ファイルとして保存できる、最小構成の音声ウィジェットをコピーします。"
+              label="ひな形の文書"
             />
           ) : null}
           {copyState === "error" ? (
             <OcSettingsRow
-              control={<OcStatus label="Copy failed" tone="danger" />}
-              description="The desktop clipboard bridge refused the operation."
-              label="Clipboard"
+              control={<OcStatus label="コピーできませんでした" tone="danger" />}
+              description="デスクトップのクリップボードへの操作が拒否されました。"
+              label="クリップボード"
             />
           ) : null}
           {surfaceErrors.slice(0, 4).map((error) => (
             <OcSettingsRow
-              control={<OcStatus label="Refused" tone="danger" />}
+              control={<OcStatus label="拒否されました" tone="danger" />}
               description={error}
               key={error}
-              label="Surface document"
+              label="画面の文書"
             />
           ))}
         </OcCard>
@@ -235,7 +235,7 @@ function testWidgetTemplate(): ClientSurfaceDocument {
     release_channel: "lab",
     id: "voice.example",
     revision: 1,
-    title: "Example widget",
+    title: "ウィジェットの例",
     glyph: "descriptor",
     target: {
       kind: "voice.widget",
@@ -259,8 +259,8 @@ function testWidgetTemplate(): ClientSurfaceDocument {
         type: "stack",
         gap: "sm",
         children: [
-          { type: "status", label: "Document admitted", state: { path: "data.status" }, tone: "positive" },
-          { type: "button", label: "Open settings", glyph: "settings", variant: "secondary", action: { event: "client.command", payload: { command: "open_settings" } } },
+          { type: "status", label: "文書を受け付けました", state: { path: "data.status" }, tone: "positive" },
+          { type: "button", label: "設定を開く", glyph: "settings", variant: "secondary", action: { event: "client.command", payload: { command: "open_settings" } } },
         ],
       },
     },

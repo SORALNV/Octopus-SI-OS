@@ -5,12 +5,12 @@ import "./client-surface-video.css";
 export function ClientSurfaceVideo({ source, title }: { source: string; title?: string }) {
   const [failed, setFailed] = useState(false);
   if (!isSafeClientSurfaceVideoSource(source)) {
-    return <div className="client-surface-state" role="alert">Video unavailable: an HTTPS video link is required.</div>;
+    return <div className="client-surface-state" role="alert">動画を表示できません。HTTPS の動画リンクが必要です。</div>;
   }
   return (
     <figure className="client-surface-video">
       <video
-        aria-label={title || "Video"}
+        aria-label={title || "動画"}
         controls
         crossOrigin="anonymous"
         playsInline
@@ -23,7 +23,7 @@ export function ClientSurfaceVideo({ source, title }: { source: string; title?: 
         {title ? <strong>{title}</strong> : null}
         <span>{new URL(source).hostname}</span>
       </figcaption>
-      {failed ? <div role="alert">This video could not be loaded. Check the link and try another video.</div> : null}
+      {failed ? <div role="alert">動画を読み込めませんでした。リンクを確認するか、別の動画をお試しください。</div> : null}
     </figure>
   );
 }

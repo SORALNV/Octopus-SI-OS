@@ -32,7 +32,7 @@ export function composerSuggestionPlugin(parse: (text: string) => Node): Plugin<
     props: {
       attributes(state): Record<string, string> {
         const suggestion = visibleComposerSuggestion(state);
-        return suggestion ? { "aria-description": `Suggested message: ${suggestion.text} Press Tab, Right Arrow, or Enter to use it. Click to write your own message.` } : {};
+        return suggestion ? { "aria-description": `メッセージの提案： ${suggestion.text} Tab、右矢印、Enter で採用できます。自分で書くにはクリックしてください。` } : {};
       },
       decorations(state) {
         const suggestion = visibleComposerSuggestion(state);

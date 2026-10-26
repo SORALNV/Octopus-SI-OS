@@ -195,19 +195,19 @@ export function AccessSection({ accessProfile }: { accessProfile: OctopusClientA
     return (
       <section className="settings-section">
         <SettingsHeading
-          description="The Test profile is a local fixture boundary with no runtime, registry, ledger, filesystem, or live endpoint authority."
-          title="Access & Privacy"
+          description="テスト用プロフィールはローカルのサンプルデータだけを扱い、実際の実行基盤、レジストリ、台帳、ファイル、接続先への権限を持ちません。"
+          title="アクセスとプライバシー"
         />
-        <OcGroup title="Current profile" description="Only Administrator can change either profile credential.">
+        <OcGroup title="現在のプロフィール" description="各プロフィールの認証情報を変更できるのは管理者のみです。">
           <OcCard>
             <OcSettingsRow {...settingsTargetProps("access.test")}
-              control={<OcStatus label="Isolated" tone="success" />}
-              description="Log out and unlock with the Administrator password to manage access."
-              label="Test"
+              control={<OcStatus label="分離済み" tone="success" />}
+              description="アクセスを管理するには、ログアウトして管理者パスワードでロックを解除してください。"
+              label="テスト"
             />
           </OcCard>
         </OcGroup>
-        <OcGroup title="Local data" description="Test preferences and drafts remain isolated from Administrator.">
+        <OcGroup title="ローカルデータ" description="テスト用の設定と下書きは、管理者のデータから分離されています。">
           <OcCard>
             <LocalDataRows
               clearState={clearLocalState}
@@ -231,17 +231,17 @@ export function AccessSection({ accessProfile }: { accessProfile: OctopusClientA
   return (
     <section className="settings-section">
       <SettingsHeading
-        description="Credentials and privacy controls stored only on this device. Administrator controls the isolated Test profile."
-        title="Access & Privacy"
+        description="認証情報とプライバシー設定はこのデバイスにのみ保存されます。分離されたテスト用プロフィールは管理者が管理します。"
+        title="アクセスとプライバシー"
       />
 
       <SavedPermissionsSection />
 
       <OcGroup
-        title="Administrator"
+        title="管理者"
         description={administratorManagedByEnvironment
-          ? "Loaded from the production Home .env file. Change it there and restart the client."
-          : "Changing this password revokes every other Administrator session on this device."}
+          ? "通常のホームの .env ファイルから読み込んでいます。変更するにはそのファイルを編集し、アプリを再起動してください。"
+          : "このパスワードを変更すると、このデバイスの他の管理者セッションはすべて無効になります。"}
       >
         <OcCard>
           <div {...settingsTargetProps("access.administrator")} className="settings-access-editor">
@@ -249,7 +249,7 @@ export function AccessSection({ accessProfile }: { accessProfile: OctopusClientA
               <OcTextField
                 autoComplete="current-password"
                 disabled={administratorManagedByEnvironment}
-                label="Current password"
+                label="現在のパスワード"
                 onChange={(event) => {
                   setCurrentAdministratorPassword(event.currentTarget.value);
                   setAdministratorState("idle");
@@ -262,13 +262,13 @@ export function AccessSection({ accessProfile }: { accessProfile: OctopusClientA
               <OcTextField
                 autoComplete="new-password"
                 disabled={administratorManagedByEnvironment}
-                label="New password"
+                label="新しいパスワード"
                 onChange={(event) => {
                   setAdministratorPassword(event.currentTarget.value);
                   setAdministratorState("idle");
                   setError("");
                 }}
-                placeholder={`At least ${minimumLength} characters`}
+                placeholder={`最小 ${minimumLength} 文字`}
                 showLabel
                 type="password"
                 value={administratorPassword}
@@ -277,7 +277,7 @@ export function AccessSection({ accessProfile }: { accessProfile: OctopusClientA
                 autoComplete="new-password"
                 disabled={administratorManagedByEnvironment}
                 error={administratorConfirmation && administratorConfirmation !== administratorPassword ? "Passwords do not match" : undefined}
-                label="Confirm new password"
+                label="新しいパスワードを再入力"
                 onChange={(event) => {
                   setAdministratorConfirmation(event.currentTarget.value);
                   setAdministratorState("idle");
@@ -289,9 +289,9 @@ export function AccessSection({ accessProfile }: { accessProfile: OctopusClientA
               />
             </div>
             <div className="settings-endpoint-actions">
-              {administratorManagedByEnvironment ? <OcStatus label="Managed by .env" tone="neutral" /> : null}
-              {details?.administrator.updatedAt ? <OcStatus label="Previously updated" tone="muted" /> : null}
-              {administratorState === "saved" ? <OcStatus label="Updated" tone="success" /> : null}
+              {administratorManagedByEnvironment ? <OcStatus label=".env で管理" tone="neutral" /> : null}
+              {details?.administrator.updatedAt ? <OcStatus label="更新履歴あり" tone="muted" /> : null}
+              {administratorState === "saved" ? <OcStatus label="更新済み" tone="success" /> : null}
               <OcButton
                 disabled={
                   administratorManagedByEnvironment
@@ -303,7 +303,7 @@ export function AccessSection({ accessProfile }: { accessProfile: OctopusClientA
                 onClick={() => void saveAdministratorPassword()}
                 variant="primary"
               >
-                Update Administrator password
+                管理者パスワードを変更
               </OcButton>
             </div>
           </div>
@@ -313,7 +313,7 @@ export function AccessSection({ accessProfile }: { accessProfile: OctopusClientA
               control={(
                 <div className="settings-inline-actions">
                   <OcStatus
-                    label={!touchId ? "Checking…" : touchId.enrolled ? "Enabled" : touchId.available ? "Off" : "Unavailable"}
+                    label={!touchId ? "確認しています…" : touchId.enrolled ? "有効" : touchId.available ? "オフ" : "利用できません"}
                     tone={touchId?.enrolled ? "success" : "muted"}
                   />
                   {touchId?.available ? (
@@ -322,12 +322,12 @@ export function AccessSection({ accessProfile }: { accessProfile: OctopusClientA
                       onClick={() => void updateTouchId(!touchId.enrolled)}
                       variant="secondary"
                     >
-                      {touchIdBusy ? "Updating…" : touchId.enrolled ? "Turn off" : "Enable"}
+                      {touchIdBusy ? "更新しています…" : touchId.enrolled ? "オフにする" : "有効にする"}
                     </OcButton>
                   ) : null}
                 </div>
               )}
-              description="Use this Mac's Touch ID after the Administrator password has been configured. The password remains available as fallback."
+              description="管理者パスワードの設定後、この Mac の Touch ID を使えます。パスワードでも引き続き解除できます。"
               label="Touch ID"
             />
           ) : null}
@@ -335,8 +335,8 @@ export function AccessSection({ accessProfile }: { accessProfile: OctopusClientA
       </OcGroup>
 
       <OcGroup
-        title="Test"
-        description="Test opens fixtures and experimental UI only. It cannot read live runtime, registry, ledger, files, endpoints, or installed stable surface data."
+        title="テスト"
+        description="テストではサンプルデータと実験的な画面のみを開けます。実際の実行基盤、レジストリ、台帳、ファイル、接続先、インストール済みの通常画面のデータは読み取れません。"
       >
         <OcCard>
           <div {...settingsTargetProps("access.test")} className="settings-access-editor">
@@ -344,13 +344,13 @@ export function AccessSection({ accessProfile }: { accessProfile: OctopusClientA
               <OcTextField
                 autoComplete="new-password"
                 disabled={testManagedByEnvironment}
-                label="New Test password"
+                label="新しいテスト用パスワード"
                 onChange={(event) => {
                   setTestPassword(event.currentTarget.value);
                   setTestState("idle");
                   setError("");
                 }}
-                placeholder={`At least ${minimumLength} characters`}
+                placeholder={`最小 ${minimumLength} 文字`}
                 showLabel
                 type="password"
                 value={testPassword}
@@ -359,7 +359,7 @@ export function AccessSection({ accessProfile }: { accessProfile: OctopusClientA
                 autoComplete="new-password"
                 disabled={testManagedByEnvironment}
                 error={testConfirmation && testConfirmation !== testPassword ? "Passwords do not match" : undefined}
-                label="Confirm Test password"
+                label="テスト用パスワードを再入力"
                 onChange={(event) => {
                   setTestConfirmation(event.currentTarget.value);
                   setTestState("idle");
@@ -371,27 +371,27 @@ export function AccessSection({ accessProfile }: { accessProfile: OctopusClientA
               />
             </div>
             <div className="settings-endpoint-actions">
-              {details?.test.source ? <OcStatus label={`Source: ${details.test.source}`} tone="muted" /> : null}
-              {testState === "saved" ? <OcStatus label="Updated" tone="success" /> : null}
+              {details?.test.source ? <OcStatus label={`継承元： ${details.test.source}`} tone="muted" /> : null}
+              {testState === "saved" ? <OcStatus label="更新済み" tone="success" /> : null}
               <OcButton
                 disabled={testManagedByEnvironment || testState === "saving" || testPassword.length < minimumLength || testPassword !== testConfirmation}
                 onClick={() => void saveTestPassword()}
                 variant="primary"
               >
-                Update Test password
+                テスト用パスワードを変更
               </OcButton>
             </div>
           </div>
         </OcCard>
       </OcGroup>
 
-      <OcGroup title="Privacy" description="Desktop permissions and locally stored client data.">
+      <OcGroup title="プライバシー" description="デスクトップの権限と、ローカルに保存されたアプリのデータです。">
         <OcCard>
           <PermissionRows />
           <OcSettingsRow {...settingsTargetProps("access.recordings")}
-            control={<OcStatus label="Artifact governed" tone="neutral" />}
-            description="Audio follows admitted artifact files, projected transcripts remain runtime evidence, and local dictation history is profile bounded."
-            label="Recordings and transcripts"
+            control={<OcStatus label="成果物の規則に従う" tone="neutral" />}
+            description="音声は許可された成果物ファイルとして扱います。会話記録は実行の証跡として保持され、ローカルの音声入力履歴はプロフィールごとに管理されます。"
+            label="録音と文字起こし"
           />
           <LocalDataRows
             clearState={clearLocalState}
@@ -442,50 +442,50 @@ function LocalDataRows({
       <OcSettingsRow {...settingsTargetProps("access.clear")}
         control={(
           <div className="settings-inline-actions">
-            {clearState === "confirm" ? <OcStatus label="Confirmation required" tone="warning" /> : null}
-            {clearState === "error" ? <OcStatus label="Could not clear" tone="danger" /> : null}
+            {clearState === "confirm" ? <OcStatus label="確認が必要" tone="warning" /> : null}
+            {clearState === "error" ? <OcStatus label="消去できませんでした" tone="danger" /> : null}
             <OcButton
               disabled={clearState === "clearing"}
               onClick={onClear}
               tone={clearState === "confirm" ? "danger" : "neutral"}
               variant={clearState === "confirm" ? "primary" : "secondary"}
             >
-              {clearState === "confirm" ? "Confirm clear" : clearState === "clearing" ? "Clearing…" : "Clear data"}
+              {clearState === "confirm" ? "消去を確認" : clearState === "clearing" ? "消去しています…" : "データを消去"}
             </OcButton>
-            {clearState === "confirm" ? <OcButton onClick={onCancelClear} variant="ghost">Cancel</OcButton> : null}
+            {clearState === "confirm" ? <OcButton onClick={onCancelClear} variant="ghost">キャンセル</OcButton> : null}
           </div>
         )}
-        description="Removes local preferences, layouts, drafts, and Test fixtures for this profile. Projected runtime evidence is not changed."
-        label="Clear local client data"
+        description="このプロフィールのローカル設定、レイアウト、下書き、テストデータを削除します。実行記録は変更しません。"
+        label="アプリのローカルデータを消去"
       />
       <OcSettingsRow {...settingsTargetProps("access.export")}
         control={(
           <div className="settings-inline-actions">
-            {exportState === "exported" ? <OcStatus label="Exported" tone="success" /> : null}
-            {exportState === "error" ? <OcStatus label="Export failed" tone="danger" /> : null}
-            <OcButton onClick={onExport} variant="secondary">Export</OcButton>
+            {exportState === "exported" ? <OcStatus label="書き出しました" tone="success" /> : null}
+            {exportState === "error" ? <OcStatus label="書き出しに失敗しました" tone="danger" /> : null}
+            <OcButton onClick={onExport} variant="secondary">書き出す</OcButton>
           </div>
         )}
-        description="Exports profile-owned local client settings as a versioned JSON file. Credentials and projection evidence are excluded."
-        label="Export local settings"
+        description="このプロフィールのローカル設定を、バージョン情報付きの JSON ファイルに書き出します。認証情報と実行記録は含みません。"
+        label="ローカル設定を書き出す"
       />
       <OcSettingsRow {...settingsTargetProps("access.import")}
         control={(
           <div className="settings-inline-actions">
             <input
               accept="application/json,.json"
-              aria-label="Choose settings export"
+              aria-label="設定ファイルを選択"
               className="sr-only"
               onChange={onChooseImport}
               ref={importInputRef}
               type="file"
             />
             {importState === "confirm" ? <OcStatus label={`${importCount} ready`} tone="warning" /> : null}
-            {importState === "error" ? <OcStatus label="Import refused" tone="danger" /> : null}
+            {importState === "error" ? <OcStatus label="読み込みを拒否しました" tone="danger" /> : null}
             {importState === "confirm" ? (
               <>
-                <OcButton onClick={onApplyImport}>Apply and reload</OcButton>
-                <OcButton onClick={onCancelImport} variant="ghost">Cancel</OcButton>
+                <OcButton onClick={onApplyImport}>適用して再読み込み</OcButton>
+                <OcButton onClick={onCancelImport} variant="ghost">キャンセル</OcButton>
               </>
             ) : (
               <OcButton
@@ -493,13 +493,13 @@ function LocalDataRows({
                 onClick={() => importInputRef.current?.click()}
                 variant="secondary"
               >
-                {importState === "reading" ? "Reading…" : importState === "importing" ? "Importing…" : "Choose file"}
+                {importState === "reading" ? "読み込んでいます…" : importState === "importing" ? "読み込んでいます…" : "ファイルを選択"}
               </OcButton>
             )}
           </div>
         )}
-        description="Merges only settings exported for this exact profile, then reloads the client. Unknown namespaces and malformed values are refused."
-        label="Import local settings"
+        description="このプロフィールから書き出した設定だけを統合し、アプリを再読み込みします。不明な名前空間や不正な値は受け付けません。"
+        label="ローカル設定を読み込む"
       />
     </>
   );
@@ -547,27 +547,27 @@ function PermissionRows() {
         control={(
           <div className="settings-inline-actions">
             <OcStatus
-              label={camera ? (camera.granted ? "Allowed" : camera.status) : "Not requested"}
+              label={camera ? (camera.granted ? "許可済み" : camera.status) : "未要求"}
               tone={camera?.granted ? "success" : "muted"}
             />
-            {!camera?.granted ? <OcButton onClick={() => void requestCamera()}>Request</OcButton> : null}
+            {!camera?.granted ? <OcButton onClick={() => void requestCamera()}>要求</OcButton> : null}
           </div>
         )}
-        description="Used by gesture control and camera-based surfaces."
-        label="Camera"
+        description="ジェスチャー操作やカメラを使う画面で使用します。"
+        label="カメラ"
       />
       <OcSettingsRow {...settingsTargetProps("access.microphone")}
         control={(
           <div className="settings-inline-actions">
             <OcStatus
-              label={microphone ? (microphone.granted ? "Allowed" : microphone.status) : "Not requested"}
+              label={microphone ? (microphone.granted ? "許可済み" : microphone.status) : "未要求"}
               tone={microphone?.granted ? "success" : "muted"}
             />
-            {!microphone?.granted ? <OcButton onClick={() => void requestMicrophone()}>Request</OcButton> : null}
+            {!microphone?.granted ? <OcButton onClick={() => void requestMicrophone()}>要求</OcButton> : null}
           </div>
         )}
-        description="Used by dictation and Voice."
-        label="Microphone"
+        description="音声入力と音声通話で使用します。"
+        label="マイク"
       />
     </>
   );

@@ -36,7 +36,7 @@ function displayName(option: ModelOption, options: ModelOption[]): string {
   return duplicate ? name + " · " + (sameLabel ? option.provider.id : option.provider.label || option.provider.id) : name;
 }
 function effortLabel(effort: string): string {
-  return ({ low: "Light", xhigh: "Extra High" } as Record<string, string>)[effort] || (effort ? effort[0].toUpperCase() + effort.slice(1) : "Power");
+  return ({ none: "なし", minimal: "最小", low: "軽め", medium: "標準", high: "高い", xhigh: "非常に高い", max: "最大", ultra: "最高" } as Record<string, string>)[effort] || (effort ? effort[0].toUpperCase() + effort.slice(1) : "推論の強さ");
 }
 
 export function ProviderModelPicker({
@@ -73,10 +73,10 @@ export function ProviderModelPicker({
   const efforts = activeProvider && activeModel ? providerReasoningEfforts(activeProvider, activeModel.model) : [];
   const tiers = activeProvider && activeModel ? providerServiceTiers(activeProvider, activeModel.model) : [];
   const selectedTier = activeProvider ? providerSelectedServiceTier(activeProvider, providerModel, serviceTier) : "default";
-  const tierLabel = tiers.find((tier) => tier.id === selectedTier)?.name ?? (selectedTier === "default" ? "Standard" : selectedTier + " · unavailable");
+  const tierLabel = tiers.find((tier) => tier.id === selectedTier)?.name ?? (selectedTier === "default" ? "Standard" : selectedTier + " · 利用できません");
   const disabled = options.length === 0 && !onRefreshModels;
   const catalogPending = loading && !activeModel;
-  const unavailableLabel = catalogPending ? "Loading…" : providerModel ? providerModel + " · unavailable" : "Select model";
+  const unavailableLabel = catalogPending ? "Loading…" : providerModel ? providerModel + " · 利用できません" : "モデルを選択";
   const modelLabel = activeProvider && activeModel ? displayName({ provider: activeProvider, model: activeModel }, options) : unavailableLabel;
   const triggerModelLabel = activeModel ? (activeModel.displayName || activeModel.model).replace(/^gpt[-\s]+/i, "") : unavailableLabel;
   const effortAvailable = efforts.includes(selectedEffort);
@@ -313,21 +313,21 @@ export function ProviderModelPicker({
     <button ref={triggerRef} type="button" className="provider-model-trigger" data-provider-picker-trigger
       data-selected-reasoning-effort={selectedEffort} data-selected-service-tier={selectedTier} aria-haspopup="menu" aria-expanded={open}
       aria-controls={open ? id + "-menu" : undefined} aria-describedby={tooltip ? id + "-tooltip" : undefined}
-      aria-label={"Select model: " + modelLabel + (effortText ? ", " + effortText : "") + (onServiceTierChange && tiers.length ? ", " + tierLabel : "")} aria-busy={catalogPending || undefined} disabled={disabled}
+      aria-label={"モデルを選択： " + modelLabel + (effortText ? ", " + effortText : "") + (onServiceTierChange && tiers.length ? ", " + tierLabel : "")} aria-busy={catalogPending || undefined} disabled={disabled}
       onPointerEnter={(event) => { if (event.pointerType !== "touch") showTooltip(); }} onPointerLeave={() => { tooltipSuppressed.current = false; hideTooltip(); }} onFocus={showTooltip} onBlur={() => { tooltipSuppressed.current = false; hideTooltip(); }}
       onPointerDown={(event) => { if (event.button === 0 && !event.ctrlKey) { keyboardOpen.current = false; if (!openRef.current) event.preventDefault(); openRef.current ? closeMenu() : openMenu(); } }}
       onClick={(event) => { if (event.detail === 0) { keyboardOpen.current = false; openRef.current ? closeMenu() : openMenu(); } }}
       onKeyDown={(event) => {
         if (["Enter", " ", "ArrowDown"].includes(event.key)) { event.preventDefault(); keyboardOpen.current = true; if (event.key !== "ArrowDown" && openRef.current) closeMenu(); else openMenu(); }
       }}>
-      <span ref={placeholderRef} className="provider-model-placeholder" aria-hidden="true" data-provider-picker-placeholder>Select model</span>
+      <span ref={placeholderRef} className="provider-model-placeholder" aria-hidden="true" data-provider-picker-placeholder>モデルを選択</span>
       <span ref={anchorRef} className="provider-model-trigger-label" data-provider-picker-anchor style={{ minWidth: triggerSizing?.minimum }}>
-        {catalogPending ? <OcLoadingText label="Loading models…">{providerModel || "Select a model"}</OcLoadingText> : <span>{open && view === "simple" ? "Select model" : triggerModelLabel}</span>}{!(open && view === "simple") && effortAvailable ? <span className="provider-model-trigger-effort" data-maximum={selectedEffort === "ultra" || undefined}>{effortLabel(selectedEffort)}</span> : null}
+        {catalogPending ? <OcLoadingText label="モデルを読み込んでいます…">{providerModel || "モデルを選択"}</OcLoadingText> : <span>{open && view === "simple" ? "モデルを選択" : triggerModelLabel}</span>}{!(open && view === "simple") && effortAvailable ? <span className="provider-model-trigger-effort" data-maximum={selectedEffort === "ultra" || undefined}>{effortLabel(selectedEffort)}</span> : null}
       </span>
       <span className="provider-model-trigger-chevron" aria-hidden="true" />
     </button>
-    {tooltip && !open ? createPortal(<div ref={tooltipRef} id={id + "-tooltip"} role="tooltip" className="provider-model-tooltip">Select model</div>, document.body) : null}
-    {menuMounted ? createPortal(<motion.div ref={menuRef} id={id + "-menu"} role="menu" tabIndex={-1} aria-label="Model and Power"
+    {tooltip && !open ? createPortal(<div ref={tooltipRef} id={id + "-tooltip"} role="tooltip" className="provider-model-tooltip">モデルを選択</div>, document.body) : null}
+    {menuMounted ? createPortal(<motion.div ref={menuRef} id={id + "-menu"} role="menu" tabIndex={-1} aria-label="モデルと推論の強さ"
       aria-hidden={!open} inert={!open} initial={reducedMotion ? false : { opacity: 0, scale: 0.98 }}
       animate={{ opacity: open ? 1 : 0, scale: open ? 1 : 0.98 }}
       transition={{ duration: reducedMotion ? 0 : open ? 0.32 : 0.12, delay: open && !reducedMotion ? 0.03 : 0, ease: [0.23, 1, 0.32, 1] }}
@@ -345,7 +345,7 @@ export function ProviderModelPicker({
         data-fast-mode-enabled={selectedTier !== "default" || undefined} data-maximum={selectedEffort === "ultra" || undefined}
         aria-haspopup={tiers.length > 2 ? "menu" : undefined} aria-expanded={tiers.length > 2 ? speedOpen : undefined} aria-pressed={tiers.length > 2 ? undefined : selectedTier !== "default"}
         aria-controls={speedOpen ? id + "-speed-menu" : undefined}
-        aria-label={"Speed " + tierLabel} data-picker-search-label="Speed"
+        aria-label={"速度 " + tierLabel} data-picker-search-label="Speed"
         onClick={() => { if (tiers.length > 2) setSpeedOpen((value) => !value); else onServiceTierChange(selectedTier === "default" ? tiers[1].id : "default"); }}
         onKeyDown={(event) => { if (tiers.length > 2 && event.key === "ArrowRight") { event.preventDefault(); setSpeedOpen(true); } }}>
         <span className="provider-model-fast-toggle-content">{selectedTier === "ultrafast"
@@ -357,7 +357,7 @@ export function ProviderModelPicker({
       <button type="button" role="menuitem" className="provider-model-view-toggle" data-model-picker-view-toggle
         data-picker-search-label={modelLabel + effortText}
         onPointerMove={focusHoveredItem} onPointerLeave={leaveItem}
-        aria-label={view === "simple" ? "Choose a model" : "Back to Power"} onClick={toggleView}
+        aria-label={view === "simple" ? "モデルを選択" : "推論の強さに戻る"} onClick={toggleView}
         onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); toggleView(); } }}>
         <span className="provider-model-view-label" data-maximum={selectedEffort === "ultra" || undefined}>
           <span className="provider-model-effort-text">{effortText}</span><span className="provider-model-chevron" aria-hidden="true" />
@@ -367,17 +367,17 @@ export function ProviderModelPicker({
       <span className="provider-model-ultra-warning" aria-hidden="true"><motion.span key={String(warning)}
         initial={{ backgroundPosition: warning && !reducedMotion ? "100% 0" : "0% 0" }} animate={{ backgroundPosition: "0% 0" }}
         transition={{ duration: reducedMotion ? 0 : 1.1, ease: "easeOut" }}
-        style={{ backgroundImage: "linear-gradient(100deg, " + [[42,100],[47,70],[50,40],[53,70],[58,100]].map(([stop,purple]) => "color-mix(in srgb, var(--color-chart-purple) " + purple + "%, var(--color-text)) " + stop + "%").join(", ") + ")" }}>Consumes usage limits faster</motion.span></span>
+        style={{ backgroundImage: "linear-gradient(100deg, " + [[42,100],[47,70],[50,40],[53,70],[58,100]].map(([stop,purple]) => "color-mix(in srgb, var(--color-chart-purple) " + purple + "%, var(--color-text)) " + stop + "%").join(", ") + ")" }}>使用枠の消費が速くなります</motion.span></span>
       </div>
       <div className="provider-model-power-panel">
         {efforts.length > 1 && effortAvailable ? <PowerSlider efforts={efforts} value={selectedEffort} onChange={onReasoningEffortChange} reducedMotion={reducedMotion} onComplete={() => { tooltipSuppressed.current = true; closeMenu(); }} onUltraDrag={() => setWarning(true)} active={view === "simple"} />
           : null}
       </div></div><div ref={advancedPanel} className="provider-model-view-panel" data-active={view === "advanced"} aria-hidden={view !== "advanced"} inert={view !== "advanced"} data-provider-picker-panel="advanced">
       <div className="provider-model-list">
-        {!options.length && loading ? <OcLoadingRows label="Loading models…" /> : <div className="provider-model-section-label">{options.length ? "Select model" : "No models available"}</div>}
-        {interfaceLocked ? <div className="provider-model-empty">Start a new task to choose another provider.</div> : null}
+        {!options.length && loading ? <OcLoadingRows label="モデルを読み込んでいます…" /> : <div className="provider-model-section-label">{options.length ? "モデルを選択" : "利用できるモデルがありません"}</div>}
+        {interfaceLocked ? <div className="provider-model-empty">別のプロバイダーを選ぶには、新しいタスクを開始してください。</div> : null}
         {!options.length && onRefreshModels ? <OcMenuItem role="menuitem" tabIndex={-1}
-          label="Retry loading models" disabled={loading} onClick={onRefreshModels}
+          label="モデルの読み込みを再試行" disabled={loading} onClick={onRefreshModels}
           onKeyDown={(event) => {
             if (!loading && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onRefreshModels(); }
           }}
@@ -396,7 +396,7 @@ export function ProviderModelPicker({
         </button></ShellTooltip>)}
       </div>
       </div></div>
-      {speedOpen && onServiceTierChange ? createPortal(<div ref={speedMenuRef} id={id + "-speed-menu"} role="menu" aria-label="Speed" className="provider-model-menu provider-model-speed-menu" data-reduced-motion={reducedMotion || undefined} onKeyDown={speedKey}
+      {speedOpen && onServiceTierChange ? createPortal(<div ref={speedMenuRef} id={id + "-speed-menu"} role="menu" aria-label="速度" className="provider-model-menu provider-model-speed-menu" data-reduced-motion={reducedMotion || undefined} onKeyDown={speedKey}
         onFocusCapture={(event) => {
           for (const item of event.currentTarget.querySelectorAll<HTMLElement>("[role=menuitemradio]")) item.tabIndex = item === event.target ? 0 : -1;
         }}>
@@ -482,7 +482,7 @@ function PowerSlider({ efforts, value, onChange, reducedMotion, onComplete, onUl
     }
   };
   const release = () => { dragging.current = null; movedRef.current = false; setPressed(false); setMoved(false); setHovered(false); };
-  return <div ref={sliderRef} className="provider-model-power" role="slider" tabIndex={0} dir="ltr" aria-label="Power" aria-valuemin={0}
+  return <div ref={sliderRef} className="provider-model-power" role="slider" tabIndex={0} dir="ltr" aria-label="推論の強さ" aria-valuemin={0}
     aria-valuemax={intervals} aria-valuenow={index} aria-valuetext={({ medium: "Standard", high: "Extended" } as Record<string,string>)[value] || effortLabel(value)} aria-disabled={disabled || undefined}
     data-reasoning-slider data-selected-effort={value} data-maximum={maximum || undefined} data-dragging={moved || undefined}
     data-disabled={disabled || undefined} data-reduced-motion={reducedMotion || undefined} onKeyDown={keyboard}

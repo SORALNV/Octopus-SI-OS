@@ -16,19 +16,19 @@ type Step = {
 };
 
 const welcomeSteps: Step[] = [
-  { kind: "hero", cta: "Get started" },
-  { kind: "preview", cta: "Agree & continue" },
-  { kind: "manifesto", cta: "Continue" },
-  { kind: "primitives", cta: "Continue" },
+  { kind: "hero", cta: "はじめる" },
+  { kind: "preview", cta: "同意して続ける" },
+  { kind: "manifesto", cta: "続ける" },
+  { kind: "primitives", cta: "続ける" },
 ];
 
 const primitives: Array<{ glyph: GlyphName; name: string; copy: string }> = [
-  { glyph: "interfaces", name: "Interfaces", copy: "Declared ports for providers, channels, sensors, workers, and tool rooms." },
-  { glyph: "ee", name: "Worker environments", copy: "Where tools act: a workspace, browser, desktop, or container." },
-  { glyph: "sites", name: "Artifacts", copy: "Data crossing an interface: a message, file reference, tool call, or result." },
-  { glyph: "binding", name: "Policy & bindings", copy: "What a run may use, which interfaces it can reach, and what context it can read." },
-  { glyph: "topology", name: "Goals & runs", copy: "Environments hold goals and permissions. Runs record work and pending checkpoints." },
-  { glyph: "descriptor", name: "Descriptors", copy: "JSON that declares capabilities and connects them to the system." },
+  { glyph: "interfaces", name: "インターフェース", copy: "プロバイダー、チャネル、センサー、ワーカー、ツールの作業場所をつなぐ、定義済みの窓口です。" },
+  { glyph: "ee", name: "作業環境", copy: "ツールが動作する場所です。ワークスペース、ブラウザー、デスクトップ、コンテナーなどがあります。" },
+  { glyph: "sites", name: "成果物", copy: "メッセージ、ファイルの参照、ツールの呼び出しや結果など、インターフェースを通じてやり取りするデータです。" },
+  { glyph: "binding", name: "ポリシーと紐付け", copy: "実行が使えるもの、接続できるインターフェース、読み取れるコンテキストを定めます。" },
+  { glyph: "topology", name: "目標と実行", copy: "環境は目標と権限を持ち、実行は作業と入力待ちのチェックポイントを記録します。" },
+  { glyph: "descriptor", name: "記述子", copy: "機能を定義し、システムに接続するための JSON です。" },
 ];
 
 const HERO_SRC = "./octopus-providers.png";
@@ -43,45 +43,45 @@ const SHELL_MARK_VIDEO_SRC = "./mark-shell.mp4";
 
 const IDEA_THEMES: IdeaTheme[] = [
   {
-    heading: "Connected through interfaces",
+    heading: "インターフェースでつながる",
     body:
-      "System is everything Octopus can act on. World is everything outside it. They meet at declared interfaces: a model provider, a microphone, a chat channel. Each exchanges artifacts through the same boundary. Adding a connection means installing its descriptor and driver code, then granting access to it. The kernel stays the same.",
+      "Octopus が操作できる範囲を「システム」、その外側を「外部」と呼びます。モデルのプロバイダー、マイク、チャットのチャネルなど、定義されたインターフェースが両者をつなぎ、共通の仕組みで成果物をやり取りします。接続を追加するには、記述子とドライバーをインストールし、アクセスを許可します。カーネルを変更する必要はありません。",
     src: "./onboarding/artifact-protocol.png",
   },
   {
-    heading: "Add the software you need",
+    heading: "必要なソフトウェアを追加",
     body:
-      "Install the base once, then choose applications and drivers for your work. Capabilities are declared in JSON, with executable code where needed. If a piece is missing, an authorized coding worker can build it and register it through ordinary file tools. Later runs can use that capability when their bindings and permissions allow it.",
+      "基本システムを一度インストールすれば、あとは作業に必要なアプリケーションとドライバーを選べます。機能は JSON で定義し、必要に応じて実行コードを用意します。足りない機能は、権限を持つ開発用ワーカーが作成し、通常のファイル操作で登録できます。以後の実行でも、紐付けと権限が許す範囲でその機能を使えます。",
     src: "./onboarding/descriptor-evolution.png",
   },
   {
-    heading: "Work can wait and continue",
+    heading: "作業を待機して、続きから再開",
     body:
-      "A run records work inside an environment with a goal and permissions. It can wait at a checkpoint and continue when the required input arrives. Tools act in worker environments: a workspace, a browser, a desktop, or a container. The run's progress and pending requirements remain on disk while it waits.",
+      "実行は、目標と権限を持つ環境の中で作業を記録します。チェックポイントで待機し、必要な入力が届くと続きから再開できます。ツールは、ワークスペース、ブラウザー、デスクトップ、コンテナーなどの作業環境で動作します。待機中も、進捗と満たされていない条件はディスクに保存されます。",
     src: "./onboarding/worker-environment.png",
   },
   {
-    heading: "Check the result",
+    heading: "結果を確かめる",
     body:
-      "A checkpoint can require an artifact to pass a check before work continues. The verifier performs that check; the runtime records a mark when it passes. For example, a build check can establish that a build succeeded. The mark links the result to its evidence and proves only what that verifier checked.",
+      "チェックポイントでは、作業を続ける前に成果物の検証を求められます。検証プログラムが確認を行い、合格すると実行基盤が検証記録を残します。たとえば、ビルドの検証ではビルドが成功したことを確認できます。検証記録は結果と証拠を結び付け、その検証で確認した範囲だけを証明します。",
     src: "./onboarding/verified-mark.png",
   },
   {
-    heading: "Permissions follow the work",
+    heading: "作業ごとに権限を管理",
     body:
-      "Each run has a specific grant: the intersection of its worker's maximum permissions, its environment hierarchy, and its authored bindings. Octopus recomputes that grant whenever an artifact arrives. The model sees the tools and context available to it; the runtime and tool rooms enforce the boundaries. Inner environments can only narrow the permissions around them.",
+      "各実行の権限は、ワーカーの権限の上限、環境の階層、定義された紐付けが重なる範囲で決まります。Octopus は成果物が届くたびに権限を計算し直します。モデルには利用可能なツールとコンテキストを渡し、実行基盤と作業環境が権限の境界を守ります。内側の環境で権限を広げることはできず、さらに絞り込むことだけができます。",
     src: "./onboarding/policy-formation.png",
   },
   {
-    heading: "A record you can inspect",
+    heading: "あとから確認できる記録",
     body:
-      "Messages, tool calls, results, and memory cross interfaces as artifacts. A manifest identifies the content and where it lives. The ledger records the movements, including refusals and failed checks. You can trace what reached a run, which boundary it crossed, and what evidence supports a result.",
+      "メッセージ、ツールの呼び出し、結果、メモリは、成果物としてインターフェースを通過します。内容と保存先はマニフェストで特定でき、移動の履歴は拒否や検証の失敗も含めて台帳に残ります。実行に何が届き、どの境界を通り、何を根拠に結果が示されたかをたどれます。",
     src: "./onboarding/artifact-ledger.png",
   },
   {
-    heading: "One place for your work",
+    heading: "作業をひとつの場所に",
     body:
-      "Use Home for an ongoing conversation by text or voice. Organize work into Projects, configure Agents, and give them Tasks. Applications connect providers, services, and context; Drivers provide the places where tools act. Dashboard shows the underlying environments, runs, and movements. Your configuration and work records stay in your local Home directory.",
+      "ホームでは文字や音声で会話を続けられます。仕事をプロジェクトに整理し、エージェントを設定してタスクを任せましょう。アプリケーションはプロバイダー、サービス、コンテキストをつなぎ、ドライバーはツールが動く場所を用意します。ダッシュボードでは、その裏側にある環境、実行、移動を確認できます。設定と作業の記録は、ローカルのホームディレクトリに保存されます。",
     src: SHELL_MARK_SRC,
   },
 ];
@@ -145,7 +145,7 @@ export function WelcomeOverlay({ visitCount, onComplete }: Props) {
         </div>
         {!isLast ? (
           <button className="welcome-skip" type="button" onClick={onComplete}>
-            Skip
+            スキップ
           </button>
         ) : (
           <span className="welcome-skip welcome-skip-spacer" aria-hidden="true" />
@@ -170,7 +170,7 @@ export function WelcomeOverlay({ visitCount, onComplete }: Props) {
         <div className="welcome-footer-side welcome-footer-left">
           {!isFirst ? (
             <button className="welcome-back" type="button" onClick={back}>
-              Back
+              戻る
             </button>
           ) : null}
         </div>
@@ -205,12 +205,12 @@ function HeroStage({
         <div className="welcome-hero-veil" aria-hidden="true" />
       </div>
       <div className={`welcome-hero-copy${assembled ? " is-in" : ""}`}>
-        <span className="welcome-tag">Research Preview</span>
+        <span className="welcome-tag">研究プレビュー</span>
         <h1 id="welcome-title" className="welcome-title welcome-title-hero">
-          Welcome to Octopus&nbsp;OS
+          Octopus&nbsp;OS へようこそ
         </h1>
         <p className="welcome-body welcome-hero-body">
-          An operating system for agents. Talk to it, give it work, and choose the applications and tools it can use.
+          エージェントのためのオペレーティングシステムです。話しかけて仕事を頼み、使えるアプリケーションやツールを選べます。
         </p>
       </div>
     </div>
@@ -275,7 +275,7 @@ function IdeaStep() {
   return (
     <section className="welcome-idea">
       <div className="welcome-idea-left">
-        <span className="welcome-tag">The idea</span>
+        <span className="welcome-tag">基本の考え方</span>
         <div className="welcome-idea-scroll" ref={scrollRef} onScroll={computeProgress}>
           {IDEA_THEMES.map((theme, i) => (
             <div className="welcome-idea-section" key={theme.heading}>
@@ -305,12 +305,12 @@ function IdeaStep() {
 function PrimitivesStep() {
   return (
     <section className="welcome-primitives">
-      <span className="welcome-tag">How it works</span>
+      <span className="welcome-tag">仕組み</span>
       <h1 id="welcome-title" className="welcome-title">
-        A few primitives, composed
+        少数の基本要素を組み合わせる
       </h1>
       <p className="welcome-body welcome-body-wide">
-        A small kernel connects these primitives. Applications and drivers provide the capabilities you use.
+        小さなカーネルが基本要素をつなぎ、アプリケーションやドライバーが必要な機能を提供します。
       </p>
       <div className="welcome-grid">
         {primitives.map((item, index) => (
@@ -322,7 +322,7 @@ function PrimitivesStep() {
         ))}
       </div>
       <a className="welcome-textlink" href={DOCS_URL} target="_blank" rel="noreferrer">
-        Read the documentation
+        ドキュメントを読む
         <Glyph name="chevronDown" size={14} className="welcome-textlink-arrow" />
       </a>
     </section>
@@ -332,24 +332,23 @@ function PrimitivesStep() {
 function PreviewStep() {
   return (
     <section className="welcome-centered">
-      <span className="welcome-tag">Before you start</span>
+      <span className="welcome-tag">はじめる前に</span>
       <h1 id="welcome-title" className="welcome-title">
-        This is a research preview
+        このアプリは研究プレビューです
       </h1>
       <p className="welcome-body">
-        Octopus is early and moving fast. Expect rough edges, breaking changes, and ideas still finding their shape. It
-        runs locally, with your own ChatGPT account.
+        Octopus は開発初期の段階で、活発に更新されています。未完成の部分や互換性のない変更があり、設計も変わることがあります。ご自身の ChatGPT アカウントを使い、ローカルで動作します。
       </p>
       <div className="welcome-support">
-        <span className="welcome-support-label">Follow along or support the project</span>
+        <span className="welcome-support-label">プロジェクトをフォロー・応援する</span>
         <div className="welcome-support-links">
           <a className="welcome-pill" href={GITHUB_URL} target="_blank" rel="noreferrer">
             <GitHubIcon />
-            Star on GitHub
+            GitHub でスターを付ける
           </a>
           <a className="welcome-pill" href={X_URL} target="_blank" rel="noreferrer">
             <XIcon />
-            Follow on X
+            X でフォロー
           </a>
         </div>
       </div>

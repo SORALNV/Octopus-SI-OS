@@ -58,11 +58,11 @@ export function GeneralSection({ accessProfile, surfaces }: { accessProfile: Oct
   }
   const providerOptions = useMemo(() => {
     const options = [
-      { value: "", label: "Inherit from Home" },
+      { value: "", label: "ホームから引き継ぐ" },
       ...providerState.providers.map((provider) => ({ value: provider.id, label: provider.label })),
     ];
     if (storedProviderMissing) {
-      return [{ value: providerInterfaceId, label: `${providerInterfaceId} · not declared`, disabled: true }, ...options];
+      return [{ value: providerInterfaceId, label: `${providerInterfaceId} · 未定義`, disabled: true }, ...options];
     }
     return options;
   }, [providerInterfaceId, providerState.providers, storedProviderMissing]);
@@ -76,7 +76,7 @@ export function GeneralSection({ accessProfile, surfaces }: { accessProfile: Oct
       options.push({ value: surface.id, label: surface.label, glyph: surface.glyph });
     }
     if (!options.some((option) => option.value === preferences.startupSurfaceId)) {
-      options.unshift({ value: preferences.startupSurfaceId, label: `${preferences.startupSurfaceId} · unavailable`, glyph: "descriptor", disabled: true });
+      options.unshift({ value: preferences.startupSurfaceId, label: `${preferences.startupSurfaceId} · 利用できません`, glyph: "descriptor", disabled: true });
     }
     return options;
   }, [preferences.startupSurfaceId, surfaces]);
@@ -98,41 +98,41 @@ export function GeneralSection({ accessProfile, surfaces }: { accessProfile: Oct
   return (
     <section className="settings-section">
       <SettingsHeading
-        description="Desktop behavior that is stored locally for this client."
-        title="General"
+        description="このクライアントに保存するデスクトップの動作設定です。"
+        title="一般"
       />
 
-      <OcGroup title="Startup & tasks" description="Choose the launch destination and task display preferences.">
+      <OcGroup title="起動とタスク" description="起動時の画面とタスクの表示方法を選びます。">
         <OcCard>
           <OcSettingsRow {...settingsTargetProps("general.first-surface")}
             control={(
               <OcSelect<string>
-                label="Open on launch"
+                label="起動時に開く画面"
                 onChange={(startupSurfaceId) => setClientPreferences({ startupSurfaceId })}
                 options={startupSurfaceOptions}
                 value={preferences.startupSurfaceId}
               />
             )}
-            description="Choose the launch destination. The last opened surface is restored when available."
-            label="Open on launch"
+            description="起動時に開く画面を選びます。利用できる場合は、最後に開いた画面を復元します。"
+            label="起動時に開く画面"
           />
           <OcSettingsRow {...settingsTargetProps("general.internal-runs")}
             control={(
               <OcSwitch
                 checked={preferences.showInternalRuns}
-                label="Show internal runs"
+                label="内部の実行を表示"
                 onCheckedChange={(showInternalRuns) => setClientPreferences({ showInternalRuns })}
               />
             )}
-            description="Include runs inside the Octopus OS scope that have no exact client interface. They open read-only and show artifact movement activity."
-            label="Internal runs"
+            description="専用のクライアントインターフェースを持たない内部の実行も表示します。読み取り専用で開き、成果物の移動を確認できます。"
+            label="内部の実行"
           />
           <OcSettingsRow {...settingsTargetProps("general.task-pane-width")}
             control={(
               <OcSlider
                 className="settings-slider-control"
                 formatValue={(value) => `${value}%`}
-                label="Task pane width"
+                label="タスクペインの幅"
                 max={68}
                 min={28}
                 onChange={(secondaryTaskPaneWidthPercent) => setClientPreferences({ secondaryTaskPaneWidthPercent })}
@@ -140,67 +140,67 @@ export function GeneralSection({ accessProfile, surfaces }: { accessProfile: Oct
                 value={preferences.secondaryTaskPaneWidthPercent}
               />
             )}
-            description="Set the default width of the task pane. Dragging the divider updates the same preference."
-            label="Task pane width"
+            description="タスクペインの既定の幅を設定します。区切り線をドラッグしても変更できます。"
+            label="タスクペインの幅"
           />
         </OcCard>
       </OcGroup>
 
-      <OcGroup title="Composer" description="These controls change the local chat client.">
+      <OcGroup title="メッセージ入力" description="ローカルのチャット画面の動作を設定します。">
         <OcCard>
           <OcSettingsRow {...settingsTargetProps("general.send-shortcut")}
             control={(
               <OcSelect<SendShortcut>
-                label="Send shortcut"
+                label="送信のショートカット"
                 onChange={(sendShortcut) => setClientPreferences({ sendShortcut })}
                 options={[
                   { value: "enter", label: "Enter" },
-                  { value: "cmd-if-multiline", label: "⌘ Enter for multiline prompts" },
-                  { value: "cmd-always", label: "⌘ Enter always" },
+                  { value: "cmd-if-multiline", label: "複数行のときは ⌘ Enter" },
+                  { value: "cmd-always", label: "常に ⌘ Enter" },
                 ]}
                 value={preferences.sendShortcut}
               />
             )}
-            description="Choose when Enter sends a prompt or inserts a new line."
-            label="Send shortcut"
+            description="Enter で送信する条件と、改行する条件を選びます。"
+            label="送信のショートカット"
           />
           <OcSettingsRow {...settingsTargetProps("general.spell-check")}
             control={(
               <OcSwitch
                 checked={preferences.spellcheckEnabled}
-                label="Spell check"
+                label="スペルチェック"
                 onCheckedChange={(spellcheckEnabled) => setClientPreferences({ spellcheckEnabled })}
               />
             )}
-            description="Use the operating system dictionary and suggestions in the task composer."
-            label="Spell check"
+            description="タスクの入力欄で、OS の辞書と修正候補を使います。"
+            label="スペルチェック"
           />
           <OcSettingsRow {...settingsTargetProps("general.active-reply")}
-            control={<span className="text-sm text-token-text-secondary">Steer current reply</span>}
-            description="Send steers the current reply immediately. To queue a message, right-click Send or use the queue shortcut."
-            label="While a run is active"
+            control={<span className="text-sm text-token-text-secondary">現在の応答に指示を追加</span>}
+            description="送信すると、現在の応答にすぐに指示を追加します。送信待ちにするには、送信ボタンを右クリックするか、専用のショートカットを使ってください。"
+            label="実行中の送信"
           />
           <OcSettingsRow {...settingsTargetProps("general.work-mode")}
             control={(
               <OcSelect<"detailed" | "concise">
-                label="Technical detail"
+                label="技術的な詳細"
                 onChange={(technicalDetailLevel) => setClientPreferences({ technicalDetailLevel })}
                 options={[
-                  { value: "detailed", label: "Detailed" },
-                  { value: "concise", label: "Concise" },
+                  { value: "detailed", label: "詳細" },
+                  { value: "concise", label: "簡潔" },
                 ]}
                 value={preferences.technicalDetailLevel}
               />
             )}
-            description="Detailed shows projected reasoning, tools, plans, searches, and hooks inline. Concise keeps the same evidence available inside a collapsed activity group."
-            label="Work mode"
+            description="「詳細」では推論、ツール、計画、検索、フックを会話内に表示します。「簡潔」では同じ記録を折りたたんだアクティビティ内にまとめます。"
+            label="作業モード"
           />
         </OcCard>
       </OcGroup>
 
       <OcGroup
-        title="Default provider interface"
-        description="New tasks inherit Home's declared provider unless you explicitly choose another interface here."
+        title="既定のプロバイダー"
+        description="ここで別のプロバイダーを選ばない限り、新しいタスクはホームのプロバイダーを引き継ぎます。"
       >
         <OcCard>
           <OcSettingsRow {...settingsTargetProps("general.provider")}
@@ -209,56 +209,56 @@ export function GeneralSection({ accessProfile, surfaces }: { accessProfile: Oct
                 className="settings-provider-select"
                 disabled={providerState.loading || providerOptions.length === 0}
                 error={providerState.error || (storedProviderMissing ? "This saved interface is unavailable. Choose a declared interface or Inherit from Home." : undefined)}
-                label="Default provider interface"
+                label="既定のプロバイダー"
                 onChange={selectProvider}
                 options={providerOptions}
-                placeholder={providerState.loading ? "Reading registry…" : "Select an interface"}
+                placeholder={providerState.loading ? "レジストリを読み込んでいます…" : "インターフェースを選択"}
                 value={providerInterfaceId}
               />
             )}
             description={providerInterfaceId
-              ? "This exact interface id is stored as the chat default."
-              : "No override is stored. New tasks inherit the provider and reasoning effort projected from Home."}
-            label="Provider"
+              ? "このインターフェース ID をチャットの既定値として保存しています。"
+              : "上書き設定はありません。新しいタスクはホームのプロバイダーと推論の強さを引き継ぎます。"}
+            label="プロバイダー"
           />
           {selectedProvider ? <ProviderSummary provider={selectedProvider} compact /> : null}
         </OcCard>
       </OcGroup>
 
-      <OcGroup title="Application" description="Launch behavior for the desktop client.">
+      <OcGroup title="アプリケーション" description="デスクトップアプリの起動時の動作です。">
         <OcCard>
           <OcSettingsRow {...settingsTargetProps("general.on-launch")}
-            control={<OcStatus label="Restore last surface" tone="neutral" />}
-            description="The client reopens the surface that was active when it closed."
-            label="On launch"
+            control={<OcStatus label="前回の画面を復元" tone="neutral" />}
+            description="アプリを閉じたときに表示していた画面を開きます。"
+            label="起動時"
           />
           <OcSettingsRow {...settingsTargetProps("general.open-at-login")}
             control={accessProfile === "live" ? (
               <OcSwitch
                 checked={loginItem.enabled}
                 disabled={loginItem.loading || !loginItem.supported}
-                label="Open at login"
+                label="ログイン時に起動"
                 onCheckedChange={(enabled) => void setOpenAtLogin(enabled)}
               />
-            ) : <OcStatus label="Administrator only" tone="muted" />}
-            description="Ask the operating system to launch the packaged Octopus application after sign-in."
-            label="Open at login"
+            ) : <OcStatus label="管理者のみ" tone="muted" />}
+            description="OS へのログイン後に Octopus アプリを起動します。"
+            label="ログイン時に起動"
             meta={accessProfile === "live" && !loginItem.loading && !loginItem.supported ? "Available in packaged builds." : undefined}
           />
           <OcSettingsRow {...settingsTargetProps("general.keep-awake")}
             control={(
               <OcSwitch
                 checked={preferences.keepAwakeDuringRuns}
-                label="Keep awake during runs"
+                label="実行中はスリープさせない"
                 onCheckedChange={(keepAwakeDuringRuns) => setClientPreferences({ keepAwakeDuringRuns })}
               />
             )}
-            description="Prevent the system from sleeping while a run is executing."
-            label="Keep awake"
+            description="タスクを実行している間、システムのスリープを防ぎます。"
+            label="スリープを防止"
           />
         </OcCard>
       </OcGroup>
-      <OcGroup title="Notifications">
+      <OcGroup title="通知">
         <OcCard>
           <MarkActivitySettingsRow />
           <NotificationSoundSettingsRow />

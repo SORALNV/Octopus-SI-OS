@@ -150,7 +150,7 @@ export function useClientExtensions(accessProfile: OctopusClientAccessProfile): 
     refresh: () => setRefreshTick((current) => current + 1),
     install: async (id, operationId) => {
       const extension = requireExtensionRecord(materialized.extensions, id);
-      if (!extension.configured) throw new Error(`Set up ${extension.manifest.name} before installing it.`);
+      if (!extension.configured) throw new Error(`設定する ${extension.manifest.name} before installing it.`);
       if (extension.manifest.contribution.kind === "surface" && extension.admission !== "reviewed") {
         await mutate(id, { reviewed: extensionRevision(extension) });
       }

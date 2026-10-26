@@ -284,7 +284,7 @@ export function AssistantCodeReviewBar({ comments, expanded, onExpandedChange, o
     <section className={`we-diff-review${expanded ? " is-expanded" : ""}`}>
       {expanded ? (
         <div className="we-diff-review-summary">
-          <header><div><strong>Assistant review</strong><span>{comments.length} across {fileCount} {fileCount === 1 ? "file" : "files"}</span></div></header>
+          <header><div><strong>アシスタントのレビュー</strong><span>{comments.length} 対象 {fileCount} {fileCount === 1 ? "file" : "ファイル"}</span></div></header>
           <div className="we-diff-review-summary-list">
             {comments.map((comment) => <AssistantCodeReviewComment comment={comment} key={comment.id} onReveal={onReveal} variant="summary" />)}
           </div>
@@ -293,7 +293,7 @@ export function AssistantCodeReviewBar({ comments, expanded, onExpandedChange, o
       <div className="we-diff-review-strip">
         <button aria-expanded={expanded} className="we-diff-review-text-action" onClick={() => onExpandedChange(!expanded)} type="button">
           <Glyph name="octopus" size={13} />
-          {comments.length} assistant {comments.length === 1 ? "comment" : "comments"}
+          {comments.length} アシスタント {comments.length === 1 ? "comment" : "comments"}
           <Glyph className={expanded ? "-rotate-180" : ""} name="chevronDown" size={12} />
         </button>
       </div>
@@ -311,10 +311,10 @@ export function OperatorDiffReviewBar({ comments, expanded, onBeginComment, onCl
         <div className="we-diff-review-summary">
           <header>
             <div>
-              <strong>Review comments</strong>
-              <span>{comments.length} across {fileCount} {fileCount === 1 ? "file" : "files"}</span>
+              <strong>レビューコメント</strong>
+              <span>{comments.length} 対象 {fileCount} {fileCount === 1 ? "file" : "ファイル"}</span>
             </div>
-            <button aria-label="Clear review comments" className="we-diff-review-icon-action" onClick={onClear} title="Clear" type="button"><Glyph name="trash" size={13} /></button>
+            <button aria-label="レビューコメントを消去" className="we-diff-review-icon-action" onClick={onClear} title="消去" type="button"><Glyph name="trash" size={13} /></button>
           </header>
           <div className="we-diff-review-summary-list">
             {comments.map((comment) => (
@@ -332,16 +332,16 @@ export function OperatorDiffReviewBar({ comments, expanded, onBeginComment, onCl
       ) : null}
       <div className="we-diff-review-strip">
         {selected ? (
-          <button className="we-diff-review-text-action" onClick={onBeginComment} title={reviewSelectionLabel(selected)} type="button"><Glyph name="plus" size={12} />Comment</button>
+          <button className="we-diff-review-text-action" onClick={onBeginComment} title={reviewSelectionLabel(selected)} type="button"><Glyph name="plus" size={12} />コメント</button>
         ) : null}
         {comments.length ? (
-          <button aria-expanded={expanded} className="we-diff-review-text-action" onClick={() => onExpandedChange(!expanded)} title={storageError || (storageStatus === "saving" ? "Saving local draft" : "Local review draft")} type="button">
+          <button aria-expanded={expanded} className="we-diff-review-text-action" onClick={() => onExpandedChange(!expanded)} title={storageError || (storageStatus === "saving" ? "ローカルの下書きを保存しています" : "ローカルのレビュー下書き")} type="button">
             <Glyph name="changes" size={13} />
             {comments.length} {comments.length === 1 ? "comment" : "comments"}
             <Glyph className={expanded ? "-rotate-180" : ""} name="chevronDown" size={12} />
           </button>
         ) : null}
-        {comments.length ? <button className="we-diff-review-send" disabled={!canSend} onClick={onSend} type="button"><Glyph name="send" size={13} />Send</button> : null}
+        {comments.length ? <button className="we-diff-review-send" disabled={!canSend} onClick={onSend} type="button"><Glyph name="send" size={13} />送信</button> : null}
       </div>
     </section>
   );
@@ -370,7 +370,7 @@ function AssistantCodeReviewComment({ comment, onReveal, variant }: {
         <span><strong>{priority}{comment.title}</strong><small>{comment.path} · {range}</small></span>
       </header>
       <p>{comment.body}</p>
-      {onReveal ? <footer><span>Assistant comment</span><button onClick={() => onReveal(comment)} type="button">Show</button></footer> : null}
+      {onReveal ? <footer><span>アシスタントのコメント</span><button onClick={() => onReveal(comment)} type="button">表示</button></footer> : null}
     </article>
   );
 }
@@ -386,11 +386,11 @@ function OperatorDiffReviewComposer({ onCancel, onSubmit, selection }: {
     <div className="we-diff-review-comment composer-surface-chrome is-composer" onPointerDown={(event) => event.stopPropagation()}>
       <header>
         <span className="we-diff-review-avatar"><Glyph name="user" size={13} /></span>
-        <strong>Operator</strong>
+        <strong>ユーザー</strong>
         <small>{reviewSelectionLabel(selection)}</small>
       </header>
       <textarea
-        aria-label="Review comment"
+        aria-label="レビューコメント"
         autoFocus
         onChange={(event) => setBody(event.currentTarget.value)}
         onKeyDown={(event) => {
@@ -403,13 +403,13 @@ function OperatorDiffReviewComposer({ onCancel, onSubmit, selection }: {
             onSubmit(trimmed);
           }
         }}
-        placeholder="Request a change"
+        placeholder="変更を依頼"
         value={body}
       />
       {selection.excerpt ? <ReviewExcerpt excerpt={selection.excerpt} truncated={selection.excerptTruncated} /> : null}
       <footer>
-        <button onClick={onCancel} type="button">Cancel</button>
-        <button className="is-primary" disabled={!trimmed} onClick={() => onSubmit(trimmed)} type="button">Comment</button>
+        <button onClick={onCancel} type="button">キャンセル</button>
+        <button className="is-primary" disabled={!trimmed} onClick={() => onSubmit(trimmed)} type="button">コメント</button>
       </footer>
     </div>
   );
@@ -433,13 +433,13 @@ function OperatorDiffReviewCommentEditor({ comment, onDelete, onUpdate, stale, v
     <article className={`we-diff-review-comment composer-surface-chrome is-${variant}${stale ? " is-stale" : ""}`} onPointerDown={(event) => event.stopPropagation()}>
       <header>
         <span className="we-diff-review-avatar"><Glyph name="user" size={13} /></span>
-        <strong>Operator</strong>
+        <strong>ユーザー</strong>
         <small>{label}</small>
-        {stale ? <em>Projection changed</em> : null}
+        {stale ? <em>表示用データが変更されました</em> : null}
       </header>
       {editing ? (
         <textarea
-          aria-label={`Edit review comment on ${label}`}
+          aria-label={`レビューコメントを編集： ${label}`}
           autoFocus
           onChange={(event) => setBody(event.currentTarget.value)}
           onKeyDown={(event) => {
@@ -459,14 +459,14 @@ function OperatorDiffReviewCommentEditor({ comment, onDelete, onUpdate, stale, v
       ) : <p>{comment.body}</p>}
       {comment.excerpt ? <ReviewExcerpt excerpt={comment.excerpt} truncated={comment.excerptTruncated} /> : null}
       <footer>
-        <button className="is-danger" onClick={() => onDelete(comment.id)} type="button">Delete</button>
+        <button className="is-danger" onClick={() => onDelete(comment.id)} type="button">削除</button>
         {editing ? (
           <span>
-            <button onClick={() => { setBody(comment.body); setEditing(false); }} type="button">Cancel</button>
-            <button className="is-primary" disabled={!trimmed || trimmed === comment.body} onClick={() => { onUpdate(comment.id, trimmed); setEditing(false); }} type="button">Save</button>
+            <button onClick={() => { setBody(comment.body); setEditing(false); }} type="button">キャンセル</button>
+            <button className="is-primary" disabled={!trimmed || trimmed === comment.body} onClick={() => { onUpdate(comment.id, trimmed); setEditing(false); }} type="button">保存</button>
           </span>
         ) : (
-          <button onClick={() => setEditing(true)} type="button"><Glyph name="edit" size={12} />Edit</button>
+          <button onClick={() => setEditing(true)} type="button"><Glyph name="edit" size={12} />編集</button>
         )}
       </footer>
     </article>
@@ -476,7 +476,7 @@ function OperatorDiffReviewCommentEditor({ comment, onDelete, onUpdate, stale, v
 function ReviewExcerpt({ excerpt, truncated }: { excerpt: string; truncated: boolean }) {
   return (
     <details className="we-diff-review-excerpt">
-      <summary>Selected lines{truncated ? " · excerpt" : ""}</summary>
+      <summary>選択した行{truncated ? " · 抜粋" : ""}</summary>
       <pre>{excerpt}</pre>
     </details>
   );

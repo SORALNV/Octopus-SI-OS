@@ -137,7 +137,7 @@ test("Files code surfaces load lazily: a readonly file through the virtualized r
   const changes = [];
   root.render(React.createElement(FilesCodeEditor, { documentId: '["source","src/view.ts"]', filename: "view.ts", label: "View view.ts", value: "const a = 1;\n", wordWrap: false }));
   await settle(0);
-  assert.equal(document.querySelector('[role="status"]')?.getAttribute("aria-label"), "Loading file");
+  assert.equal(document.querySelector('[role="status"]')?.getAttribute("aria-label"), "ファイルを読み込んでいます");
   await settle(400);
   const viewer = document.querySelector(".os-files-code-viewer");
   assert.equal(viewer.getAttribute("aria-label"), "View view.ts");
@@ -150,7 +150,7 @@ test("Files code surfaces load lazily: a readonly file through the virtualized r
   await settle(5);
   root.render(React.createElement(FilesCodeEditor, { documentId: '["source","src/edit.md"]', filename: "edit.md", label: "Edit edit.md", onChange: (value) => changes.push(value), value: "# Draft\n", wordWrap: true }));
   await settle(0);
-  assert.equal(document.querySelector('[role="status"]')?.getAttribute("aria-label"), "Loading editor");
+  assert.equal(document.querySelector('[role="status"]')?.getAttribute("aria-label"), "エディターを読み込んでいます");
   await settle(400);
   const surface = document.querySelector(".os-files-pierre-viewport");
   assert.equal(surface.getAttribute("aria-label"), "Edit edit.md");
@@ -196,9 +196,9 @@ test("opening a file loads its root and every ancestor directory alongside the f
   assert.deepEqual([editor.documentId, editor.filename, editor.value], [JSON.stringify(["source", "src/app/main.ts"]), "main.ts", "export {};\n"]);
   editor.onChange("export const edited = true;\n");
   await settle();
-  document.querySelector('[aria-label="File viewer options"]').click();
+  document.querySelector('[aria-label="ファイル表示の設定"]').click();
   await settle();
-  const copyContents = [...document.querySelectorAll('[role="menuitem"]')].find((item) => item.textContent === "Copy file contents");
+  const copyContents = [...document.querySelectorAll('[role="menuitem"]')].find((item) => item.textContent === "ファイルの内容をコピー");
   copyContents.click();
   await settle();
   assert.deepEqual(harness.copies, ["export const edited = true;\n"], "copy takes the current draft");
@@ -211,10 +211,10 @@ test("a truncated file is read-only and offers no contents to copy", async () =>
   await show(React.createElement(FilesView, { accessProfile: "live", active: true, paneKey: "pane-huge", target: { kind: "file", rootId: "source", path: "huge.log" } }));
   await bridge.release();
   assert.equal(harness.editorProps.length, 0);
-  assert.match(document.querySelector(".os-files-editor").textContent, /File is too large/);
-  document.querySelector('[aria-label="File viewer options"]').click();
+  assert.match(document.querySelector(".os-files-editor").textContent, /ファイルが大きすぎます/);
+  document.querySelector('[aria-label="ファイル表示の設定"]').click();
   await settle();
-  const copyContents = [...document.querySelectorAll('[role="menuitem"]')].find((item) => item.textContent === "Copy file contents");
+  const copyContents = [...document.querySelectorAll('[role="menuitem"]')].find((item) => item.textContent === "ファイルの内容をコピー");
   assert.equal(copyContents.disabled, true);
 });
 
@@ -235,7 +235,7 @@ test("an artifact opens as text up to the 2 MB preview limit and lists its sanit
       assert.equal(editor.onChange, undefined);
     } else {
       assert.equal(harness.editorProps.length, 0);
-      assert.match(document.querySelector(".os-files-editor").textContent, /exceeds the 2 MB Files text preview limit/);
+      assert.match(document.querySelector(".os-files-editor").textContent, /テキストプレビューの上限である 2 MB を超えています/);
     }
     assert.deepEqual(harness.trees.at(-1).paths, ["safe:notes/report.md"]);
   }

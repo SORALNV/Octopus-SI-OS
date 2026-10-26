@@ -23,9 +23,9 @@ export function TerminalSurface({ active, environment, surface }: {
   if (!surface) {
     return (
       <LiveSurfaceEmpty
-        detail="Terminal appears when this room projects an interactive stream or a durable transcript."
+        detail="作業環境から対話用の接続か保存済みの出力が提供されると、ターミナルを表示します。"
         glyph="terminal"
-        title="No terminal surface"
+        title="ターミナル画面がありません"
       />
     );
   }
@@ -39,9 +39,9 @@ export function TerminalSurface({ active, environment, surface }: {
     if (protocol !== "xterm.websocket" || surface.readOnly || !validWebSocketUrl(surface.viewerUrl)) {
       return (
         <LiveSurfaceEmpty
-          detail={dataText(surface.data, "detail") || "The exact projected terminal surface does not expose a supported writable WebSocket stream."}
+          detail={dataText(surface.data, "detail") || "このターミナルには、対応する書き込み可能な WebSocket 接続がありません。"}
           glyph="terminal"
-          title="Terminal unavailable"
+          title="ターミナルを利用できません"
         />
       );
     }
@@ -54,9 +54,9 @@ export function TerminalSurface({ active, environment, surface }: {
 
   return (
     <LiveSurfaceEmpty
-      detail={dataText(surface.data, "unavailable") || dataText(surface.data, "detail") || "This room projected terminal evidence in a format the client cannot render."}
+      detail={dataText(surface.data, "unavailable") || dataText(surface.data, "detail") || "この作業環境のターミナル記録は、クライアントで表示できない形式です。"}
       glyph="terminal"
-      title="Terminal evidence unavailable"
+      title="ターミナルの記録を取得できません"
     />
   );
 }
@@ -105,33 +105,33 @@ function ProcessRoomTerminal({ active, environment, surface }: {
           <span title={surface.root || environment.root || environment.label}>
             {surface.root || environment.root || environment.label}
           </span>
-          <small>{tty ? statusLabel(status, state?.exitCode ?? null, state?.closed ?? false) : `Output · ${statusLabel(status, state?.exitCode ?? null, state?.closed ?? false)}`}</small>
+          <small>{tty ? statusLabel(status, state?.exitCode ?? null, state?.closed ?? false) : `出力 · ${statusLabel(status, state?.exitCode ?? null, state?.closed ?? false)}`}</small>
         </div>
         {manualControlAvailable ? <div className="we-terminal-actions">
           {running ? (
             <>
-              <button onClick={() => control(() => session.interrupt())} type="button">Interrupt</button>
-              <button onClick={() => control(() => session.terminate())} type="button">Terminate</button>
+              <button onClick={() => control(() => session.interrupt())} type="button">中断</button>
+              <button onClick={() => control(() => session.terminate())} type="button">終了</button>
             </>
           ) : null}
           {tty && state?.restartAvailable ? (
             <button onClick={() => control(() => {
               setConnectionError("");
               session.restart();
-            })} type="button">Restart</button>
+            })} type="button">再起動</button>
           ) : null}
           {state?.startNewShellAvailable ? (
             <button onClick={() => control(() => {
               setConnectionError("");
               session.startNewShell();
-            })} type="button">New shell</button>
+            })} type="button">新しいシェル</button>
           ) : null}
         </div> : null}
       </div>
       {manualControlAvailable && !manualControlConfirmed ? (
         <div className="we-terminal-manual-warning" role="note">
           <span>{warning}</span>
-          <button onClick={confirmManualControl} type="button">Continue</button>
+          <button onClick={confirmManualControl} type="button">続ける</button>
         </div>
       ) : null}
       <div className="we-terminal-session">
@@ -143,7 +143,7 @@ function ProcessRoomTerminal({ active, environment, surface }: {
         />
         {connectionError ? (
           <div className="we-terminal-connection-state" role="alert">
-            <div><strong>{tty ? "Terminal disconnected" : "Output disconnected"}</strong><span>{connectionError}</span></div>
+            <div><strong>{tty ? "ターミナルが切断されました" : "出力の接続が切断されました"}</strong><span>{connectionError}</span></div>
           </div>
         ) : null}
       </div>
@@ -154,11 +154,11 @@ function ProcessRoomTerminal({ active, environment, surface }: {
 function statusLabel(status: string, exitCode: number | null, closed: boolean): string {
   const normalized = status.trim().toLowerCase();
   if (normalized === "exited") return exitCode == null ? "Exited" : `Exited ${exitCode}`;
-  if (normalized === "failed") return "Failed";
-  if (closed || normalized === "closed") return "Closed";
-  if (normalized === "running") return "Running";
-  if (normalized === "ready") return "Ready";
-  if (!normalized || normalized === "unavailable" || normalized === "not projected") return "Unavailable";
+  if (normalized === "failed") return "失敗";
+  if (closed || normalized === "closed") return "終了";
+  if (normalized === "running") return "実行中";
+  if (normalized === "ready") return "準備完了";
+  if (!normalized || normalized === "unavailable" || normalized === "not projected") return "利用できません";
   return normalized.replaceAll("_", " ").replace(/(^|\s)\S/g, (letter) => letter.toUpperCase());
 }
 
@@ -169,7 +169,7 @@ function LiveTerminal({ active, environment, surface }: {
 }) {
   const [generation, setGeneration] = useState(0);
   const [connection, setConnection] = useState<WebSocketTerminalState>({
-    detail: "Opening the projected terminal socket…",
+    detail: "作業環境のターミナルに接続しています…",
     state: "connecting",
   });
   const session = useMemo(
@@ -178,7 +178,7 @@ function LiveTerminal({ active, environment, surface }: {
   );
 
   useEffect(() => {
-    setConnection({ detail: "Opening the projected terminal socket…", state: "connecting" });
+    setConnection({ detail: "作業環境のターミナルに接続しています…", state: "connecting" });
   }, [generation, surface.id, surface.viewerUrl]);
 
   const retryable = connection.state === "failed" || connection.state === "disconnected";
@@ -194,13 +194,13 @@ function LiveTerminal({ active, environment, surface }: {
         {connection.state !== "connected" ? (
           <div className="we-terminal-connection-state" role={retryable ? "alert" : "status"}>
             <div>
-              <strong>{connection.state === "connecting" ? "Connecting to room terminal" : "Room terminal disconnected"}</strong>
+              <strong>{connection.state === "connecting" ? "作業環境のターミナルに接続しています" : "作業環境のターミナルが切断されました"}</strong>
               <span>{connection.detail}</span>
             </div>
             {retryable ? (
               <button className="we-terminal-reconnect" onClick={() => setGeneration((value) => value + 1)} type="button">
                 <Glyph name="retry" size={12} />
-                Try again
+                再試行
               </button>
             ) : null}
           </div>
@@ -244,7 +244,7 @@ function TerminalSurfaceBar({ environment, surface }: {
     <div className="we-terminal-tabs-bar">
       <div className="we-terminal-meta">
         <span title={workspace}>{workspace}</span>
-        <small>{surface.mode === "direct" ? surface.protocol : "Read only"}</small>
+        <small>{surface.mode === "direct" ? surface.protocol : "読み取り専用"}</small>
       </div>
     </div>
   );

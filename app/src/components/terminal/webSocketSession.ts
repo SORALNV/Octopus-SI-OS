@@ -33,7 +33,7 @@ export function createWebSocketTerminalSession(
     open() {
       if (disposed) return Promise.reject(new Error("The terminal session is closed."));
       if (socket) return Promise.reject(new Error("The terminal session is already open."));
-      update({ detail: "Opening the projected terminal socket…", state: "connecting" });
+      update({ detail: "作業環境のターミナルに接続しています…", state: "connecting" });
       return new Promise<void>((resolve, reject) => {
         let settled = false;
         try {
@@ -48,7 +48,7 @@ export function createWebSocketTerminalSession(
         socket.addEventListener("open", () => {
           opened = true;
           settled = true;
-          update({ detail: "Terminal connected", state: "connected" });
+          update({ detail: "ターミナルに接続しました", state: "connected" });
           resolve();
         });
         socket.addEventListener("message", (event) => {

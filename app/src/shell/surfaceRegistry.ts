@@ -12,7 +12,7 @@ import type { ClientSurfaceDescriptor, SurfaceRegistryState } from "./surfaceTyp
 export const builtinSurfaceDescriptors: ClientSurfaceDescriptor[] = [
   {
     id: "dashboard",
-    label: "Topology",
+    label: "構成図",
     glyph: "topology",
     rendererKind: "builtin.dashboard",
     order: 10,
@@ -28,7 +28,7 @@ export const builtinSurfaceDescriptors: ClientSurfaceDescriptor[] = [
   },
   {
     id: "registry",
-    label: "Registry",
+    label: "レジストリ",
     glyph: "sites",
     rendererKind: "builtin.registry",
     order: 20,
@@ -43,7 +43,7 @@ export const builtinSurfaceDescriptors: ClientSurfaceDescriptor[] = [
   },
   {
     id: "worker-environments",
-    label: "Worker Environments",
+    label: "作業環境",
     glyph: "ee",
     rendererKind: "builtin.worker_environments",
     order: 30,
@@ -58,7 +58,7 @@ export const builtinSurfaceDescriptors: ClientSurfaceDescriptor[] = [
   },
   {
     id: "event-log",
-    label: "Movements",
+    label: "移動",
     glyph: "worktree",
     rendererKind: "builtin.event_log",
     order: 40,
@@ -73,7 +73,7 @@ export const builtinSurfaceDescriptors: ClientSurfaceDescriptor[] = [
   },
   {
     id: "applications",
-    label: "Applications",
+    label: "アプリケーション",
     glyph: "storefront",
     rendererKind: "builtin.applications",
     order: 65,
@@ -86,7 +86,7 @@ export const builtinSurfaceDescriptors: ClientSurfaceDescriptor[] = [
   },
   {
     id: "drivers",
-    label: "Drivers",
+    label: "ドライバー",
     glyph: "plugins",
     rendererKind: "builtin.drivers",
     order: 70,
@@ -99,7 +99,7 @@ export const builtinSurfaceDescriptors: ClientSurfaceDescriptor[] = [
   },
   {
     id: "chat",
-    label: "Tasks",
+    label: "タスク",
     glyph: "tasks",
     rendererKind: "builtin.chat",
     order: 50,
@@ -113,7 +113,7 @@ export const builtinSurfaceDescriptors: ClientSurfaceDescriptor[] = [
   },
   {
     id: "voice",
-    label: "Home",
+    label: "ホーム",
     glyph: "home",
     rendererKind: "builtin.voice",
     order: 55,
@@ -127,7 +127,7 @@ export const builtinSurfaceDescriptors: ClientSurfaceDescriptor[] = [
   },
   {
     id: "inbox",
-    label: "Inbox",
+    label: "受信トレイ",
     glyph: "inbox",
     rendererKind: "builtin.inbox",
     order: 58,
@@ -141,7 +141,7 @@ export const builtinSurfaceDescriptors: ClientSurfaceDescriptor[] = [
   },
   {
     id: "scheduled",
-    label: "Triggers",
+    label: "トリガー",
     glyph: "scheduled",
     rendererKind: "builtin.scheduled",
     order: 60,

@@ -85,7 +85,7 @@ export function dynamicToolPresentation(
 }
 
 export function dynamicToolOperationLabel(presentation: DynamicToolPresentation): string {
-  if (presentation.surface === "browser") return "Used the browser";
+  if (presentation.surface === "browser") return "ブラウザーを使用しました";
   if (presentation.operation) return presentation.operation.label;
   if (presentation.operationLabel) return presentation.operationLabel;
   const displayToolId = baseDynamicToolId(presentation.exactToolId);
@@ -116,22 +116,22 @@ export function dynamicToolGlyph(presentation: DynamicToolPresentation): Dynamic
 export function dynamicToolReadLabel(presentation: DynamicToolPresentation, active: boolean): string {
   const path = presentation.path;
   const artifacts = presentation.targetKind === "artifact";
-  const objects = artifacts ? "artifacts" : "files";
+  const objects = artifacts ? "成果物" : "ファイル";
   if (presentation.kind === "list") {
     return path
-      ? `${active ? "Listing" : "Listed"} files in ${path}`
-      : `${active ? "Listing" : "Listed"} ${objects}`;
+      ? `${path} のファイル一覧を${active ? "取得しています" : "取得しました"}`
+      : `${objects}の一覧を${active ? "取得しています" : "取得しました"}`;
   }
   if (presentation.kind === "search") {
     if (presentation.query) {
-      return `${active ? "Searching" : "Searched"}${artifacts ? " artifacts" : ""} for ${presentation.query}${path ? ` in ${path}` : ""}`;
+      return `${path ? `${path} 内の` : ""}${objects}を${active ? "検索しています" : "検索しました"}：${presentation.query}`;
     }
-    if (!active) return `Searched for ${objects}`;
+    if (!active) return `${objects}を検索しました`;
     return presentation.pathLabel
-      ? `Searching files in ${presentation.pathLabel} folder`
-      : `Searching ${objects}`;
+      ? `${presentation.pathLabel} 内のファイルを検索しています`
+      : `${objects}を検索しています`;
   }
-  return [active ? "Reading" : "Read", artifacts ? "artifact" : "", presentation.pathLabel || (artifacts ? "(target unavailable)" : "files")].filter(Boolean).join(" ");
+  return `${presentation.pathLabel || (artifacts ? "対象の成果物を取得できません" : "ファイル")}を${active ? "読み込んでいます" : "読み取りました"}`;
 }
 
 export function nativeRunOperationPresentation(message: ChatRenderMessage | undefined): NativeRunOperationPresentation | null {
@@ -149,35 +149,35 @@ export function nativeRunOperationPresentation(message: ChatRenderMessage | unde
   const peers = message?.relatedRuns?.map((run) => run.title).join(", ") || "";
   if (data.tool === "create_run") {
     const created = record(body.created);
-    return { label: active ? "Creating task" : failed ? "Task creation failed" : "Created task",
+    return { label: active ? "タスクを作成しています" : failed ? "タスクを作成できませんでした" : "タスクを作成しました",
       target: peers || text(created.run_id),
       details: [["Task", peers || text(created.run_id)], ["Message", text(argumentsValue.text)], ["Error", error]] };
   }
   if (data.tool === "list_runs") {
-    return { label: active ? "Checking connected tasks" : failed ? "Task lookup failed" : "Checked connected tasks",
+    return { label: active ? "接続されたタスクを確認しています" : failed ? "タスクを検索できませんでした" : "接続されたタスクを確認しました",
       target: peers,
       details: [["Tasks", peers], ["Interfaces", stringArray(body.declared_peer_interfaces).join("\n")], ["Error", error]] };
   }
   if (["followup_task", "send_message", "interrupt_run"].includes(text(data.tool))) {
     const target = text(argumentsValue.interface) || text(body.interface);
     const interrupt = data.tool === "interrupt_run";
-    return { label: active ? (interrupt ? "Requesting stop" : "Sending message")
-      : failed ? (interrupt ? "Stop request failed" : "Message failed")
-      : body.admitted === true ? (interrupt ? "Requested stop" : "Sent message") : "Message delivery unconfirmed",
+    return { label: active ? (interrupt ? "停止を要求しています" : "メッセージを送信しています")
+      : failed ? (interrupt ? "停止を要求できませんでした" : "メッセージの送信に失敗しました")
+      : body.admitted === true ? (interrupt ? "停止を要求しました" : "メッセージを送信しました") : "メッセージの配信を確認できません",
       target: peers || target,
       details: [["To", peers || target], ["Interface", target], ["Message", text(argumentsValue.text)],
         ["Delivery", body.admitted === true ? "Accepted" : body.admitted === false ? "Refused" : "Unconfirmed"], ["Error", error]] };
   }
   if (data.tool === "wait_for_runs") {
-    return { label: active ? "Waiting for replies" : failed ? "Wait failed" : "Waited for replies", target: peers,
-      details: [["From", peers], ["Result", body.timed_out === true ? "No replies before timeout"
+    return { label: active ? "応答を待っています" : failed ? "応答の待機に失敗しました" : "応答を待ちました", target: peers,
+      details: [["From", peers], ["Result", body.timed_out === true ? "時間内に応答がありませんでした"
         : Array.isArray(body.notifications) ? `${body.notifications.length} replies received` : ""], ["Error", error]] };
   }
   if (data.tool === "run_list") {
     const run = record(body.source_run);
     const target = text(run.run_id);
     return {
-      label: active ? "Inspecting run" : failed ? "Run inspection failed" : target ? "Inspected run" : "Inspect run",
+      label: active ? "実行を確認しています" : failed ? "実行を確認できませんでした" : target ? "実行を確認しました" : "実行を確認",
       target,
       details: [
         ["Run", target],
@@ -191,15 +191,15 @@ export function nativeRunOperationPresentation(message: ChatRenderMessage | unde
   if (data.tool === "run_continue") {
     const target = text(argumentsValue.interface) || text(body.interface);
     return {
-      label: active ? "Requesting run continuation" : failed ? "Continuation request failed"
-        : body.admitted === true ? "Requested run continuation" : "Run continuation request",
+      label: active ? "実行の続行を要求しています" : failed ? "続行を要求できませんでした"
+        : body.admitted === true ? "実行の続行を要求しました" : "実行の続行要求",
       target,
       details: [
         ["Interface", target],
         ["Message", text(argumentsValue.text)],
         ["Admission", body.admitted === true ? "Accepted" : body.admitted === false ? "Refused" : ""],
-        ["Recipient action", body.recipient_action_confirmed === true ? "Confirmed" : body.recipient_action_confirmed === false ? "Not confirmed" : ""],
-        ["Work", body.work_completed === true ? "Completed" : body.work_completed === false ? "Not completed" : ""],
+        ["Recipient action", body.recipient_action_confirmed === true ? "Confirmed" : body.recipient_action_confirmed === false ? "未確認" : ""],
+        ["Work", body.work_completed === true ? "Completed" : body.work_completed === false ? "未完了" : ""],
         ["Error", error],
       ],
     };
@@ -208,7 +208,7 @@ export function nativeRunOperationPresentation(message: ChatRenderMessage | unde
 }
 
 export function webSearchActivityLabel(detail: string, active: boolean): string {
-  return `${active ? "Searching the web" : "Searched the web"}${detail ? ` for ${detail}` : ""}`;
+  return `${active ? "ウェブを検索しています" : "ウェブを検索しました"}${detail ? ` 対象 ${detail}` : ""}`;
 }
 
 export function webSearchActivityDetail(message: ChatRenderMessage | undefined): string {

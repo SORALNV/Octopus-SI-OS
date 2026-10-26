@@ -266,7 +266,7 @@ export function PaneTabStrip<Tab extends PaneTabPresentation>({
 
       {tabMenu && menuTab ? createPortal(
         <OcMenuSurface
-          aria-label="Tab actions"
+          aria-label="タブの操作"
           className="workspace-pane-tab-context-menu"
           data-settings-layer="true"
           role="menu"
@@ -288,7 +288,7 @@ export function PaneTabStrip<Tab extends PaneTabPresentation>({
           ))}
           {extraActions.length ? <div aria-hidden="true" className="workspace-pane-tab-menu-separator" /> : null}
           <OcMenuItem
-            label="Close"
+            label="閉じる"
             onClick={() => {
               setTabMenu(null);
               closeTab(menuTab.id, true);
@@ -298,7 +298,7 @@ export function PaneTabStrip<Tab extends PaneTabPresentation>({
           <div aria-hidden="true" className="workspace-pane-tab-menu-separator" />
           <OcMenuItem
             disabled={!hasOtherTabs}
-            label="Close other tabs"
+            label="他のタブを閉じる"
             onClick={() => {
               setTabMenu(null);
               onCloseOtherTabs(menuTab.id);
@@ -307,7 +307,7 @@ export function PaneTabStrip<Tab extends PaneTabPresentation>({
           />
           <OcMenuItem
             disabled={!hasTabsToRight}
-            label="Close tabs to the right"
+            label="右側のタブを閉じる"
             onClick={() => {
               setTabMenu(null);
               onCloseTabsToRight(menuTab.id);
@@ -495,7 +495,7 @@ function PaneTabChrome({ active, buttonProps, closing = false, dragPreview = fal
       </span>
     </button>
     {!closing && !dragPreview ? <button
-      aria-label={`Close ${tab.title} tab`}
+      aria-label={`閉じる ${tab.title} tab`}
       className="pane-tab-close"
       data-pane-tab-close-button="true"
       onClick={(event) => { event.stopPropagation(); onClose?.(event.detail === 0 || chromeRef.current?.contains(document.activeElement)); }}

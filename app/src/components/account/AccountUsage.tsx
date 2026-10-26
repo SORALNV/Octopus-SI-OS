@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../../locale";
 import type { HTMLAttributes, ReactNode } from "react";
 import type { ChatgptUsageState } from "../../account/chatgptUsageState";
 import { accountRemainingLabel, accountResetTime, accountUsageGroups } from "../../account/chatgptUsageModel";
@@ -27,39 +28,39 @@ export function AccountRemainingProgress({ remaining, label, suffix = "left" }: 
 
 function UsageNotice({ state }: { state: UsageViewState }) {
   return state.error ? <div className="account-inline-notice account-error" role="alert">
-    <span>Usage is unavailable. {state.error}</span>
-    <OcButton onClick={() => void state.refresh?.()}>Retry</OcButton>
-  </div> : <OcLoadingRows label="Loading usage…" rows={2} />;
+    <span>使用状況を取得できません。 {state.error}</span>
+    <OcButton onClick={() => void state.refresh?.()}>再試行</OcButton>
+  </div> : <OcLoadingRows label="使用状況を読み込んでいます…" rows={2} />;
 }
 
 export function AccountUsageSections({ state, signedIn, accountUnavailable = false, accountLoading = false }:
   { state: UsageViewState; signedIn: boolean; accountUnavailable?: boolean; accountLoading?: boolean }) {
-  if (!signedIn || !state.value) return <AccountSection title="General usage limits">
-    {accountLoading ? <OcLoadingRows label="Checking account…" rows={2} /> : signedIn && (state.loading || state.error) ? <UsageNotice state={state} /> : <p className="account-section-footer" role="status">
-      {accountUnavailable ? "Usage is unavailable until your account can be checked."
-        : signedIn ? "No usage limits were reported for this account." : "Sign in with ChatGPT to view usage."}
+  if (!signedIn || !state.value) return <AccountSection title="全体の使用上限">
+    {accountLoading ? <OcLoadingRows label="アカウントを確認しています…" rows={2} /> : signedIn && (state.loading || state.error) ? <UsageNotice state={state} /> : <p className="account-section-footer" role="status">
+      {accountUnavailable ? "アカウントを確認できるまで、使用状況を取得できません。"
+        : signedIn ? "このアカウントの使用上限は報告されていません。" : "使用状況を表示するには、ChatGPT でログインしてください。"}
     </p>}
   </AccountSection>;
   const groups = accountUsageGroups(state.value);
-  if (!groups.length) return <AccountSection title="General usage limits"><p className="account-section-footer">No usage limits were reported for this account.</p></AccountSection>;
+  if (!groups.length) return <AccountSection title="全体の使用上限"><p className="account-section-footer">このアカウントの使用上限は報告されていません。</p></AccountSection>;
   return <>{groups.map((group) => <AccountSection key={group.key}
-    title={group.limit.limitName ? `${group.label} usage limits` : "General usage limits"}
-    actions={group.limit.rateLimitReachedType || group.limit.spendControlReached ? <span className="account-limit-reached">Limit reached</span> : undefined}>
+    title={group.limit.limitName ? `${group.label} 使用上限` : "全体の使用上限"}
+    actions={group.limit.rateLimitReachedType || group.limit.spendControlReached ? <span className="account-limit-reached">上限に達しました</span> : undefined}>
     <div className="account-row-list">
       {group.windows.filter((row) => row.reported).map((row) => <OcSettingsRow key={row.key} label={row.label}
         description={accountResetTime(row.resetsAt, row.durationMins)}
-        control={<AccountRemainingProgress remaining={row.remaining} label={`${group.label}: ${row.label} remaining`} />} />)}
-      {group.limit.individualLimit ? <OcSettingsRow label="Monthly usage limit"
-        description={<>{accountResetTime(group.limit.individualLimit.resetsAt, 43_200)} · {group.limit.individualLimit.used} of {group.limit.individualLimit.limit} credits used</>}
-        control={<AccountRemainingProgress remaining={group.limit.individualLimit.remainingPercent} label={`${group.label}: monthly usage remaining`} suffix="remaining" />} /> : null}
-      {group.limit.credits ? <OcSettingsRow label="Credit balance" control={<span className="account-value">
-        {group.limit.credits.unlimited ? "Unlimited" : group.limit.credits.balance ?? (group.limit.credits.hasCredits ? "Unavailable" : "None")}
+        control={<AccountRemainingProgress remaining={row.remaining} label={`${group.label}: ${row.label} 残り`} />} />)}
+      {group.limit.individualLimit ? <OcSettingsRow label="月間の使用上限"
+        description={<>{accountResetTime(group.limit.individualLimit.resetsAt, 43_200)} · {group.limit.individualLimit.used} / {group.limit.individualLimit.limit} クレジット使用済み</>}
+        control={<AccountRemainingProgress remaining={group.limit.individualLimit.remainingPercent} label={`${group.label}：月間の残り使用枠`} suffix="remaining" />} /> : null}
+      {group.limit.credits ? <OcSettingsRow label="クレジット残高" control={<span className="account-value">
+        {group.limit.credits.unlimited ? "無制限" : group.limit.credits.balance ?? (group.limit.credits.hasCredits ? "利用できません" : "なし")}
       </span>} /> : null}
       {!group.windows.some((row) => row.reported) && !group.limit.individualLimit && !group.limit.credits
-        ? <p className="account-inline-notice">No usage limits were reported for this account.</p> : null}
+        ? <p className="account-inline-notice">このアカウントの使用上限は報告されていません。</p> : null}
     </div>
-    <p className="account-section-footer">Shared by applications and Homes using this ChatGPT account.
-      {state.loading ? <> <OcLoadingText label="Refreshing usage…" /></> : <span> Updated {new Intl.DateTimeFormat(undefined, { timeStyle: "short" }).format(new Date(state.value!.observedAtMs))}</span>}
+    <p className="account-section-footer">この ChatGPT アカウントを使うアプリケーションとホームで共有されます。
+      {state.loading ? <> <OcLoadingText label="使用状況を更新しています…" /></> : <span> 更新済み {new Intl.DateTimeFormat(APP_LOCALE, { timeStyle: "short" }).format(new Date(state.value!.observedAtMs))}</span>}
     </p>
   </AccountSection>)}</>;
 }

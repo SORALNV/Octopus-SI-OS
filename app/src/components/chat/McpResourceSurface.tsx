@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../../locale";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Glyph } from "../IconGlyphs";
 import { CadencedShimmerText } from "../CadencedShimmerText";
@@ -159,14 +160,14 @@ export function McpResourceSurface({ message }: Props) {
           <strong><CadencedShimmerText active={active}>{title}</CadencedShimmerText></strong>
           <small>
             {errorMessage
-              ? "Failed"
+              ? "失敗"
               : resourceUri
                 ? htmlResource
-                  ? "Interactive resource"
-                  : "Resource reference"
+                  ? "操作できるリソース"
+                  : "リソースの参照"
                 : active
-                  ? "Calling"
-                  : humanize(status || "Completed")}
+                  ? "呼び出し中"
+                  : humanize(status || "完了")}
           </small>
         </span>
         {durationMs > 0 ? <span className="mcp-resource-duration">{formatDuration(durationMs)}</span> : null}
@@ -176,7 +177,7 @@ export function McpResourceSurface({ message }: Props) {
       {expanded ? (
         <div className="mcp-resource-inline">
           <div className="mcp-resource-toolbar">
-            <span>{resourceUri ? "MCP app output" : "MCP tool output"}</span>
+            <span>{resourceUri ? "MCP アプリの出力" : "MCP ツールの出力"}</span>
             <span className="mcp-resource-toolbar-actions">
               <OcButton
                 onClick={() => setShowRaw((current) => !current)}
@@ -184,12 +185,12 @@ export function McpResourceSurface({ message }: Props) {
                 size="xs"
                 variant="ghost"
               >
-                Raw
+                生データ
               </OcButton>
               {rich ? (
                 <OcIconButton
                   glyph="expand"
-                  label="Open MCP output in full view"
+                  label="MCP の出力を全画面で開く"
                   onClick={() => setFullView(true)}
                   size="xs"
                   variant="ghost"
@@ -197,7 +198,7 @@ export function McpResourceSurface({ message }: Props) {
               ) : null}
             </span>
           </div>
-          {fullView ? <div className="mcp-resource-inline-placeholder">Open in full view</div> : renderBody(false)}
+          {fullView ? <div className="mcp-resource-inline-placeholder">全画面で開く</div> : renderBody(false)}
         </div>
       ) : null}
 
@@ -206,7 +207,7 @@ export function McpResourceSurface({ message }: Props) {
           <span className="mcp-resource-summary-icon"><Glyph name="plugins" size={14} /></span>
           <span className="mcp-resource-modal-title">
             <strong>{title}</strong>
-            <small>{resourceUri || "Structured tool output"}</small>
+            <small>{resourceUri || "構造化されたツールの出力"}</small>
           </span>
           <OcButton
             onClick={() => setShowRaw((current) => !current)}
@@ -214,9 +215,9 @@ export function McpResourceSurface({ message }: Props) {
             size="xs"
             variant="ghost"
           >
-            Raw
+            生データ
           </OcButton>
-          <OcIconButton glyph="close" label="Close full view" onClick={() => setFullView(false)} size="xs" variant="ghost" />
+          <OcIconButton glyph="close" label="全画面表示を閉じる" onClick={() => setFullView(false)} size="xs" variant="ghost" />
         </header>
         <div className="mcp-resource-modal-body">{fullView ? renderBody(true) : null}</div>
       </OcDialog>
@@ -270,7 +271,7 @@ function McpResourceBody({
         />
       ) : null}
 
-      {errorMessage ? <McpState glyph="warning" title="MCP call failed">{errorMessage}</McpState> : null}
+      {errorMessage ? <McpState glyph="warning" title="MCP の呼び出しに失敗しました">{errorMessage}</McpState> : null}
 
       {htmlResource ? (
         <McpHtmlFrame
@@ -279,14 +280,14 @@ function McpResourceBody({
           title={`${server || "MCP"} ${tool || "resource"}`}
         />
       ) : resourceUri ? (
-        <McpState glyph="lock" title="Interactive resource unavailable">
-          This movement contains the resource URI but not its HTML bytes. Octopus does not fetch or imitate the app surface.
+        <McpState glyph="lock" title="操作できるリソースを利用できません">
+          この移動にはリソースの URI はありますが、HTML の実体がありません。Octopus はアプリ画面を取得したり模倣したりしません。
         </McpState>
       ) : null}
 
       {visibleContent.length ? (
         <section className="mcp-resource-section">
-          <h4>Content</h4>
+          <h4>内容</h4>
           <div className="mcp-content-blocks">
             {visibleContent.slice(0, MAX_COLLECTION_ITEMS).map((block, index) => (
               <McpContentBlock block={block} key={`content:${index}`} />
@@ -298,14 +299,14 @@ function McpResourceBody({
 
       {structuredContent !== undefined ? (
         <section className="mcp-resource-section">
-          <h4>Structured content</h4>
+          <h4>構造化された内容</h4>
           <StructuredValue value={structuredContent} />
         </section>
       ) : null}
 
       {structuredActions.length ? (
         <section className="mcp-resource-section">
-          <h4>Suggested actions</h4>
+          <h4>おすすめの操作</h4>
           <div className="mcp-resource-actions">
             {structuredActions.map((action) => (
               <OcButton
@@ -325,19 +326,19 @@ function McpResourceBody({
 
       {!errorMessage && !resourceUri && !hasVisibleOutput ? (
         active
-          ? <McpState glyph="pulse" title="Waiting for MCP output">The interface has not emitted result content yet.</McpState>
-          : <McpState glyph="artifact" title="No result content">The MCP tool completed without displayable content.</McpState>
+          ? <McpState glyph="pulse" title="MCP の出力を待っています">インターフェースから結果がまだ返されていません。</McpState>
+          : <McpState glyph="artifact" title="結果の内容がありません">MCP ツールは完了しましたが、表示できる内容がありません。</McpState>
       ) : null}
 
       {htmlResource && !actionsAvailable ? (
         <div className="mcp-resource-provenance-warning">
-          Widget actions are disabled because run, interface, or resource provenance is missing.
+          実行、インターフェース、リソースの出典情報が不足しているため、ウィジェットの操作を無効にしています。
         </div>
       ) : null}
 
       {showRaw ? (
         <section className="mcp-resource-section">
-          <h4>Raw movement payload</h4>
+          <h4>移動の生データ</h4>
           <JsonBlock value={data} />
         </section>
       ) : null}
@@ -356,11 +357,11 @@ function ResourceReferenceCard({ htmlAvailable, onCopy, resourceUri, server, too
     <div className="mcp-resource-reference">
       <span className="mcp-resource-reference-icon"><Glyph name="plugins" size={15} /></span>
       <span className="mcp-resource-reference-copy">
-        <strong>{resourceUri.startsWith("ui://") ? "MCP app resource" : "MCP resource"}</strong>
+        <strong>{resourceUri.startsWith("ui://") ? "MCP アプリのリソース" : "MCP のリソース"}</strong>
         <code title={resourceUri}>{resourceUri}</code>
         <small>{[server, tool, htmlAvailable ? "HTML delivered" : "Reference only"].filter(Boolean).join(" · ")}</small>
       </span>
-      <OcIconButton glyph="copy" label="Copy resource URI" onClick={onCopy} size="xs" variant="ghost" />
+      <OcIconButton glyph="copy" label="リソースの URI をコピー" onClick={onCopy} size="xs" variant="ghost" />
     </div>
   );
 }
@@ -383,7 +384,7 @@ function McpHtmlFrame({ full, html, title }: {
       />
       <div className="mcp-html-frame-caption">
         <Glyph name="lock" size={11} />
-        <span>Sandboxed · scripts, network, Electron bridge, host DOM, and automatic actions are disabled</span>
+        <span>サンドボックス内 · スクリプト、ネットワーク、Electron 接続、ホスト DOM、自動操作は無効です</span>
       </div>
     </div>
   );
@@ -407,7 +408,7 @@ function McpContentBlock({ block }: { block: unknown }) {
     if (mimeType.startsWith("image/") && encoded && encoded.length <= MAX_MEDIA_DATA_LENGTH) {
       return (
         <figure className="mcp-content-media">
-          <img alt="MCP result" src={`data:${mimeType};base64,${encoded}`} />
+          <img alt="MCP の結果" src={`data:${mimeType};base64,${encoded}`} />
           <AnnotationLine annotations={annotations} />
         </figure>
       );
@@ -441,19 +442,19 @@ function ResourceDescriptorCard({ descriptor, linked = false }: { descriptor: Re
       <header>
         <span><Glyph name={linked ? "openExternal" : "artifact"} size={13} /></span>
         <div>
-          <strong>{descriptor.title || descriptor.name || (linked ? "Resource link" : "Embedded resource")}</strong>
+          <strong>{descriptor.title || descriptor.name || (linked ? "リソースへのリンク" : "埋め込みリソース")}</strong>
           {descriptor.description ? <small>{descriptor.description}</small> : null}
         </div>
-        {descriptor.uri ? <OcIconButton glyph="copy" label="Copy resource URI" onClick={() => void copyLocalText(descriptor.uri)} size="xs" variant="ghost" /> : null}
+        {descriptor.uri ? <OcIconButton glyph="copy" label="リソースの URI をコピー" onClick={() => void copyLocalText(descriptor.uri)} size="xs" variant="ghost" /> : null}
       </header>
       <dl>
         {descriptor.uri ? <div><dt>URI</dt><dd><code>{descriptor.uri}</code></dd></div> : null}
-        {descriptor.mimeType ? <div><dt>MIME type</dt><dd>{descriptor.mimeType}</dd></div> : null}
-        {descriptor.size > 0 ? <div><dt>Size</dt><dd>{descriptor.size.toLocaleString()} bytes</dd></div> : null}
-        {Object.keys(descriptor.annotations).length ? <div><dt>Annotations</dt><dd>{annotationText(descriptor.annotations)}</dd></div> : null}
+        {descriptor.mimeType ? <div><dt>MIME タイプ</dt><dd>{descriptor.mimeType}</dd></div> : null}
+        {descriptor.size > 0 ? <div><dt>サイズ</dt><dd>{descriptor.size.toLocaleString(APP_LOCALE)} バイト</dd></div> : null}
+        {Object.keys(descriptor.annotations).length ? <div><dt>注釈</dt><dd>{annotationText(descriptor.annotations)}</dd></div> : null}
       </dl>
       {content ? (
-        <pre className="mcp-embedded-resource-content">{descriptor.blob ? `[base64 blob · ${descriptor.blob.length.toLocaleString()} characters]` : content}</pre>
+        <pre className="mcp-embedded-resource-content">{descriptor.blob ? `[Base64 データ · ${descriptor.blob.length.toLocaleString(APP_LOCALE)} 文字]` : content}</pre>
       ) : null}
     </article>
   );
@@ -480,7 +481,7 @@ function StructuredValue({ value, depth = 0 }: { value: unknown; depth?: number 
     );
   }
   const entries = Object.entries(record(value));
-  if (!entries.length) return <span className="mcp-structured-null">Empty object</span>;
+  if (!entries.length) return <span className="mcp-structured-null">空のオブジェクト</span>;
   return (
     <dl className="mcp-structured-object">
       {entries.slice(0, MAX_COLLECTION_ITEMS).map(([name, entry]) => (
@@ -489,7 +490,7 @@ function StructuredValue({ value, depth = 0 }: { value: unknown; depth?: number 
           <dd><StructuredValue depth={depth + 1} value={entry} /></dd>
         </div>
       ))}
-      {entries.length > MAX_COLLECTION_ITEMS ? <div><dt>More</dt><dd><CollectionRemainder count={entries.length - MAX_COLLECTION_ITEMS} /></dd></div> : null}
+      {entries.length > MAX_COLLECTION_ITEMS ? <div><dt>その他</dt><dd><CollectionRemainder count={entries.length - MAX_COLLECTION_ITEMS} /></dd></div> : null}
     </dl>
   );
 }
@@ -539,7 +540,7 @@ function JsonBlock({ value }: { value: unknown }) {
 }
 
 function CollectionRemainder({ count }: { count: number }) {
-  return <div className="mcp-collection-remainder">{count.toLocaleString()} more {count === 1 ? "item" : "items"}</div>;
+  return <div className="mcp-collection-remainder">{count.toLocaleString(APP_LOCALE)} その他 {count === 1 ? "item" : "items"}</div>;
 }
 
 function extractHtmlResource(content: unknown[], data: Record<string, unknown>, result: Record<string, unknown>): HtmlResource | null {

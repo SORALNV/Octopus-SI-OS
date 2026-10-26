@@ -91,7 +91,7 @@ function workerEnvironmentsProjection(store) {
         formation_pin: stringValue(formation.formation_pin),
         worker_environment_kind: workerEnvironmentKind,
         kind: workerEnvironmentKind,
-        status: lifecycle === "active" ? liveStatus || "not projected" : lifecycle,
+        status: lifecycle === "active" ? liveStatus || "情報なし" : lifecycle,
         live_available: liveAvailable,
         ee_id: stringValue(formation.ee),
         run_id: stringValue(formation.run),
@@ -137,13 +137,13 @@ function workerEnvironmentsProjection(store) {
     const viewer = objectOrEmpty(liveState.viewer);
     const protocol = stringValue(viewer.protocol).toLowerCase();
     const address = stringValue(viewer.address);
-    const status = lifecycle === "active" ? stringValue(liveState.status) || "not projected" : lifecycle;
+    const status = lifecycle === "active" ? stringValue(liveState.status) || "情報なし" : lifecycle;
     const rootBindings = Object.entries(objectOrEmpty(formation.door_root_bindings));
     const workspace = workerEnvironmentWorkspace(liveState, rootBindings);
     const connection = {
       id: `${id}:connection`,
       kind: "connection",
-      label: "Connection",
+      label: "接続",
       mode: "evidence",
       status,
       protocol: "worker_environment.formation.v5",
@@ -156,12 +156,12 @@ function workerEnvironmentsProjection(store) {
         workspace,
         persistence: formation.requires_release === true ? "Explicit release" : "Runtime lifecycle",
         state: status,
-        sync: Number.isFinite(liveState.generation) ? `Generation ${liveState.generation}` : "Not projected",
+        sync: Number.isFinite(liveState.generation) ? `Generation ${liveState.generation}` : "情報なし",
         health: stringValue(liveState.detail) || (status === "error" || status === "failed" ? "Failed" : "Projected"),
         capabilities: workerEnvironmentCapabilities(formation, kindCapabilities),
         events: [
-          { state: "active", label: "Environment formed", detail: `Movement ${openedAtMovementSeq}`, time: `seq ${openedAtMovementSeq}` },
-          { state: status, label: lifecycle === "active" ? "Last activity" : `Environment ${lifecycle}`, detail: stringValue(liveState.detail), time: `seq ${lastActivityMovementSeq}` },
+          { state: "active", label: "Environment formed", detail: `移動 ${openedAtMovementSeq}`, time: `seq ${openedAtMovementSeq}` },
+          { state: status, label: lifecycle === "active" ? "最終アクティビティ" : `環境 ${lifecycle}`, detail: stringValue(liveState.detail), time: `seq ${lastActivityMovementSeq}` },
         ],
       },
     };
@@ -201,7 +201,7 @@ function workerEnvironmentsProjection(store) {
         if (typeof historySupported !== "boolean") throw new Error("The native download history host returned no history capability declaration.");
         if (historySupported) {
           if (!stringValue(history.host_generation) || !history.downloads || history.downloads.available === false) throw new Error("The native download history host returned no exact available history owner.");
-          downloads = { id: `${id}:downloads`, kind: "downloads", label: "Downloads", mode: "direct", status,
+          downloads = { id: `${id}:downloads`, kind: "downloads", label: "ダウンロード", mode: "direct", status,
             protocol: "browser.native.downloads.v1", read_only: false,
             data: { formation_pin: stringValue(formation.formation_pin), host_generation: history.host_generation, downloads: history.downloads } };
         }
@@ -217,7 +217,7 @@ function workerEnvironmentsProjection(store) {
         }) ? recordedTabs : [];
         const pages = exactTabs.length ? exactTabs : [null];
         return [...baseSurfaces, ...historySurfaces(), ...pages.map((tab) => ({
-          ...unavailableViewerSurface({ id, label: "Browser", protocol, status: "unavailable", reason }),
+          ...unavailableViewerSurface({ id, label: "ブラウザー", protocol, status: "unavailable", reason }),
           ...(tab ? { id: `${id}:browser:${encodeURIComponent(tab.target_id)}` } : {}),
           kind: "browser",
           label: (tab ? stringValue(tab.title) || stringValue(tab.url) : stringValue(liveState.title)) || "Browser",
@@ -294,7 +294,7 @@ function workerEnvironmentsProjection(store) {
       if (lifecycle !== "active" || !stringValue(viewer.target_id ?? liveState.target_id) || !validAddressWithProtocols(address, ["http:", "https:", "ws:", "wss:"])) {
         return [...baseSurfaces, unavailableViewerSurface({
           id,
-          label: "Browser",
+          label: "ブラウザー",
           protocol,
           reason: lifecycle !== "active"
             ? `The browser room is ${lifecycle}; its interactive viewer is no longer active.`
@@ -303,7 +303,7 @@ function workerEnvironmentsProjection(store) {
         })];
       }
       return [...baseSurfaces, {
-        id: `${id}:browser`, kind: "browser", label: "Browser", mode: "direct", status,
+        id: `${id}:browser`, kind: "browser", label: "ブラウザー", mode: "direct", status,
         viewer_url: address, protocol, read_only: false,
         data: {
           url: stringValue(liveState.url),
@@ -360,7 +360,7 @@ function workerEnvironmentsProjection(store) {
       if (lifecycle !== "active" || !validWebSocketAddress(address)) {
         return [...baseSurfaces, unavailableViewerSurface({
           id,
-          label: "Terminal",
+          label: "ターミナル",
           protocol,
           reason: lifecycle !== "active"
             ? `The terminal room is ${lifecycle}; its interactive stream is no longer active.`
@@ -369,7 +369,7 @@ function workerEnvironmentsProjection(store) {
         })];
       }
       return [...baseSurfaces, {
-        id: `${id}:terminal`, kind: "terminal", label: "Terminal", mode: "direct", status,
+        id: `${id}:terminal`, kind: "terminal", label: "ターミナル", mode: "direct", status,
         viewer_url: address, protocol, read_only: false,
         data: { workspace },
       }];
@@ -411,7 +411,7 @@ function workerEnvironmentsProjection(store) {
       if (!validDirectEndpoint) {
         return [...baseSurfaces, unavailableViewerSurface({
           id,
-          label: "Terminal",
+          label: "ターミナル",
           protocol,
           reason: "The process room did not project an exact private viewer endpoint.",
           status,
@@ -441,7 +441,7 @@ function workerEnvironmentsProjection(store) {
     if (protocol === "terminal_transcript") {
       const transcript = await projectedTextFile(address, interfaceVarDir, warnings, "terminal transcript");
       return [...baseSurfaces, {
-        id: `${id}:terminal`, kind: "terminal", label: "Terminal", mode: "evidence", status,
+        id: `${id}:terminal`, kind: "terminal", label: "ターミナル", mode: "evidence", status,
         protocol, read_only: true,
         data: {
           lines: transcript ? transcript.split(/\r?\n/) : [],
@@ -453,7 +453,7 @@ function workerEnvironmentsProjection(store) {
     if (protocol === "container_runtime") {
       const container = objectOrEmpty(liveState.container);
       return [...baseSurfaces, {
-        id: `${id}:container`, kind: "container", label: "Runtime", mode: "evidence", status,
+        id: `${id}:container`, kind: "container", label: "実行基盤", mode: "evidence", status,
         protocol, read_only: true,
         data: {
           name: stringValue(container.name ?? viewer.container_name) || id,
@@ -488,14 +488,14 @@ function workerEnvironmentsProjection(store) {
       if (lifecycle !== "active") {
         return [...baseSurfaces, unavailableViewerSurface({
           id,
-          label: "Preview",
+          label: "プレビュー",
           protocol,
           reason: `The preview room is ${lifecycle}; its interactive viewer is no longer active.`,
           status,
         })];
       }
       return [...baseSurfaces, {
-        id: `${id}:preview`, kind: "preview", label: "Preview", mode: "direct", status,
+        id: `${id}:preview`, kind: "preview", label: "プレビュー", mode: "direct", status,
         viewer_url: address, protocol, read_only: true,
         data: {
           title: stringValue(liveState.title) || "Application preview",
@@ -504,7 +504,7 @@ function workerEnvironmentsProjection(store) {
       }];
     }
     return [...baseSurfaces, {
-      id: `${id}:runtime`, kind: "runtime", label: "Runtime", mode: "evidence", status,
+      id: `${id}:runtime`, kind: "runtime", label: "実行基盤", mode: "evidence", status,
       protocol, read_only: true, data: liveState,
     }];
   }

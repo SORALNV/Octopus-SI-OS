@@ -414,7 +414,7 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
     if (fileLoading) return false;
     const saved = await saveFilesPane(paneKey, window.octopusTransport);
     if (!hasFilesPane(paneKey)) return saved;
-    if (saved) appToast.success(`Saved ${readFilesPane(paneKey).snapshot.file?.name ?? "file"}`);
+    if (saved) appToast.success(`保存済み ${readFilesPane(paneKey).snapshot.file?.name ?? "file"}`);
     else if (readFilesPane(paneKey).error) appToast.danger(readFilesPane(paneKey).error);
     return saved;
   }
@@ -527,7 +527,7 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
 
   return (
     <section className="os-files-view" inert={locked || undefined} ref={viewRef}>
-      <nav aria-label="File path" className="os-files-header">
+      <nav aria-label="ファイルのパス" className="os-files-header">
         <FilesBreadcrumb
           label={artifactTarget ? activeArtifactPreview?.file.filename || artifactTarget.label : undefined}
           onSelectFile={(requestedRootId, path) => { if (activeRootRef.current === requestedRootId) void openFile(path); }}
@@ -535,15 +535,15 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
           root={selectedRoot}
         />
         <div className="os-files-path-actions">
-          <OcIconButton disabled={artifactTarget ? !activeArtifactPreview : !file} glyph="openExternal" label="Open in default application" onClick={() => void currentFileSystemAction("open")} size="xs" variant="ghost" />
-          <OcIconButton disabled={artifactTarget ? !activeArtifactPreview : !file} glyph="folderOpen" label="Reveal in Finder" onClick={() => void currentFileSystemAction("reveal")} size="xs" variant="ghost" />
+          <OcIconButton disabled={artifactTarget ? !activeArtifactPreview : !file} glyph="openExternal" label="既定のアプリで開く" onClick={() => void currentFileSystemAction("open")} size="xs" variant="ghost" />
+          <OcIconButton disabled={artifactTarget ? !activeArtifactPreview : !file} glyph="folderOpen" label="Finder で表示" onClick={() => void currentFileSystemAction("reveal")} size="xs" variant="ghost" />
         </div>
         <div className="os-files-header-actions">
-          {dirty ? <em className="os-files-edited">Edited</em> : null}
+          {dirty ? <em className="os-files-edited">編集済み</em> : null}
           <OcButton disabled={!dirty || saving || file?.truncated} onClick={() => void saveFile()} size="xs" variant={dirty ? "primary" : "ghost"}>
-            {saving ? "Saving…" : "Save"}
+            {saving ? "保存しています…" : "保存"}
           </OcButton>
-          <OcIconButton disabled={artifactTarget ? artifactLoading : !file} glyph="refresh" label="Reload file" onClick={() => void refreshFile()} size="xs" variant="ghost" />
+          <OcIconButton disabled={artifactTarget ? artifactLoading : !file} glyph="refresh" label="ファイルを再読み込み" onClick={() => void refreshFile()} size="xs" variant="ghost" />
           <div className="os-files-options">
             <OcIconButton
               buttonRef={optionsRef}
@@ -551,18 +551,18 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
               aria-haspopup="menu"
               disabled={!currentCopyPath && currentCopyContents === null}
               glyph="more"
-              label="File viewer options"
+              label="ファイル表示の設定"
               onClick={() => setOptionsOpen((current) => !current)}
               selected={optionsOpen}
               size="xs"
               variant="ghost"
             />
-              <OcDropdown align="end" anchorRef={optionsRef} aria-label="File viewer options" onOpenChange={setOptionsOpen} open={optionsOpen}>
-                <OcMenuItem disabled={!currentCopyPath} label="Copy path" leadingIcon="copy" onClick={() => void copyCurrentFileValue(currentCopyPath, "Copied file path")} role="menuitem" />
-                <OcMenuItem disabled={currentCopyContents === null} label="Copy file contents" leadingIcon="copy" onClick={() => void copyCurrentFileValue(currentCopyContents ?? "", "Copied file contents")} role="menuitem" />
+              <OcDropdown align="end" anchorRef={optionsRef} aria-label="ファイル表示の設定" onOpenChange={setOptionsOpen} open={optionsOpen}>
+                <OcMenuItem disabled={!currentCopyPath} label="パスをコピー" leadingIcon="copy" onClick={() => void copyCurrentFileValue(currentCopyPath, "Copied file path")} role="menuitem" />
+                <OcMenuItem disabled={currentCopyContents === null} label="ファイルの内容をコピー" leadingIcon="copy" onClick={() => void copyCurrentFileValue(currentCopyContents ?? "", "Copied file contents")} role="menuitem" />
                 {canWordWrap ? (
                   <OcMenuItem
-                    label={wordWrap ? "Disable word wrap" : "Enable word wrap"}
+                    label={wordWrap ? "折り返しを無効にする" : "折り返しを有効にする"}
                     leadingIcon="viewAll"
                     onClick={() => {
                       setWordWrap((current) => !current);
@@ -573,7 +573,7 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
                 ) : null}
               </OcDropdown>
           </div>
-          <OcIconButton glyph={treeOpen ? "sidebarClosed" : "sidebarOpen"} label="Toggle file tree" onClick={() => setTreeOpen((current) => !current)} selected={treeOpen} size="xs" variant="ghost" />
+          <OcIconButton glyph={treeOpen ? "sidebarClosed" : "sidebarOpen"} label="ファイルツリーの表示を切り替え" onClick={() => setTreeOpen((current) => !current)} selected={treeOpen} size="xs" variant="ghost" />
         </div>
       </nav>
 
@@ -581,44 +581,44 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
         <main className="os-files-editor">
           {paneState.error ? <div className="px-4 py-2 text-sm text-token-text-danger" role="alert">{paneState.error}</div> : null}
           {artifactTarget ? artifactLoading ? (
-            <FilesUnavailable title="Opening artifact payload" detail="Resolving admitted bytes from the exact artifact movement." glyph="refresh" />
+            <FilesUnavailable title="成果物のデータを開いています" detail="対象の移動記録から、許可された成果物のデータを取得しています。" glyph="refresh" />
           ) : artifactError ? (
-            <FilesUnavailable title="Artifact payload unavailable" detail={artifactError} glyph="warning" />
+            <FilesUnavailable title="成果物のデータを利用できません" detail={artifactError} glyph="warning" />
           ) : activeArtifactPreview && artifactTextState?.status === "ready" ? (
             <FilesCodeEditor
               documentId={`artifact:${artifactTargetKey}`}
               filename={activeArtifactPreview.file.filename}
               key={`artifact:${artifactTargetKey}`}
-              label={`View ${activeArtifactPreview.file.filename}`}
+              label={`表示 ${activeArtifactPreview.file.filename}`}
               value={artifactTextState.text}
               wordWrap={wordWrap}
             />
           ) : activeArtifactPreview && artifactTextState?.status === "too-large" ? (
-            <FilesUnavailable title="File is too large" detail="The artifact exceeds the 2 MB Files text preview limit." glyph="warning" />
+            <FilesUnavailable title="ファイルが大きすぎます" detail="成果物がテキストプレビューの上限である 2 MB を超えています。" glyph="warning" />
           ) : activeArtifactPreview && nativeArtifactPreview(activeArtifactPreview.model.kind) ? (
             <div className="os-files-artifact-preview">
               <ArtifactPreview model={activeArtifactPreview.model} zoomPercent={100} />
             </div>
           ) : activeArtifactPreview ? (
-            <FilesUnavailable title="Preview unavailable" detail={`${activeArtifactPreview.file.mediaType || "Binary file"} · ${activeArtifactPreview.file.filename}`} />
+            <FilesUnavailable title="プレビューを利用できません" detail={`${activeArtifactPreview.file.mediaType || "バイナリファイル"} · ${activeArtifactPreview.file.filename}`} />
           ) : (
-            <FilesUnavailable title="Artifact payload unavailable" detail="No admitted payload bytes were resolved for this artifact." glyph="warning" />
+            <FilesUnavailable title="成果物のデータを利用できません" detail="この成果物のデータを取得できませんでした。" glyph="warning" />
           ) : fileLoading ? (
-            <FilesUnavailable title="Opening file" detail="Reading the selected file from its admitted OS root." glyph="refresh" />
+            <FilesUnavailable title="ファイルを開いています" detail="アクセスが許可されたルートから、選択したファイルを読み込んでいます。" glyph="refresh" />
           ) : fileError ? (
-            <FilesUnavailable title="File unavailable" detail={fileError} glyph="warning" />
+            <FilesUnavailable title="ファイルを利用できません" detail={fileError} glyph="warning" />
           ) : !file ? (
-            <FilesUnavailable title="Open file" detail="Select a file from the workspace tree" initial />
+            <FilesUnavailable title="ファイルを開く" detail="ワークスペースのツリーからファイルを選んでください" initial />
           ) : file.kind === "binary" ? (
-            <FilesUnavailable title="Preview unavailable" detail="This file is binary and cannot be edited as text." />
+            <FilesUnavailable title="プレビューを利用できません" detail="このファイルはバイナリ形式のため、テキストとして編集できません。" />
           ) : file.truncated ? (
-            <FilesUnavailable title="File is too large" detail="The bounded preview is read-only because the complete file was not loaded." glyph="warning" />
+            <FilesUnavailable title="ファイルが大きすぎます" detail="ファイル全体を読み込んでいないため、このプレビューは読み取り専用です。" glyph="warning" />
           ) : (
             <FilesCodeEditor
               documentId={JSON.stringify([file.rootId, file.path])}
               filename={file.name}
               key={JSON.stringify([file.rootId, file.path])}
-              label={`Edit ${file.name}`}
+              label={`編集 ${file.name}`}
               onChange={changeDraft}
               initialViewState={paneSnapshot.view}
               onViewStateChange={rememberView}
@@ -630,7 +630,7 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
 
         {treeMotion.mounted ? (
           <motion.aside
-            aria-label="Workspace files"
+            aria-label="ワークスペースのファイル"
             className="os-files-tree"
             inert={!treeOpen}
             style={{ opacity: treeMotion.opacity, width: treeMotion.animatedSize }}
@@ -646,29 +646,29 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
               onCommit={persistFileTreeWidth}
               onOpenChange={setTreeOpen}
               onResizingChange={setTreeResizing}
-              title="Drag to resize. Double-click to reset."
+              title="ドラッグでサイズ変更、ダブルクリックでリセット。"
               value={constrainedTreeWidth}
             />
             <div className="os-files-tree-content">
               {!artifactTarget && roots.length > 1 ? (
                 <div className="os-files-root-control">
-                  <button aria-label="Choose file tree root" className="os-files-root-picker" onClick={() => setRootMenuOpen((open) => !open)} ref={rootMenuRef} type="button">
+                  <button aria-label="ファイルツリーのルートを選択" className="os-files-root-picker" onClick={() => setRootMenuOpen((open) => !open)} ref={rootMenuRef} type="button">
                     <Glyph aria-hidden="true" name="folderOpen" size={16} />
                     <span>{selectedRoot?.label}</span>
                   </button>
-                  <OcDropdown anchorRef={rootMenuRef} aria-label="File tree roots" contentWidth="menuBounded" onOpenChange={setRootMenuOpen} open={rootMenuOpen}>
+                  <OcDropdown anchorRef={rootMenuRef} aria-label="ファイルツリーのルート" contentWidth="menuBounded" onOpenChange={setRootMenuOpen} open={rootMenuOpen}>
                     {roots.map((root) => <OcMenuItem key={root.id} label={root.label} leadingIcon="folderOpen" onClick={() => changeRoot(root.id)} role="menuitem" title={root.path} trailing={root.id === rootId ? <Glyph className="icon-xs" name="check" size={16} /> : undefined} />)}
                   </OcDropdown>
                 </div>
               ) : null}
               <div className="os-files-filter-shell">
-                <OctopusFilterField inputId="os-files-tree-search" label="Filter files" onQueryChange={setQuery} placeholder="Filter files…" searchQuery={query} />
+                <OctopusFilterField inputId="os-files-tree-search" label="ファイルを絞り込む" onQueryChange={setQuery} placeholder="ファイルを絞り込む…" searchQuery={query} />
               </div>
               <div className="os-files-octopus-tree">
-                {artifactTarget ? artifactLoading ? <OctopusPanelNote><OcLoadingText label="Resolving artifact payload…" /></OctopusPanelNote>
-                  : artifactError ? <p className="os-files-tree-message is-error">Payload unavailable</p>
-                    : searchActive && !treePaths.length ? <OctopusPanelNote>No matching files</OctopusPanelNote>
-                      : !treePaths.length ? <OctopusPanelNote>Payload unavailable</OctopusPanelNote>
+                {artifactTarget ? artifactLoading ? <OctopusPanelNote><OcLoadingText label="成果物のデータを取得しています…" /></OctopusPanelNote>
+                  : artifactError ? <p className="os-files-tree-message is-error">データを利用できません</p>
+                    : searchActive && !treePaths.length ? <OctopusPanelNote>一致するファイルがありません</OctopusPanelNote>
+                      : !treePaths.length ? <OctopusPanelNote>データを利用できません</OctopusPanelNote>
                         : <OctopusFileTree
                             directScrolling
                             initialSelectedPaths={treePaths}
@@ -679,7 +679,7 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
                             revealSelectedPath
                             selectedPath={treePaths[0]}
                           />
-                  : searchActive ? !treePaths.length ? <OctopusPanelNote>No matching files</OctopusPanelNote>
+                  : searchActive ? !treePaths.length ? <OctopusPanelNote>一致するファイルがありません</OctopusPanelNote>
                     : <OctopusFileTree
                         directScrolling
                         flattenEmptyDirectories
@@ -692,8 +692,8 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
                         selectedPath={file?.path}
                       />
                     : treeError ? <p className="os-files-tree-message is-error">{treeError}</p>
-                      : loadingPaths.has("") && !treePaths.length ? <OcLoadingRows label="Loading directory entries…" />
-                        : !treePaths.length ? <OctopusPanelNote>No files in this folder</OctopusPanelNote>
+                      : loadingPaths.has("") && !treePaths.length ? <OcLoadingRows label="ディレクトリの項目を読み込んでいます…" />
+                        : !treePaths.length ? <OctopusPanelNote>このフォルダーにファイルはありません</OctopusPanelNote>
                           : <OctopusFileTree
                               directScrolling
                               initialExpandedPaths={[...expanded]}
@@ -725,7 +725,7 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
         panelClassName="max-w-md"
       >
         <div className="px-6 pt-8 pb-6">
-          <h2 className="heading-lg text-token-foreground">Discard unsaved changes?</h2>
+          <h2 className="heading-lg text-token-foreground">未保存の変更を破棄しますか？</h2>
           <p className="mt-2 text-sm leading-5 text-token-text-secondary">{discardPrompt}</p>
         </div>
         <div className="flex min-h-[76px] items-center justify-end gap-2 border-t border-token-border/40 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
@@ -735,13 +735,13 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
               discardContinuationRef.current = null;
               setDiscardPrompt("");
             }
-          }} variant="ghost">Keep editing</OcButton>
+          }} variant="ghost">編集を続ける</OcButton>
           <OcButton onClick={() => {
             const continuation = discardContinuationRef.current;
             discardContinuationRef.current = null;
             setDiscardPrompt("");
             continuation?.();
-          }} tone="danger" variant="secondary">Discard</OcButton>
+          }} tone="danger" variant="secondary">破棄</OcButton>
         </div>
       </SetupDialogShell>
     </section>

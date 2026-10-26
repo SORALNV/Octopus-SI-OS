@@ -24,7 +24,7 @@ function readClientTaskArchive(run, clientInterfaceId) {
   if (!Array.isArray(archive.active_checkpoints) || !Array.isArray(run.checkpoints)) {
     throw new Error(`${label} has no saved checkpoint frontier`);
   }
-  const savedIds = archive.active_checkpoints.map((id) => requiredSafeRegistryId(id, `${label} checkpoint`));
+  const savedIds = archive.active_checkpoints.map((id) => requiredSafeRegistryId(id, `${label} チェックポイント`));
   const checkpointIds = new Set(run.checkpoints.map((checkpoint) => checkpoint.id));
   if (new Set(savedIds).size !== savedIds.length || savedIds.some((id) => !checkpointIds.has(id))) {
     throw new Error(`${label} has duplicate or missing checkpoints`);

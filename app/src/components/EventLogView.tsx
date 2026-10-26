@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../locale";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { formatProjectionError, hasProjectionBridge, readProjection } from "../projectionClient";
 import { useProjectionGeneration } from "../projectionLive";
@@ -265,15 +266,15 @@ export function EventLogView({ accessProfile, focusedMovement, onClearMovement, 
           <div className="eventlog-toolbar">
             <div className="eventlog-filters">
               {focusedMovement ? (
-                <button className="eventlog-filter" onClick={clearFilters} title="Clear movement filter and show all movements" type="button">
-                  <span>Movement #{focusedMovement.sequence}</span><Glyph name="close" size={14} />
+                <button className="eventlog-filter" onClick={clearFilters} title="移動の絞り込みを解除して、すべて表示" type="button">
+                  <span>移動 #{focusedMovement.sequence}</span><Glyph name="close" size={14} />
                 </button>
               ) : null}
-              <FilterSelect label="Interface" value={interfaceFilter} options={interfaceOptions} onChange={setInterfaceFilter} />
-              <FilterSelect label="Environment" value={environmentFilter} options={environmentOptions} onChange={setEnvironmentFilter} />
-              <FilterSelect label="Type" value={typeFilter} options={typeOptions} onChange={setTypeFilter} />
+              <FilterSelect label="インターフェース" value={interfaceFilter} options={interfaceOptions} onChange={setInterfaceFilter} />
+              <FilterSelect label="環境" value={environmentFilter} options={environmentOptions} onChange={setEnvironmentFilter} />
+              <FilterSelect label="種類" value={typeFilter} options={typeOptions} onChange={setTypeFilter} />
               {focusedMovement || searchQuery || interfaceFilter !== ALL || environmentFilter !== ALL || typeFilter !== ALL ? (
-                <button className="eventlog-filter" onClick={clearFilters} type="button">Show all movements</button>
+                <button className="eventlog-filter" onClick={clearFilters} type="button">すべての移動を表示</button>
               ) : null}
             </div>
             {newMovements > 0 ? (
@@ -281,12 +282,12 @@ export function EventLogView({ accessProfile, focusedMovement, onClearMovement, 
                 setExpandedId("");
                 setScrolled(false);
                 if (bodyRef.current) bodyRef.current.scrollTop = 0;
-              }}>{newMovements} new movements</button>
+              }}>{newMovements} 件の新しい移動</button>
             ) : null}
             <span className="eventlog-count">
               {visibleRows.length === rows.length
                 ? `${rows.length} / ${total} movements`
-                : `${visibleRows.length} filtered / ${rows.length} loaded`}
+                : `${visibleRows.length} 件に絞り込み / ${rows.length} 件読み込み済み`}
             </span>
           </div>
         )}
@@ -295,11 +296,11 @@ export function EventLogView({ accessProfile, focusedMovement, onClearMovement, 
         {!projectionAvailable ? (
           <section className="workspace-empty">
             <Glyph name="metrics" size={28} />
-            <strong>Projection bridge unavailable</strong>
-            <span>The event log reads the movement ledger through the desktop app</span>
+            <strong>表示用データの接続を利用できません</strong>
+            <span>イベントログはデスクトップアプリを通じて移動台帳を読み取ります</span>
           </section>
         ) : movements.phase === "initial-loading" && !movements.error ? (
-          <ProjectionResourceLoading label="Reading the movement ledger" />
+          <ProjectionResourceLoading label="移動台帳を読み込んでいます" />
         ) : (
           <div className="eventlog-view">
             <div className="flex min-h-0 flex-col">
@@ -309,16 +310,16 @@ export function EventLogView({ accessProfile, focusedMovement, onClearMovement, 
                   detail={movements.error}
                   onRetry={movements.retry}
                   retrying={movements.phase === "refreshing"}
-                  title="The movement ledger could not be refreshed"
+                  title="移動台帳を更新できませんでした"
                 />
               ) : null}
-              <div className="eventlog-table min-h-0 flex-1" role="table" aria-label="Movement ledger">
+              <div className="eventlog-table min-h-0 flex-1" role="table" aria-label="移動台帳">
                 <div className="eventlog-head" role="row">
-                  <span>Time</span>
-                  <span>Artifact</span>
-                  <span>From → To</span>
-                  <span>Environment</span>
-                  <span>Type</span>
+                  <span>時刻</span>
+                  <span>成果物</span>
+                  <span>送信元 → 送信先</span>
+                  <span>環境</span>
+                  <span>種類</span>
                 </div>
                 <div className="eventlog-body" ref={bodyRef} onScroll={(event) => setScrolled(event.currentTarget.scrollTop > 0)}>
                   {movements.data === null ? (
@@ -327,13 +328,13 @@ export function EventLogView({ accessProfile, focusedMovement, onClearMovement, 
                       detail={movements.error}
                       onRetry={movements.retry}
                       retrying={movements.phase === "initial-loading"}
-                      title="Unable to load the movement ledger"
+                      title="移動台帳を読み込めません"
                     />
                   ) : visibleRows.length === 0 ? (
                     <div className="eventlog-empty">
                       {rows.length === 0
-                        ? "No movements are recorded on the ledger yet. The system is alive when artifacts move."
-                        : "No movements match the current filters."}
+                        ? "台帳にはまだ移動の記録がありません。成果物が移動すると、システムの動作がここに表示されます。"
+                        : "現在の条件に一致する移動がありません。"}
                     </div>
                   ) : visibleRows.map(({ row, key }) => (
                     <MovementRowView
@@ -346,12 +347,12 @@ export function EventLogView({ accessProfile, focusedMovement, onClearMovement, 
                   ))}
                   {loaded && nextBeforeSeq !== null ? (
                     <button className="eventlog-load-more" onClick={() => setBeforeSeq(nextBeforeSeq)} type="button">
-                      Show older movements
+                      過去の移動を表示
                     </button>
                   ) : null}
                   {loaded && beforeSeq !== null ? (
                     <button className="eventlog-load-more" onClick={() => setBeforeSeq(null)} type="button">
-                      Back to latest movements
+                      最新の移動に戻る
                     </button>
                   ) : null}
                 </div>
@@ -403,7 +404,7 @@ function MovementRowView({
           <Glyph className="eventlog-artifact-glyph" name="sites" size={15} />
           <span>
             <strong>{row.artifact_label || row.artifact_id || "movement"}</strong>
-            <small>{row.blob_size !== null ? formatBytes(row.blob_size) : row.content_hash ? shortId(row.content_hash, 8, 4) : "no payload reference"}</small>
+            <small>{row.blob_size !== null ? formatBytes(row.blob_size) : row.content_hash ? shortId(row.content_hash, 8, 4) : "データの参照なし"}</small>
           </span>
         </span>
         <span className="eventlog-route">
@@ -419,16 +420,16 @@ function MovementRowView({
         <div className="eventlog-detail">
           <div className="eventlog-pane">
             <div className="eventlog-pane-head">
-              <span>Movement</span>
+              <span>移動</span>
             </div>
             <JsonPanel value={row.raw} preClassName="eventlog-json" copyLabel="Copy movement JSON" />
           </div>
           <div className="eventlog-pane">
             <div className="eventlog-pane-head">
-              <span>File</span>
+              <span>ファイル</span>
             </div>
             {row.blob_path ? (
-              <SurfaceCopyButton className="eventlog-file-copy" label="Copy blob path" value={row.blob_path} />
+              <SurfaceCopyButton className="eventlog-file-copy" label="データのパスをコピー" value={row.blob_path} />
             ) : null}
             <FilePane row={row} payload={payload} />
           </div>
@@ -440,7 +441,7 @@ function MovementRowView({
 
 function FilePane({ row, payload }: { row: MovementRow; payload?: PayloadPreview }) {
   if (!row.blob_path) {
-    return <div className="eventlog-pane-empty">The movement carries no payload reference.</div>;
+    return <div className="eventlog-pane-empty">この移動にはペイロードの参照がありません。</div>;
   }
   const reference = jsonText({
     artifact_id: row.artifact_id,
@@ -463,7 +464,7 @@ function FilePane({ row, payload }: { row: MovementRow; payload?: PayloadPreview
     return (
       <>
         <pre>{reference}</pre>
-        <div className="eventlog-pane-empty">The blob is not resolvable from this client (movement recorded elsewhere).</div>
+        <div className="eventlog-pane-empty">別の場所で記録された移動のため、このクライアントではデータを取得できません。</div>
       </>
     );
   }
@@ -471,16 +472,16 @@ function FilePane({ row, payload }: { row: MovementRow; payload?: PayloadPreview
     <>
       <pre>{reference}</pre>
       {payload.binary ? (
-        <div className="eventlog-pane-empty">Binary payload · {formatBytes(payload.size)}</div>
+        <div className="eventlog-pane-empty">バイナリデータ · {formatBytes(payload.size)}</div>
       ) : (
-        <pre className="eventlog-payload">{payload.text}{payload.truncated ? "\n… (truncated preview)" : ""}</pre>
+        <pre className="eventlog-payload">{payload.text}{payload.truncated ? "\n…（プレビューを省略）" : ""}</pre>
       )}
     </>
   );
 }
 
 function EndpointCell({ endpoint }: { endpoint: MovementEndpoint }) {
-  if (!endpoint.id) return <span className="eventlog-endpoint"><strong>unknown</strong></span>;
+  if (!endpoint.id) return <span className="eventlog-endpoint"><strong>不明</strong></span>;
 
   return (
     <span className="eventlog-endpoint">
@@ -535,10 +536,10 @@ function optionList(values: string[]): string[] {
 
 function formatClock(ms: number): string {
   if (!ms) return "--:--:--";
-  return new Date(ms).toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return new Date(ms).toLocaleTimeString(APP_LOCALE, { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
 function formatDay(ms: number): string {
   if (!ms) return "";
-  return new Date(ms).toLocaleDateString([], { month: "short", day: "2-digit", year: "numeric" });
+  return new Date(ms).toLocaleDateString(APP_LOCALE, { month: "short", day: "2-digit", year: "numeric" });
 }

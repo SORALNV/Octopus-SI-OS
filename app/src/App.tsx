@@ -73,12 +73,12 @@ export function App() {
           <div className="welcome-access-state" role={accessError ? "alert" : "status"}>
             {accessError ? (
               <>
-                <strong>Client access host is unavailable</strong>
+                <strong>クライアントの接続先を利用できません</strong>
                 <span>{accessError}</span>
-                <button onClick={() => window.location.reload()} type="button">Reload</button>
+                <button onClick={() => window.location.reload()} type="button">再読み込み</button>
               </>
             ) : (
-              <OctopusLoadingState className="app-loading-state" label="Connecting to the local client host" />
+              <OctopusLoadingState className="app-loading-state" label="ローカルの接続先に接続しています" />
             )}
           </div>
         </main>
@@ -150,7 +150,7 @@ export function App() {
   }
 
   if (access.profile !== "lab" && runtimeHost.available && runtimeHost.phase === "probing" && !runtimeHasBeenReady) {
-    return <>{primaryWindowControls}<OctopusLoadingState className="app-loading-state" label="Opening Octopus" /><AppToastViewport /></>;
+    return <>{primaryWindowControls}<OctopusLoadingState className="app-loading-state" label="Octopus を開いています" /><AppToastViewport /></>;
   }
 
   const launchOverlay = launchGate || launchVisible
@@ -236,7 +236,7 @@ function LockScreen({ mode, onUnlock }: { mode: "set" | "unlock"; onUnlock: (sta
     try {
       const status = await setTouchIdEnabled(true);
       setTouchId(status);
-      if (!status.enrolled) throw new Error("Touch ID could not be enabled on this device.");
+      if (!status.enrolled) throw new Error("このデバイスでは Touch ID を有効にできませんでした。");
       onUnlock(pendingPasswordAccess);
     } catch (error) {
       appToast.danger(error instanceof Error ? error.message : String(error));
@@ -290,16 +290,16 @@ function LockScreen({ mode, onUnlock }: { mode: "set" | "unlock"; onUnlock: (sta
           {pendingPasswordAccess ? (
             <div className="welcome-lock-form">
               <span className="welcome-tag">Touch ID</span>
-              <h1 id="welcome-title" className="welcome-title">Use Touch ID next time?</h1>
+              <h1 id="welcome-title" className="welcome-title">次回から Touch ID を使いますか？</h1>
               <p className="welcome-body">
-                Keep the Administrator password as the fallback, and allow this Mac to unlock Octopus after a Touch ID check.
+                この Mac の Touch ID で Octopus のロックを解除できるようにします。管理者パスワードも引き続き使えます。
               </p>
               <div className="welcome-lock-actions welcome-lock-choice-actions">
                 <button className="welcome-lock-primary welcome-touch-id-enable" type="button" onClick={() => void enableTouchId()} disabled={touchIdBusy}>
-                  {touchIdBusy ? "Enabling…" : "Enable Touch ID"}
+                  {touchIdBusy ? "有効にしています…" : "Touch ID を有効にする"}
                 </button>
                 <button className="welcome-lock-forgot" type="button" onClick={() => void declineTouchId()} disabled={touchIdBusy}>
-                  Not now
+                  今はしない
                 </button>
               </div>
             </div>
@@ -319,7 +319,7 @@ function LockScreen({ mode, onUnlock }: { mode: "set" | "unlock"; onUnlock: (sta
         </section>
         {!pendingPasswordAccess && mode === "unlock" && touchId?.available && touchId.enrolled ? (
           <button className="welcome-lock-forgot" type="button" onClick={() => void useTouchId()} disabled={touchIdBusy}>
-            {touchIdBusy ? "Checking Touch ID…" : "Unlock with Touch ID"}
+            {touchIdBusy ? "Touch ID を確認しています…" : "Touch ID でロックを解除"}
           </button>
         ) : null}
       </div>

@@ -5,11 +5,11 @@ import "./sidebarActivity.css";
 export type SidebarTaskState = "running" | "failed" | "waiting" | "scheduled" | "unread";
 
 const statusLabels: Record<SidebarTaskState, string> = {
-  running: "Running",
-  failed: "Failed",
-  waiting: "Waiting",
-  scheduled: "Scheduled",
-  unread: "New",
+  running: "実行中",
+  failed: "失敗",
+  waiting: "待機中",
+  scheduled: "スケジュール済み",
+  unread: "未読",
 };
 
 const RUNNING_DOTS = Array.from({ length: 8 }, (_, index) => {

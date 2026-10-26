@@ -116,30 +116,30 @@ export function TaskActionsController({
       });
     };
     const actions: TaskAction[] = archived ? [
-      { id: "restore", label: "Restore task", icon: "retry", enabled: accessProfile === "live" && !projectWorkspace.pending, onSelect: () => setArchived(false) },
+      { id: "restore", label: "タスクを復元", icon: "retry", enabled: accessProfile === "live" && !projectWorkspace.pending, onSelect: () => setArchived(false) },
     ] : [
-      { id: "rename", label: "Rename", icon: "edit", onSelect: () => { close(); setRenamingTask(target(run)); } },
+      { id: "rename", label: "名前を変更", icon: "edit", onSelect: () => { close(); setRenamingTask(target(run)); } },
       { id: "pin", label: pinned ? "Unpin" : "Pin", icon: pinned ? "pinOff" : "pin", shortcuts: shortcuts.toggle_pin_task, onSelect: () => { onPinnedChatIdsChange(pinned ? pinnedChatIds.filter((id) => id !== runId) : [runId, ...pinnedChatIds]); close(); } },
-      ...(alias ? [{ id: "projected-title", label: "Use projected title", icon: "refresh" as const, onSelect: () => {
+      ...(alias ? [{ id: "projected-title", label: "自動生成されたタイトルを使う", icon: "refresh" as const, onSelect: () => {
         clearClientTaskAlias(accessProfile, runId); close();
         const generation = latest.current.generation;
-        appToast.info("Using projected task title", 8, { dedupeKey: `task-alias-clear:${accessProfile}:${runId}`, action: { label: "Undo", onSelect: () => {
+        appToast.info("Using projected task title", 8, { dedupeKey: `task-alias-clear:${accessProfile}:${runId}`, action: { label: "元に戻す", onSelect: () => {
           if (latest.current.scope === scope && latest.current.generation === generation) restoreClientTaskAliasIfAbsent(accessProfile, runId, alias);
         } } });
       } }] : []),
-      ...(run.writable ? [] : [{ id: "readonly", label: "Read-only internal run", icon: "lock" as const, enabled: false }]),
+      ...(run.writable ? [] : [{ id: "readonly", label: "読み取り専用の内部実行", icon: "lock" as const, enabled: false }]),
     ];
     const copy = (text: string, label: string) => {
       void copyText(text).then((copied) => copied ? appToast.success(`${label} copied`) : appToast.danger("Clipboard access is unavailable."), error);
       close();
     };
-    actions.push({ type: "separator" }, { id: "copy-menu", label: "Copy", icon: "copy", submenu: [
-      { id: "copy-title", label: "Task title", icon: "edit", onSelect: () => copy(clientTaskTitle(runId, run.title, organization), "Task title") },
-      { id: "copy", label: "Run ID", icon: "copy", shortcuts: shortcuts.copy_run_id, onSelect: () => copy(runId, "Run ID") },
+    actions.push({ type: "separator" }, { id: "copy-menu", label: "コピー", icon: "copy", submenu: [
+      { id: "copy-title", label: "タスクのタイトル", icon: "edit", onSelect: () => copy(clientTaskTitle(runId, run.title, organization), "タスクのタイトル") },
+      { id: "copy", label: "実行 ID", icon: "copy", shortcuts: shortcuts.copy_run_id, onSelect: () => copy(runId, "実行 ID") },
     ] });
-    if (!archived) actions.push({ type: "separator" }, { id: "open", label: "Open in new window", icon: "openExternal", onSelect: () => { close(); onOpenChatInNewWindow(runId); } });
-    if (!archived && run.writable) actions.push({ type: "separator" }, { id: "archive", label: "Archive", description: run.turnOpen ? "Stop the task before archiving" : undefined, icon: "archive", enabled: accessProfile === "live" && !projectWorkspace.pending && !run.turnOpen, onSelect: () => setArchived(true) });
-    if (accessProfile === "live" && !archived) actions.push({ id: "delete", label: "Delete task…", icon: "trash", tone: "danger", enabled: !projectWorkspace.pending, onSelect: () => { close(); setDeletingTask(target(run)); } });
+    if (!archived) actions.push({ type: "separator" }, { id: "open", label: "新しいウィンドウで開く", icon: "openExternal", onSelect: () => { close(); onOpenChatInNewWindow(runId); } });
+    if (!archived && run.writable) actions.push({ type: "separator" }, { id: "archive", label: "アーカイブ", description: run.turnOpen ? "アーカイブする前にタスクを停止してください" : undefined, icon: "archive", enabled: accessProfile === "live" && !projectWorkspace.pending && !run.turnOpen, onSelect: () => setArchived(true) });
+    if (accessProfile === "live" && !archived) actions.push({ id: "delete", label: "タスクを削除…", icon: "trash", tone: "danger", enabled: !projectWorkspace.pending, onSelect: () => { close(); setDeletingTask(target(run)); } });
     return actions;
   }
 
@@ -252,15 +252,15 @@ function TaskNameDialog({
       <form className="flex flex-col gap-4 p-5" onSubmit={submit}>
         <OcDialogHeader
           className="p-0"
-          description="The run remains unchanged. This name belongs to the local Octopus OS projection."
+          description="実行自体は変更されません。この名前は Octopus OS のローカル表示にのみ使います。"
           onClose={onCancel}
-          title="Rename task"
+          title="タスクの名前を変更"
           titleId="octopus-task-name-title"
         />
-        <OcTextField label="Task name" maxLength={180} onChange={(event) => setName(event.currentTarget.value)} inputRef={inputRef} value={name} />
+        <OcTextField label="タスク名" maxLength={180} onChange={(event) => setName(event.currentTarget.value)} inputRef={inputRef} value={name} />
         <OcDialogFooter className="min-h-0 border-0 p-0">
-          <OcButton onClick={onCancel} variant="ghost">Cancel</OcButton>
-          <OcButton disabled={busy || !name.trim()} type="submit" variant="primary">Save</OcButton>
+          <OcButton onClick={onCancel} variant="ghost">キャンセル</OcButton>
+          <OcButton disabled={busy || !name.trim()} type="submit" variant="primary">保存</OcButton>
         </OcDialogFooter>
       </form>
     </OcDialog>
@@ -286,13 +286,13 @@ function TaskDeleteDialog({
   if (!open || !run) return null;
   return (
     <OcDialog ariaLabelledBy="octopus-task-delete-title" initialFocusRef={cancelRef} onClose={onCancel} open={open} panelClassName="p-5" size="compact">
-      <OcDialogHeader className="p-0" title="Delete task?" titleId="octopus-task-delete-title" />
+      <OcDialogHeader className="p-0" title="タスクを削除しますか？" titleId="octopus-task-delete-title" />
       <p className="mt-2 text-base text-token-description-foreground">
-        {`Delete “${title}”? This cannot be undone. Archive it instead if you want to keep the conversation for later.`}
+        {`「${title}」を削除しますか？ この操作は元に戻せません。会話を残すにはアーカイブしてください。`}
       </p>
       <OcDialogFooter className="mt-5 min-h-0 border-0 p-0">
-        <OcButton buttonRef={cancelRef} onClick={onCancel} variant="ghost">Cancel</OcButton>
-        <OcButton disabled={busy} onClick={onDelete} tone="danger" variant="primary">Delete task</OcButton>
+        <OcButton buttonRef={cancelRef} onClick={onCancel} variant="ghost">キャンセル</OcButton>
+        <OcButton disabled={busy} onClick={onDelete} tone="danger" variant="primary">タスクを削除</OcButton>
       </OcDialogFooter>
     </OcDialog>
   );

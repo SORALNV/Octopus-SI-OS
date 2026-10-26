@@ -73,7 +73,7 @@ export function CatalogInstalledRail<T>({
           })}
           {hiddenItems.length ? (
             <button
-              aria-label={`${hiddenItems.length} more. ${manageLabel}`}
+              aria-label={`${hiddenItems.length} 件あります。 ${manageLabel}`}
               className="group relative flex size-11 shrink-0 cursor-interaction items-center justify-center rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
               onClick={onManage}
               type="button"
@@ -88,7 +88,7 @@ export function CatalogInstalledRail<T>({
                 </span>
               </span>
               <span aria-hidden="true" className="pointer-events-none absolute start-1/2 top-full z-10 -translate-x-1/2 text-xs leading-4 whitespace-nowrap text-secondary opacity-0 transition-opacity duration-basic ease-out group-hover:opacity-100 group-focus-visible:opacity-100 group-has-[:focus-visible]/catalog-installed-row:translate-y-1 group-has-[:focus-visible]/catalog-installed-row:duration-0 motion-reduce:transition-none">
-                {hiddenItems.length} more
+                {hiddenItems.length} その他
               </span>
             </button>
           ) : null}

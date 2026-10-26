@@ -245,7 +245,7 @@ function runActivityProjection(store) {
         label,
         `${Object.entries(objectOrEmpty(row.from)).map(([kind, id]) => `${kind}:${stringValue(id)}`).find((value) => !value.endsWith(":")) ?? "unknown"} → ${Object.entries(objectOrEmpty(row.to)).map(([kind, id]) => `${kind}:${stringValue(id)}`).find((value) => !value.endsWith(":")) ?? "unknown"}`,
         `movement ${movementSeq}`,
-        artifactId ? `artifact ${artifactId}` : "",
+        artifactId ? `成果物 ${artifactId}` : "",
       ].filter(Boolean).join(" · ");
       const text = evidenceOnly
         ? evidenceText

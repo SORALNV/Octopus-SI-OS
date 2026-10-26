@@ -116,7 +116,7 @@ export function WorkspaceSurfacePane({
     <div className="workspace-pane-tab-add no-drag">
       <PaneHeaderButton
         glyph="plus"
-        label="New tab"
+        label="新しいタブ"
         buttonRef={addButtonRef}
         onClick={onNewTab}
         onContextMenu={(event) => { event.preventDefault(); setAddMenuOpen(true); }}
@@ -128,13 +128,13 @@ export function WorkspaceSurfacePane({
       {!compactOverlay ? <PaneHeaderButton
         className="workspace-surface-focus"
         glyph={focused ? "restore" : "expand"}
-        label={focused ? "Restore split workspace" : "Focus this workspace"}
+        label={focused ? "分割ワークスペースを復元" : "このワークスペースに移動"}
         onClick={() => onFocusedChange(!focused)}
       /> : null}
       <PaneHeaderButton
         className="workspace-surface-close"
         glyph="splitPane"
-        label="Close secondary pane"
+        label="サブペインを閉じる"
         selected
         onClick={onClose}
       />
@@ -195,7 +195,7 @@ export function WorkspaceSurfacePane({
 
         {controlsInWindowHeader && windowControlsHost ? createPortal(header, windowControlsHost) : null}
 
-        <OcDropdown anchorRef={addButtonRef} align="end" aria-label="New tab" onOpenChange={setAddMenuOpen} open={addMenuOpen && addActions.length > 0} style={{ width: 280 }}>
+        <OcDropdown anchorRef={addButtonRef} align="end" aria-label="新しいタブ" onOpenChange={setAddMenuOpen} open={addMenuOpen && addActions.length > 0} style={{ width: 280 }}>
           <WorkspacePaneActionMenu actions={addActions} onAction={selectAction} />
         </OcDropdown>
       </div>
@@ -217,10 +217,10 @@ export function WorkspacePaneLauncher({ actions, onAction }: {
   return (
     <div className="workspace-pane-launcher">
       <section className="workspace-pane-launcher-section" aria-labelledby={headingId}>
-        <h3 id={headingId}>Tools</h3>
+        <h3 id={headingId}>ツール</h3>
         <div className="workspace-pane-launcher-list">
         {actions.length === 0 ? (
-          <span className="workspace-pane-launcher-empty">No tabs are available for this task</span>
+          <span className="workspace-pane-launcher-empty">このタスクで開けるタブはありません</span>
         ) : visibleActions.map((action) => (
             <ShellTooltip className="min-w-0" key={action.id} label={action.title} shortcut={action.shortcut}>
               <button
@@ -244,11 +244,11 @@ export function WorkspacePaneLauncher({ actions, onAction }: {
           type="button"
         >
           <Glyph name="more" size={16} />
-          <span>More tools…</span>
+          <span>その他のツール…</span>
           <Glyph name="chevronDown" size={14} />
         </button> : null}
         </div>
-        <OcDropdown anchorRef={moreButtonRef} align="end" aria-label="More tools" onOpenChange={setMoreOpen} open={moreOpen} style={{ width: 280 }}>
+        <OcDropdown anchorRef={moreButtonRef} align="end" aria-label="その他のツール" onOpenChange={setMoreOpen} open={moreOpen} style={{ width: 280 }}>
           <WorkspacePaneActionMenu actions={moreActions} onAction={(id) => { setMoreOpen(false); onAction(id); }} />
         </OcDropdown>
       </section>
@@ -295,7 +295,7 @@ function WorkspacePaneActionMenu({ actions, onAction }: {
     setGroupId(null);
   }}>
     {group ? <>
-      <OcMenuItem aria-label="Back to tools" label={group.title} leadingIcon="navigateBack" role="menuitem" onClick={(event) => {
+      <OcMenuItem aria-label="ツールに戻る" label={group.title} leadingIcon="navigateBack" role="menuitem" onClick={(event) => {
         event.preventDefault();
         setGroupId(null);
       }} />

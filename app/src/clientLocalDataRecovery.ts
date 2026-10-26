@@ -92,7 +92,7 @@ export function offerClientProfileStorageRecovery(accessProfile: OctopusClientAc
   }
   appToast.info(recovery.message, Math.ceil(expiresIn / 1_000), {
     action: {
-      label: "Undo",
+      label: "元に戻す",
       onSelect: () => {
         try {
           replaceClientProfileStorageExact(accessProfile, recovery.entries);

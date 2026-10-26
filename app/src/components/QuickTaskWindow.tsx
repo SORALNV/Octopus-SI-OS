@@ -76,7 +76,7 @@ export function QuickTaskWindow({ accessProfile, runtimeReady, runtimeHome }: {
 
   const activeTitle = chat.activeRun
     ? clientTaskTitle(chat.activeRun.runId, chat.activeRun.title, organization)
-    : "Quick task";
+    : "クイックタスク";
 
   return (
     <main className="quick-task-window">
@@ -85,37 +85,37 @@ export function QuickTaskWindow({ accessProfile, runtimeReady, runtimeHome }: {
           <img alt="" src="./octopus-logo.png" />
           <span className="quick-task-title-copy">
             <strong>{activeTitle}</strong>
-            <small>{chat.activeRun ? "Octopus OS task" : "New Octopus OS task"}</small>
+            <small>{chat.activeRun ? "Octopus OS のタスク" : "新しい Octopus OS タスク"}</small>
           </span>
         </div>
         <div className="quick-task-title-actions">
           <button
             aria-expanded={historyOpen}
             aria-haspopup="menu"
-            aria-label="Recent tasks"
+            aria-label="最近のタスク"
             onClick={() => setHistoryOpen((current) => !current)}
             ref={historyButtonRef}
-            title="Recent tasks"
+            title="最近のタスク"
             type="button"
           >
             <Glyph name="viewAll" size={15} />
           </button>
-          <button aria-label="Start another quick task" onClick={startNewTask} title="New task" type="button"><Glyph name="newTask" size={15} /></button>
+          <button aria-label="別のクイックタスクを開始" onClick={startNewTask} title="新しいタスク" type="button"><Glyph name="newTask" size={15} /></button>
           {chat.activeRunId ? (
             <button
-              aria-label="Open task in main Octopus window"
+              aria-label="Octopus のメインウィンドウでタスクを開く"
               onClick={() => void window.octopusTransport?.openRunInMain?.(chat.activeRunId).catch((failure) => appToast.danger(formatFailure(failure)))}
-              title="Open in Octopus"
+              title="Octopus で開く"
               type="button"
             >
               <Glyph name="openExternal" size={15} />
             </button>
           ) : null}
-          <button aria-label="Close quick task" onClick={() => window.octopusTransport?.windowControl("close")} title="Close" type="button"><Glyph name="close" size={15} /></button>
+          <button aria-label="クイックタスクを閉じる" onClick={() => window.octopusTransport?.windowControl("close")} title="閉じる" type="button"><Glyph name="close" size={15} /></button>
         </div>
         {historyOpen ? (
-          <div aria-label="Recent tasks" className="quick-task-history" ref={historyRef} role="menu">
-            <div className="quick-task-history-heading"><span>Recent tasks</span><small>{recentRuns.length}</small></div>
+          <div aria-label="最近のタスク" className="quick-task-history" ref={historyRef} role="menu">
+            <div className="quick-task-history-heading"><span>最近のタスク</span><small>{recentRuns.length}</small></div>
             {recentRuns.map((run) => (
               <button
                 aria-current={run.runId === chat.activeRunId ? "page" : undefined}
@@ -129,10 +129,10 @@ export function QuickTaskWindow({ accessProfile, runtimeReady, runtimeHome }: {
                 type="button"
               >
                 <span>{clientTaskTitle(run.runId, run.title, organization)}</span>
-                <small>{run.turnState === "working" ? "Working" : run.messageCount ? `${run.messageCount} messages` : "No messages"}</small>
+                <small>{run.turnState === "working" ? "作業中" : run.messageCount ? `${run.messageCount} 件のメッセージ` : "メッセージがありません"}</small>
               </button>
             ))}
-            {!recentRuns.length ? <div className="quick-task-history-empty">No projected tasks yet</div> : null}
+            {!recentRuns.length ? <div className="quick-task-history-empty">タスクはまだありません</div> : null}
           </div>
         ) : null}
       </header>
@@ -141,7 +141,7 @@ export function QuickTaskWindow({ accessProfile, runtimeReady, runtimeHome }: {
         {!visibleMessages.length ? (
           <motion.div animate={{ opacity: 1, y: 0 }} className="quick-task-empty" initial={{ opacity: 0, y: 4 }}>
             <Glyph name="chat" size={19} />
-            <div><strong>What should Octopus work on?</strong><span>This opens a normal task through the declared operator interface.</span></div>
+            <div><strong>Octopus に何を頼みますか？</strong><span>設定されたユーザー用インターフェースを通じて通常のタスクを開きます。</span></div>
           </motion.div>
         ) : (
           <AnimatePresence initial={false}>
@@ -155,7 +155,7 @@ export function QuickTaskWindow({ accessProfile, runtimeReady, runtimeHome }: {
                 transition={{ duration: 0.14 }}
               >
                 {message.pending && !message.text ? (
-                  <span className="quick-task-working"><i /><span>Working</span></span>
+                  <span className="quick-task-working"><i /><span>作業中</span></span>
                 ) : message.role === "assistant" ? (
                   <MessageContent text={message.text} />
                 ) : (
@@ -168,7 +168,7 @@ export function QuickTaskWindow({ accessProfile, runtimeReady, runtimeHome }: {
       </section>
 
       {error ? <div className="quick-task-error" role="alert"><Glyph name="warning" size={14} /><span>{error}</span></div> : null}
-      {!runtimeReady ? <div className="quick-task-runtime-state"><Glyph name="warning" size={14} />Runtime unavailable</div> : null}
+      {!runtimeReady ? <div className="quick-task-runtime-state"><Glyph name="warning" size={14} />実行基盤を利用できません</div> : null}
 
       <footer className="quick-task-composer">
         <QueuedMessageList
@@ -255,8 +255,8 @@ export function QuickTaskWindow({ accessProfile, runtimeReady, runtimeHome }: {
 export function QuickTaskAccessUnavailable() {
   return (
     <main className="quick-task-window is-unavailable">
-      <header className="quick-task-titlebar"><div className="quick-task-brand"><img alt="" src="./octopus-logo.png" /><span>Quick task</span></div><button aria-label="Close quick task" onClick={() => window.octopusTransport?.windowControl("close")} type="button"><Glyph name="close" size={15} /></button></header>
-      <div className="quick-task-empty"><Glyph name="lock" size={19} /><div><strong>Octopus is locked</strong><span>Unlock the main application before opening Quick task.</span></div></div>
+      <header className="quick-task-titlebar"><div className="quick-task-brand"><img alt="" src="./octopus-logo.png" /><span>クイックタスク</span></div><button aria-label="クイックタスクを閉じる" onClick={() => window.octopusTransport?.windowControl("close")} type="button"><Glyph name="close" size={15} /></button></header>
+      <div className="quick-task-empty"><Glyph name="lock" size={19} /><div><strong>Octopus はロックされています</strong><span>クイックタスクを開くには、メインアプリのロックを解除してください。</span></div></div>
     </main>
   );
 }

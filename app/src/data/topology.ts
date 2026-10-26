@@ -193,8 +193,8 @@ export const inspectorTabs = ["Overview", "Runs", "Environments", "Interfaces", 
 export const emptyProjection: ProjectionStatus = {
   mode: "offline",
   endpoint: "registry/ledger files",
-  label: "Projection offline",
-  detail: "No file projection is available",
+  label: "表示用データはオフラインです",
+  detail: "表示できるファイルの情報がありません",
 };
 
 export function emptySnapshot(projection: ProjectionStatus = emptyProjection): TopologySnapshot {

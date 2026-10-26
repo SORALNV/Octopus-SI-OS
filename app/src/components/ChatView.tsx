@@ -377,9 +377,9 @@ export function ChatView({
   const taskSummary = chat.activeRun ? (
     <ChatRenderBoundary
       compact
-      detail="The task itself is unchanged. Retry this local summary or copy the renderer details."
+      detail="タスク自体は変更されていません。概要の表示を再試行するか、表示処理の詳細をコピーしてください。"
       resetKey={`${chat.activeRun.runId}:${chat.renderedMessages.length}:${activeRunProjection?.eventLog.length ?? 0}:${chat.queuedTurns.length}`}
-      title="Summary panel couldn't render"
+      title="概要パネルを表示できませんでした"
     >
       <TaskSummaryPanel
         active={summaryOpen}
@@ -476,10 +476,10 @@ export function ChatView({
         <div className="chat-continuation-banner">
           <span className="chat-continuation-leading"><Glyph name="worktree" size={15} /></span>
           <span className="chat-continuation-copy">
-            <span>Starting from</span>
+            <span>開始位置</span>
             <strong title={continuationSource?.title || chat.continuation.sourceRunId}>{continuationSource?.title || chat.continuation.sourceRunId}</strong>
           </span>
-          <OcIconButton glyph="close" label="Remove starting context" onClick={chat.clearContinuation} size="xs" variant="ghost" />
+          <OcIconButton glyph="close" label="開始時のコンテキストを削除" onClick={chat.clearContinuation} size="xs" variant="ghost" />
         </div>
       ) : null}
       <QueuedMessageList
@@ -501,8 +501,8 @@ export function ChatView({
   const composerFooter = chat.activeRun?.archived ? (
     <div className="archived-task-footer">
       <Glyph name="archive" size={18} />
-      <div><strong>Archived task</strong><span>New messages and artifacts are blocked.</span></div>
-      <OcButton variant="ghost" size="sm" onClick={() => dispatchRestoreClientTask(chat.activeRunId)}>Restore task</OcButton>
+      <div><strong>アーカイブ済みのタスク</strong><span>新しいメッセージや成果物は受け付けません。</span></div>
+      <OcButton variant="ghost" size="sm" onClick={() => dispatchRestoreClientTask(chat.activeRunId)}>タスクを復元</OcButton>
     </div>
   ) : !composerVisible ? null : threadMode ? (
     <div className="relative z-10 mx-auto flex w-full max-w-(--thread-content-max-width) flex-col px-toolbar">
@@ -746,22 +746,22 @@ function PinnedContextPanel({ continuation, items, messages, onReveal, onUnpin, 
       transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="chat-pinned-panel-head">
-        <span className="chat-pinned-panel-title">Pinned</span>
+        <span className="chat-pinned-panel-title">固定済み</span>
       </div>
       <div className={`chat-pinned-panel-list${expanded ? " is-expanded" : ""}`}>
         {continuation ? (
           <div className="chat-pinned-row is-static">
             <Glyph className="chat-pinned-row-icon" name="newTask" size={16} />
-            <span className="chat-pinned-row-label">Continued from task</span>
+            <span className="chat-pinned-row-label">引き継ぎ元のタスク</span>
           </div>
         ) : null}
         {visibleItems.map((item) => (
           <div className="chat-pinned-row" key={item.artifactId}>
             <button
-              aria-label="Unpin selection"
+              aria-label="選択範囲の固定を解除"
               className="chat-pinned-row-pin"
               onClick={() => void onUnpinItem(item)}
-              title="Unpin selection"
+              title="選択範囲の固定を解除"
               type="button"
             >
               <Glyph className="icon-xs" name="pin" size={16} />
@@ -774,10 +774,10 @@ function PinnedContextPanel({ continuation, items, messages, onReveal, onUnpin, 
         {visibleMessages.map((message) => (
           <div className="chat-pinned-row" key={message.artifactId || message.id}>
             <button
-              aria-label="Unpin message"
+              aria-label="メッセージの固定を解除"
               className="chat-pinned-row-pin"
               onClick={() => void onUnpin(message)}
-              title="Unpin message"
+              title="メッセージの固定を解除"
               type="button"
             >
               <Glyph className="icon-xs" name="pin" size={16} />
@@ -801,7 +801,7 @@ function PinnedContextPanel({ continuation, items, messages, onReveal, onUnpin, 
         ))}
         {!expanded && hiddenCount > 0 ? (
           <button className="chat-pinned-row chat-pinned-row-more" onClick={() => setExpanded(true)} type="button">
-            <span className="chat-pinned-row-label">View all</span>
+            <span className="chat-pinned-row-label">すべて表示</span>
           </button>
         ) : null}
       </div>
@@ -845,26 +845,26 @@ function ThreadFindBar({
         <label className="flex min-w-0 items-center gap-1.5 px-1.5">
           <Glyph className="icon-xs shrink-0 text-token-description-foreground" name="search" size={16} />
           <input
-            aria-label="Find in task"
+            aria-label="タスク内を検索"
             id="content-search-input"
             onChange={(event) => onChange(event.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Search task…"
+            placeholder="タスクを検索…"
             ref={inputRef}
             spellCheck={false}
             value={value}
           />
         </label>
         <span aria-live="polite" className="chat-thread-find-count whitespace-nowrap px-1.5 text-xs tabular-nums text-token-description-foreground">
-          {value.trim() && count > 0 ? `${activeIndex + 1} / ${count}` : "0 results"}
+          {value.trim() && count > 0 ? `${activeIndex + 1} / ${count}` : "0 件"}
         </span>
-        <button aria-label="Previous result" className="chat-thread-find-button" disabled={count <= 0} onClick={() => onMove(-1)} type="button">
+        <button aria-label="前の検索結果" className="chat-thread-find-button" disabled={count <= 0} onClick={() => onMove(-1)} type="button">
           <Glyph className="icon-xs rotate-180" name="chevronDown" size={16} />
         </button>
-        <button aria-label="Next result" className="chat-thread-find-button" disabled={count <= 0} onClick={() => onMove(1)} type="button">
+        <button aria-label="次の検索結果" className="chat-thread-find-button" disabled={count <= 0} onClick={() => onMove(1)} type="button">
           <Glyph className="icon-xs" name="chevronDown" size={16} />
         </button>
-        <button aria-label="Close find" className="chat-thread-find-button" onClick={onClose} type="button">
+        <button aria-label="検索を閉じる" className="chat-thread-find-button" onClick={onClose} type="button">
           <Glyph className="icon-xs" name="close" size={16} />
         </button>
       </div>

@@ -638,24 +638,24 @@ export function DriversView({
   }
 
   if (!hasProjectionBridge()) return (
-    <OcEmptyState className="h-full" detail="Start Octopus to browse and manage local driver packages." glyph="warning" title="Drivers are unavailable" />
+    <OcEmptyState className="h-full" detail="Octopus を起動すると、ローカルのドライバーパッケージを参照・管理できます。" glyph="warning" title="ドライバーを利用できません" />
   );
 
   return (
     <>
       <SetupDialogShell open={Boolean(installReview)} busy={false} onClose={() => setInstallReview(null)} ariaLabel="Install driver and required packages" panelClassName="max-w-md">
-        <div className="flex flex-col gap-3 p-5"><h2 className="text-lg font-medium">Install driver</h2><p className="text-sm text-token-text-secondary">The following packages are required:</p>
-          {installReview?.install_packages?.map((entry) => <div key={entry.id} className="text-sm">{entry.name}{entry.installed ? " · Installed" : ""}</div>)}
-          <OcDialogFooter><OcButton variant="secondary" onClick={() => setInstallReview(null)}>Cancel</OcButton><OcButton onClick={() => { if (installReview) void installDriver(installReview); setInstallReview(null); }}>Install</OcButton></OcDialogFooter>
+        <div className="flex flex-col gap-3 p-5"><h2 className="text-lg font-medium">ドライバーをインストール</h2><p className="text-sm text-token-text-secondary">次のパッケージが必要です：</p>
+          {installReview?.install_packages?.map((entry) => <div key={entry.id} className="text-sm">{entry.name}{entry.installed ? " · インストール済み" : ""}</div>)}
+          <OcDialogFooter><OcButton variant="secondary" onClick={() => setInstallReview(null)}>キャンセル</OcButton><OcButton onClick={() => { if (installReview) void installDriver(installReview); setInstallReview(null); }}>インストール</OcButton></OcDialogFooter>
         </div>
       </SetupDialogShell>
       <SetupDialogShell open={Boolean(addingPreset)} busy={presetSaving} onClose={() => setAddingPreset(null)} ariaLabel="Add Agent preset" panelClassName="max-w-md">
-        <div className="flex flex-col gap-4 p-5"><h2 className="text-lg font-medium">Add {addingPreset?.preset.name} Agent</h2>
-          <OcSelect label="Project" value={presetProject} placeholder="Choose a Project" options={projects.filter((project) => addingPreset?.preset.project_ee_ids.includes(project.ee_id)).map((project) => ({ value: project.ee_id, label: project.name }))} onChange={setPresetProject} />
-          <OcSelect label="Provider" value={presetProvider} placeholder="Choose a provider" options={presetProviders.map((provider) => ({ value: provider.id, label: provider.label }))} onChange={(value) => { setPresetProvider(value); setPresetEffort(presetProviders.find((provider) => provider.id === value)?.reasoningEffort ?? ""); }} />
-          <p className="text-sm text-token-text-secondary">Current model: {selectedPresetModel?.displayName ?? "Unavailable"}. Each new task has its own model selection.</p>
-          {selectedPresetModel?.supportedReasoningEfforts.length ? <OcSelect label="Reasoning" value={presetEffort} options={selectedPresetModel.supportedReasoningEfforts.map((effort) => ({ value: effort, label: effort }))} onChange={setPresetEffort} /> : null}
-          <OcDialogFooter><OcButton variant="secondary" onClick={() => setAddingPreset(null)} disabled={presetSaving}>Cancel</OcButton><OcButton disabled={presetSaving || !presetProject || !selectedPresetModel} onClick={() => void addAgentPreset()}>Add Agent</OcButton></OcDialogFooter>
+        <div className="flex flex-col gap-4 p-5"><h2 className="text-lg font-medium">追加 {addingPreset?.preset.name} エージェント</h2>
+          <OcSelect label="プロジェクト" value={presetProject} placeholder="プロジェクトを選択" options={projects.filter((project) => addingPreset?.preset.project_ee_ids.includes(project.ee_id)).map((project) => ({ value: project.ee_id, label: project.name }))} onChange={setPresetProject} />
+          <OcSelect label="プロバイダー" value={presetProvider} placeholder="プロバイダーを選択" options={presetProviders.map((provider) => ({ value: provider.id, label: provider.label }))} onChange={(value) => { setPresetProvider(value); setPresetEffort(presetProviders.find((provider) => provider.id === value)?.reasoningEffort ?? ""); }} />
+          <p className="text-sm text-token-text-secondary">現在のモデル： {selectedPresetModel?.displayName ?? "利用できません"}。新しいタスクではそれぞれモデルを選べます。</p>
+          {selectedPresetModel?.supportedReasoningEfforts.length ? <OcSelect label="推論" value={presetEffort} options={selectedPresetModel.supportedReasoningEfforts.map((effort) => ({ value: effort, label: effort }))} onChange={setPresetEffort} /> : null}
+          <OcDialogFooter><OcButton variant="secondary" onClick={() => setAddingPreset(null)} disabled={presetSaving}>キャンセル</OcButton><OcButton disabled={presetSaving || !presetProject || !selectedPresetModel} onClick={() => void addAgentPreset()}>エージェントを追加</OcButton></OcDialogFooter>
         </div>
       </SetupDialogShell>
       <div className="relative h-full min-h-0">
@@ -795,32 +795,32 @@ function DriverBrowseView({
   surfaceRef: RefObject<HTMLElement | null>;
   visible: DriverRecord[];
 }) {
-  if (!loaded) return <OctopusLoadingState className="surface-content-loading-state" label="Loading drivers" />;
+  if (!loaded) return <OctopusLoadingState className="surface-content-loading-state" label="ドライバーを読み込んでいます" />;
   return (
     <section className="flex h-full min-h-0 flex-col text-base select-none" ref={surfaceRef}>
       <header className="surface-titlebar-spacer draggable flex h-toolbar shrink-0 items-center justify-between gap-2 px-panel">
-        <span className="no-drag flex min-w-0 items-center rounded-lg px-2 py-1 text-sm text-token-foreground">Drivers</span>
-        <OcIconButton className="no-drag" glyph="settings" id="drivers-browse-manage" label="Manage installed drivers" onClick={onManage} size="sm" variant="ghost" />
+        <span className="no-drag flex min-w-0 items-center rounded-lg px-2 py-1 text-sm text-token-foreground">ドライバー</span>
+        <OcIconButton className="no-drag" glyph="settings" id="drivers-browse-manage" label="インストール済みのドライバーを管理" onClick={onManage} size="sm" variant="ghost" />
       </header>
       <div className="plugins-surface-scroll relative h-full min-h-0 flex-1 overflow-x-hidden overflow-y-auto [scrollbar-gutter:stable]" ref={scrollRef}>
         <div className="flex min-h-full w-full flex-col">
           <div className="mx-auto w-full max-w-[var(--thread-content-max-width)] px-panel pt-panel">
             <div className="flex items-start justify-between gap-4 px-2">
               <div className="flex min-w-0 flex-col gap-2">
-                <h1 className="heading-xl font-normal text-default">Drivers</h1>
-                <div className="text-lg leading-6 text-secondary">Add local environments for files, terminals, browsers, and other systems</div>
+                <h1 className="heading-xl font-normal text-default">ドライバー</h1>
+                <div className="text-lg leading-6 text-secondary">ファイル、ターミナル、ブラウザーなどを使うための環境を追加します</div>
               </div>
             </div>
           </div>
-          <DriverCatalogSearch id="drivers-page-search" inputRef={searchRef} onChange={onQueryChange} onKeyDown={onSearchKeyDown} placeholder="Search drivers" value={query} />
+          <DriverCatalogSearch id="drivers-page-search" inputRef={searchRef} onChange={onQueryChange} onKeyDown={onSearchKeyDown} placeholder="ドライバーを検索" value={query} />
           <div className="mx-auto flex min-h-0 w-full max-w-[var(--thread-content-max-width)] flex-1 flex-col gap-8 px-panel pt-5 pb-panel">
             {loaded && error && drivers.length ? <DriverProjectionIssue detail={error} /> : null}
             {error && drivers.length === 0 ? (
-              <OcEmptyState detail={error} glyph="warning" size="compact" title="Drivers could not be loaded" tone="danger" />
+              <OcEmptyState detail={error} glyph="warning" size="compact" title="ドライバーを読み込めませんでした" tone="danger" />
             ) : drivers.length === 0 ? (
-              <OcEmptyState detail="No verified local source or installed Worker Environment kind package is available." glyph="terminal" size="compact" title="No driver packages found" />
+              <OcEmptyState detail="検証済みのローカルソースも、インストール済みの作業環境パッケージもありません。" glyph="terminal" size="compact" title="ドライバーのパッケージがありません" />
             ) : visible.length === 0 ? (
-              <OcEmptyState glyph="search" size="compact" title="No drivers found" />
+              <OcEmptyState glyph="search" size="compact" title="ドライバーが見つかりません" />
             ) : (
               <>
                 {installed.length ? (
@@ -836,7 +836,7 @@ function DriverBrowseView({
                 ) : null}
                 <CatalogSection
                   batchSize={12}
-                  description="Install a local package, then choose the projects where it may be used."
+                  description="ローカルパッケージをインストールしてから、使用を許可するプロジェクトを選びます。"
                   getItemKey={driverKey}
                   getItemLabel={driverName}
                   items={visible}
@@ -858,7 +858,7 @@ function DriverBrowseView({
                   renderItemPreview={(driver) => <Glyph name={driverGlyph(driver)} size={8} />}
                   resetKey={`browse:${query}`}
                   showCount={Boolean(query.trim())}
-                  title="Driver catalog"
+                  title="ドライバーカタログ"
                   visibleItemLimit={6}
                 />
               </>
@@ -913,38 +913,38 @@ function DriverManageView({
   scrollRef: RefObject<HTMLDivElement | null>;
   visible: DriverRecord[];
 }) {
-  if (!loaded) return <OctopusLoadingState className="surface-content-loading-state" label="Loading installed drivers" />;
+  if (!loaded) return <OctopusLoadingState className="surface-content-loading-state" label="インストール済みのドライバーを読み込んでいます" />;
   return (
     <section className="flex h-full min-h-0 flex-col text-base select-none">
       <header className="surface-titlebar-spacer flex h-toolbar shrink-0 items-center px-panel">
         <button className="no-drag cursor-interaction flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-token-text-secondary hover:bg-token-list-hover-background hover:text-token-foreground focus:outline-none" onClick={onBack} type="button">
-          <span>Drivers</span><span className="text-token-input-placeholder-foreground">/</span><span className="text-token-foreground">Manage</span>
+          <span>ドライバー</span><span className="text-token-input-placeholder-foreground">/</span><span className="text-token-foreground">管理</span>
         </button>
       </header>
       <div className="plugins-surface-scroll relative h-full min-h-0 flex-1 overflow-x-hidden overflow-y-auto [scrollbar-gutter:stable]" ref={scrollRef}>
         <div className="flex min-h-full w-full flex-col">
           <div className="mx-auto w-full max-w-[var(--thread-content-max-width)] px-panel pt-panel">
             <div className="flex min-w-0 flex-col gap-2 px-2">
-              <h1 className="heading-xl font-normal text-default">Manage drivers</h1>
-              <div className="text-lg leading-6 text-secondary">Review setup or remove driver packages already installed in Octopus Home</div>
+              <h1 className="heading-xl font-normal text-default">ドライバーを管理</h1>
+              <div className="text-lg leading-6 text-secondary">Octopus のホームにインストール済みのドライバーを設定・削除します</div>
             </div>
           </div>
-          <DriverCatalogSearch id="drivers-manage-search" inputRef={searchRef} onChange={onQueryChange} onKeyDown={onSearchKeyDown} placeholder="Search installed drivers" value={query} />
+          <DriverCatalogSearch id="drivers-manage-search" inputRef={searchRef} onChange={onQueryChange} onKeyDown={onSearchKeyDown} placeholder="インストール済みのドライバーを検索" value={query} />
           <div className="mx-auto flex min-h-0 w-full max-w-[var(--thread-content-max-width)] flex-1 flex-col gap-8 px-panel pt-5 pb-panel">
             {loaded && error && drivers.length ? <DriverProjectionIssue detail={error} /> : null}
             {error && drivers.length === 0 ? (
-              <OcEmptyState detail={error} glyph="warning" size="compact" title="Drivers could not be loaded" tone="danger" />
+              <OcEmptyState detail={error} glyph="warning" size="compact" title="ドライバーを読み込めませんでした" tone="danger" />
             ) : visible.length === 0 ? (
               <OcEmptyState
                 glyph={query ? "search" : "terminal"}
                 size="compact"
-                title={query && installed.length ? "No installed drivers found" : "No drivers installed"}
+                title={query && installed.length ? "インストール済みのドライバーが見つかりません" : "ドライバーはインストールされていません"}
               />
             ) : (
               <div className="[&_.oc-catalog-grid]:!grid-cols-1">
                 <CatalogSection
                   batchSize={12}
-                  description="Open a driver to review project access, current activity, or removal requirements."
+                  description="ドライバーを開くと、プロジェクトのアクセス権、現在の使用状況、削除の条件を確認できます。"
                   getItemKey={driverKey}
                   getItemLabel={driverName}
                   items={visible}
@@ -966,7 +966,7 @@ function DriverManageView({
                   renderItemPreview={(driver) => <Glyph name={driverGlyph(driver)} size={8} />}
                   resetKey={`manage:${query}`}
                   showCount
-                  title="Installed"
+                  title="インストール済み"
                   visibleItemLimit={12}
                 />
               </div>
@@ -1050,7 +1050,7 @@ function DriverCard({ accessProfile, driver, highlighted, lifecycle, onFocus, on
               title={driverInstallTitle(driver, accessProfile)}
               variant="secondary"
             >
-              {lifecycle?.phase === "failed" && lifecycle.operation === "install" ? "Retry" : "Install"}
+              {lifecycle?.phase === "failed" && lifecycle.operation === "install" ? "再試行" : "インストール"}
             </OcButton>
           </OcAnimatedActionSlot>
         ) : driver.installed && onSetup ? (
@@ -1058,15 +1058,15 @@ function DriverCard({ accessProfile, driver, highlighted, lifecycle, onFocus, on
             <OcButton onClick={(event) => {
               event.stopPropagation();
               onSetup();
-            }} size="xs" variant="ghost">{driverAvailableScopeCount(driver) ? "Manage" : "Set up"}</OcButton>
-            {onRemove ? <OcIconButton disabled={accessProfile !== "live" || driver.removal_allowed !== true} glyph="trash" label={`Remove ${driverName(driver)}`} onClick={(event) => {
+            }} size="xs" variant="ghost">{driverAvailableScopeCount(driver) ? "管理" : "設定する"}</OcButton>
+            {onRemove ? <OcIconButton disabled={accessProfile !== "live" || driver.removal_allowed !== true} glyph="trash" label={`削除 ${driverName(driver)}`} onClick={(event) => {
               event.stopPropagation();
               onRemove();
             }} size="xs" title={driverRemovalTitle(driver, accessProfile)} variant="ghost" /> : null}
           </div>
         ) : null}
         {lifecycle?.phase === "failed" ? (
-          <span className="max-w-48 truncate text-xs text-token-error-foreground" title={lifecycle.error}>{lifecycle.operation === "install" ? "Install failed" : "Remove failed"}</span>
+          <span className="max-w-48 truncate text-xs text-token-error-foreground" title={lifecycle.error}>{lifecycle.operation === "install" ? "インストールできませんでした" : "削除できませんでした"}</span>
         ) : null}
       </div>
     </div>
@@ -1079,7 +1079,7 @@ function DriverStateStatuses({ driver }: { driver: DriverRecord }) {
   return (
     <span className="flex min-w-0 flex-wrap items-center gap-1">
       <OcStatus label={status.label} tone={status.tone} />
-      {activeInstances ? <OcStatus label={`In use · ${activeInstances}`} tone="success" /> : null}
+      {activeInstances ? <OcStatus label={`使用中 · ${activeInstances}`} tone="success" /> : null}
     </span>
   );
 }
@@ -1108,7 +1108,7 @@ function DriverCardMeta({ driver }: { driver: DriverRecord }) {
         status.tone === "danger" && "text-token-charts-red",
       )}>{status.label}</span>
       {scope ? <><span aria-hidden="true">·</span><span className="truncate">{scope}</span></> : null}
-      {activeInstances ? <><span aria-hidden="true">·</span><span className="truncate text-token-charts-green">In use {activeInstances}</span></> : null}
+      {activeInstances ? <><span aria-hidden="true">·</span><span className="truncate text-token-charts-green">使用中 {activeInstances}</span></> : null}
     </span>
   );
 }
@@ -1119,11 +1119,11 @@ function driverPrimaryStatus(driver: DriverRecord): { label: string; tone: "neut
     || driver.partially_materialized === true
     || driver.receipt_state === "stale"
   );
-  if (materializationIncomplete) return { label: "Needs repair", tone: "danger" };
-  if (driver.installed && !driverAvailableScopeCount(driver)) return { label: "Not enabled", tone: "neutral" };
-  if (driver.installed) return { label: "Enabled", tone: "success" };
-  if (driver.source_available === true) return { label: "Not installed", tone: "neutral" };
-  return { label: "Unavailable", tone: "danger" };
+  if (materializationIncomplete) return { label: "修復が必要", tone: "danger" };
+  if (driver.installed && !driverAvailableScopeCount(driver)) return { label: "無効", tone: "neutral" };
+  if (driver.installed) return { label: "有効", tone: "success" };
+  if (driver.source_available === true) return { label: "未インストール", tone: "neutral" };
+  return { label: "利用できません", tone: "danger" };
 }
 
 function DriverLifecycleProgress({ operation }: { operation: DriverLifecycleOperation }) {
@@ -1146,7 +1146,7 @@ function DriverLifecycleProgress({ operation }: { operation: DriverLifecycleOper
 function DriverProjectionIssue({ detail }: { detail: string }) {
   return (
     <div className="rounded-xl border border-token-error-foreground/25 bg-token-error-background px-4 py-3 text-sm text-token-error-foreground" role="alert">
-      <div className="font-medium">Some driver package information could not be loaded</div>
+      <div className="font-medium">一部のドライバーパッケージの情報を読み込めませんでした</div>
       <div className="mt-1 whitespace-pre-wrap text-xs opacity-90">{detail}</div>
     </div>
   );
@@ -1176,7 +1176,7 @@ function DriverDetail({ accessProfile, backButtonRef, driver, lifecycle, onBack,
     <section className="flex h-full min-h-0 flex-col text-base select-none">
       <header className="surface-titlebar-spacer flex h-toolbar shrink-0 items-center px-panel">
         <button className="no-drag cursor-interaction flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1 text-sm text-secondary hover:bg-primary-ghost-hover hover:text-default focus:outline-none" onClick={onBack} ref={backButtonRef} type="button">
-          <span>{returnView === "manage" ? "Manage drivers" : "Drivers"}</span><span className="text-tertiary">/</span><span className="truncate text-default">{driverName(driver)}</span>
+          <span>{returnView === "manage" ? "ドライバーを管理" : "ドライバー"}</span><span className="text-tertiary">/</span><span className="truncate text-default">{driverName(driver)}</span>
         </button>
       </header>
       <div className="plugins-surface-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto [scrollbar-gutter:stable]">
@@ -1194,8 +1194,8 @@ function DriverDetail({ accessProfile, backButtonRef, driver, lifecycle, onBack,
                   {busy && lifecycle ? <DriverLifecycleProgress operation={lifecycle} /> : null}
                   {driver.installed ? (
                     <>
-                      <OcButton disabled={Boolean(busy) || accessProfile !== "live" || driver.removal_allowed !== true} onClick={onRemove} size="sm" title={driverRemovalTitle(driver, accessProfile)} tone="danger" variant="ghost">Remove</OcButton>
-                      <OcButton disabled={Boolean(busy)} onClick={onSetup} size="sm" variant={availableScopes.length ? "secondary" : "primary"}>{availableScopes.length ? "Manage setup" : "Set up"}</OcButton>
+                      <OcButton disabled={Boolean(busy) || accessProfile !== "live" || driver.removal_allowed !== true} onClick={onRemove} size="sm" title={driverRemovalTitle(driver, accessProfile)} tone="danger" variant="ghost">削除</OcButton>
+                      <OcButton disabled={Boolean(busy)} onClick={onSetup} size="sm" variant={availableScopes.length ? "secondary" : "primary"}>{availableScopes.length ? "設定を管理" : "設定する"}</OcButton>
                     </>
                   ) : (
                     <OcButton
@@ -1206,7 +1206,7 @@ function DriverDetail({ accessProfile, backButtonRef, driver, lifecycle, onBack,
                       title={driverInstallTitle(driver, accessProfile)}
                       variant="primary"
                     >
-                      {lifecycle?.phase === "failed" ? "Retry install" : "Install"}
+                      {lifecycle?.phase === "failed" ? "インストールを再試行" : "インストール"}
                     </OcButton>
                   )}
                 </div>
@@ -1214,42 +1214,42 @@ function DriverDetail({ accessProfile, backButtonRef, driver, lifecycle, onBack,
             </header>
             {lifecycle?.phase === "failed" ? (
               <div className="mx-[var(--detail-page-inline-inset,0px)] rounded-xl border border-token-error-foreground/25 bg-token-error-background px-4 py-3 text-sm text-token-error-foreground" role="alert">
-                <div className="font-medium">{lifecycle.operation === "install" ? "Installation failed" : "Removal failed"}</div>
+                <div className="font-medium">{lifecycle.operation === "install" ? "インストールできませんでした" : "削除できませんでした"}</div>
                 <div className="mt-1 whitespace-pre-wrap text-xs opacity-90">{lifecycle.error}</div>
               </div>
             ) : null}
-            <DriverDetailSection title="Setup">
-              <DriverDetailRow label="Package" value={driver.installed
+            <DriverDetailSection title="セットアップ">
+              <DriverDetailRow label="パッケージ" value={driver.installed
                 ? "Installed in Octopus Home."
                 : driver.materialized || driver.partially_materialized
                   ? "Driver files were found, but Octopus could not verify one complete installation."
                   : driver.source_available === true
                     ? "Not installed. Installing adds it to no project until you enable it."
                     : "This build ships no package for it."} />
-              <DriverDetailRow label="Enabled in Home" value={availableHome ? "Yes" : "No"} />
-              <DriverDetailRow label="Enabled in projects" value={availableProjects.length ? availableProjects.map((state) => driverProjectLabel(projectById.get(state.ee_id), state.ee_id, rootEeId)).join(", ") : "Not enabled in any project yet."} />
-              <DriverDetailRow label="Default for new tasks" value={defaultProjects.length ? defaultProjects.map((state) => driverProjectLabel(projectById.get(state.ee_id), state.ee_id, rootEeId)).join(", ") : "Not selected by default in any project."} />
-              {driver.materialized || driver.partially_materialized ? driver.receipt_state === "valid" ? null : <DriverDetailRow label="Install receipt" value={driverReceiptDetail(driver)} /> : null}
-              {driver.installed && (driver.removal_block_reason || driver.removal_allowed === undefined) ? <DriverDetailRow label="Removal" value={driver.removal_block_reason || "Removal availability is not reported by this projection."} /> : null}
+              <DriverDetailRow label="ホームで有効" value={availableHome ? "Yes" : "No"} />
+              <DriverDetailRow label="有効なプロジェクト" value={availableProjects.length ? availableProjects.map((state) => driverProjectLabel(projectById.get(state.ee_id), state.ee_id, rootEeId)).join(", ") : "Not enabled in any project yet."} />
+              <DriverDetailRow label="新しいタスクで既定で使う" value={defaultProjects.length ? defaultProjects.map((state) => driverProjectLabel(projectById.get(state.ee_id), state.ee_id, rootEeId)).join(", ") : "Not selected by default in any project."} />
+              {driver.materialized || driver.partially_materialized ? driver.receipt_state === "valid" ? null : <DriverDetailRow label="インストール記録" value={driverReceiptDetail(driver)} /> : null}
+              {driver.installed && (driver.removal_block_reason || driver.removal_allowed === undefined) ? <DriverDetailRow label="削除" value={driver.removal_block_reason || "Removal availability is not reported by this projection."} /> : null}
             </DriverDetailSection>
-            {driver.agent_presets?.length ? <DriverDetailSection title="Agent presets">
-              {driver.agent_presets.map((preset) => <OcButton key={`${preset.pack_id}:${preset.id}`} disabled={accessProfile !== "live" || !driver.installed || !preset.project_ee_ids.length} onClick={() => onAddPreset(preset)} variant="secondary">Add {preset.name} Agent</OcButton>)}
+            {driver.agent_presets?.length ? <DriverDetailSection title="エージェントのプリセット">
+              {driver.agent_presets.map((preset) => <OcButton key={`${preset.pack_id}:${preset.id}`} disabled={accessProfile !== "live" || !driver.installed || !preset.project_ee_ids.length} onClick={() => onAddPreset(preset)} variant="secondary">追加 {preset.name} エージェント</OcButton>)}
             </DriverDetailSection> : null}
-            <DriverDetailSection title="Activity">
+            <DriverDetailSection title="アクティビティ">
               {driver.active_instances.length ? driver.active_instances.map((instance, index) => (
                 <DriverDetailRow
                   key={driverInstanceKey(instance, index)}
                   label={driverInstanceLabel(instance, index)}
                   value={driverInstanceDetail(instance)}
                 />
-              )) : <DriverDetailRow label="Current use" value="No task is using this driver right now." />}
+              )) : <DriverDetailRow label="現在の使用状況" value="No task is using this driver right now." />}
             </DriverDetailSection>
-            <DriverDetailSection title="Project setup">
+            <DriverDetailSection title="プロジェクトの設定">
               {driver.project_states.map((state) => (
                 <DriverDetailRow key={state.ee_id} label={driverProjectLabel(projectById.get(state.ee_id), state.ee_id, rootEeId)} value={state.policy_allowed ? state.selected_by_default ? "Available · included in new tasks" : "Available" : state.ceiling_allowed ? "Not available" : "Not supported here"} />
               ))}
             </DriverDetailSection>
-            <DriverDetailSection title="Capabilities">
+            <DriverDetailSection title="機能">
               <div className="mt-3 flex flex-wrap gap-2 px-2">
                 {driver.capabilities.map((capability) => <span className="rounded-full border border-token-border/40 px-2 py-1 text-sm text-token-description-foreground" key={capability}>{titleCase(capability)}</span>)}
               </div>
@@ -1275,13 +1275,13 @@ function DriverRemovalDialog({ accessProfile, driver, lifecycle, onCancel, onCon
       {driver ? (
         <>
           <div className="px-6 pt-8 pb-6">
-            <h2 className="heading-base text-token-foreground electron:heading-lg">Remove {driverName(driver)}?</h2>
-            <p className="mt-2 text-sm leading-5 text-token-text-secondary">This removes the Driver and its package-owned tools from the active registry. Project access must already be removed, and no worker environment may still be active.</p>
-            {driver.removal_block_reason || driver.removal_allowed !== true ? <div className="mt-4 rounded-xl border border-token-charts-orange/25 bg-token-charts-orange/10 px-3 py-2 text-sm text-token-charts-orange">{driver.removal_block_reason || (driver.removal_allowed === false ? "This driver cannot be removed in its current state." : "Removal availability is not reported by this projection.")}</div> : null}
+            <h2 className="heading-base text-token-foreground electron:heading-lg">削除 {driverName(driver)}?</h2>
+            <p className="mt-2 text-sm leading-5 text-token-text-secondary">ドライバーと付属のツールを有効なレジストリから削除します。先にプロジェクトのアクセス権を解除し、使用中の作業環境を終了してください。</p>
+            {driver.removal_block_reason || driver.removal_allowed !== true ? <div className="mt-4 rounded-xl border border-token-charts-orange/25 bg-token-charts-orange/10 px-3 py-2 text-sm text-token-charts-orange">{driver.removal_block_reason || (driver.removal_allowed === false ? "現在の状態では、このドライバーを削除できません。" : "削除できるかどうかの情報がありません。")}</div> : null}
           </div>
           <OcDialogFooter>
-            <OcButton disabled={Boolean(busy)} onClick={onCancel} variant="ghost">Cancel</OcButton>
-            <OcButton disabled={Boolean(busy) || accessProfile !== "live" || driver.removal_allowed !== true} onClick={onConfirm} tone="danger" variant="secondary">{busy && lifecycle ? <DriverLifecycleProgress operation={lifecycle} /> : "Remove"}</OcButton>
+            <OcButton disabled={Boolean(busy)} onClick={onCancel} variant="ghost">キャンセル</OcButton>
+            <OcButton disabled={Boolean(busy) || accessProfile !== "live" || driver.removal_allowed !== true} onClick={onConfirm} tone="danger" variant="secondary">{busy && lifecycle ? <DriverLifecycleProgress operation={lifecycle} /> : "削除"}</OcButton>
           </OcDialogFooter>
         </>
       ) : null}
@@ -1325,10 +1325,10 @@ function DriverSetupDialog({
         <div className="flex items-start gap-4 px-6 pt-8 pb-6">
           <DriverVisual driver={driver} size="detail" />
           <div className="min-w-0 flex-1">
-            <h2 className="heading-base text-token-foreground electron:heading-lg">Set up {driverName(driver)}</h2>
-            <p className="mt-1 text-sm leading-5 text-token-text-secondary">Choose the projects that may use this driver and provide any folders or machine settings it needs. An environment starts only when a task uses it.</p>
+            <h2 className="heading-base text-token-foreground electron:heading-lg">設定する {driverName(driver)}</h2>
+            <p className="mt-1 text-sm leading-5 text-token-text-secondary">このドライバーの使用を許可するプロジェクトを選び、必要なフォルダーやマシンの設定を入力します。環境はタスクが使うときに起動します。</p>
           </div>
-          <OcIconButton disabled={saving} glyph="close" label="Close" onClick={onCancel} variant="ghost" />
+          <OcIconButton disabled={saving} glyph="close" label="閉じる" onClick={onCancel} variant="ghost" />
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-6">
           <div className="flex flex-col gap-3">
@@ -1341,10 +1341,10 @@ function DriverSetupDialog({
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-token-foreground/5 text-token-text-secondary"><Glyph name="project" size={17} /></span>
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-medium text-token-foreground">{driverProjectLabel(project, state.ee_id, rootEeId)}</div>
-                      <div className="truncate text-xs text-token-description-foreground">{state.ee_id === rootEeId ? "Root life area" : "Project"}</div>
+                      <div className="truncate text-xs text-token-description-foreground">{state.ee_id === rootEeId ? "暮らしのルート領域" : "プロジェクト"}</div>
                     </div>
-                    <OcSwitch checked={current.available} disabled={saving || (!state.ceiling_allowed && !current.available)} label={state.ceiling_allowed ? "Available" : current.available ? "Remove" : "Not supported here"} onCheckedChange={(available) => onChange({ ...draft, [state.ee_id]: { ...current, available, selected: available ? current.selected : false } })} showLabel />
-                    <OcSwitch checked={current.selected} disabled={saving || !current.available} label="New task default" onCheckedChange={(selected) => onChange({ ...draft, [state.ee_id]: { ...current, selected } })} showLabel />
+                    <OcSwitch checked={current.available} disabled={saving || (!state.ceiling_allowed && !current.available)} label={state.ceiling_allowed ? "利用可能" : current.available ? "削除" : "ここでは対応していません"} onCheckedChange={(available) => onChange({ ...draft, [state.ee_id]: { ...current, available, selected: available ? current.selected : false } })} showLabel />
+                    <OcSwitch checked={current.selected} disabled={saving || !current.available} label="新しいタスクの既定値" onCheckedChange={(selected) => onChange({ ...draft, [state.ee_id]: { ...current, selected } })} showLabel />
                   </div>
                   {current.available && rootSlots.length ? (
                     <div className="grid gap-3 border-t border-token-border/40 bg-token-foreground/[0.015] px-4 py-3 sm:grid-cols-2">
@@ -1362,7 +1362,7 @@ function DriverSetupDialog({
                                   hostSlots: { ...current.hostSlots, [slot]: event.currentTarget.value },
                                 },
                               })}
-                              placeholder={hostRootRefs[slot] || (hostManifestReady ? "No machine default" : "Machine defaults unavailable")}
+                              placeholder={hostRootRefs[slot] || (hostManifestReady ? "マシンの既定値なし" : "マシンの既定値を取得できません")}
                               showLabel
                               value={current.hostSlots[slot] ?? ""}
                             />
@@ -1370,7 +1370,7 @@ function DriverSetupDialog({
                               className="mb-px"
                               disabled={saving || Boolean(selectingFolder)}
                               glyph="folder"
-                              label={`Choose ${titleCase(slot)} folder`}
+                              label={`選択 ${titleCase(slot)} folder`}
                               onClick={() => onSelectFolder(state.ee_id, slot)}
                               variant="secondary"
                             />
@@ -1386,8 +1386,8 @@ function DriverSetupDialog({
           </div>
         </div>
         <div className="flex min-h-[84px] items-center justify-end gap-2 border-t border-token-border/40 px-6">
-          <OcButton disabled={saving} onClick={onCancel} variant="ghost">Cancel</OcButton>
-          <OcButton disabled={saving} onClick={onSave} variant="primary">{saving ? "Saving…" : "Save setup"}</OcButton>
+          <OcButton disabled={saving} onClick={onCancel} variant="ghost">キャンセル</OcButton>
+          <OcButton disabled={saving} onClick={onSave} variant="primary">{saving ? "保存しています…" : "設定を保存"}</OcButton>
         </div>
         </>
       ) : null}
@@ -1423,23 +1423,23 @@ function DriverAdvancedDetails({ driver }: { driver: DriverRecord }) {
     <details className="group/section flex flex-col gap-4 [--sectioned-page-leading-inset:var(--detail-page-inline-inset,0px)]">
       <summary className="flex cursor-interaction list-none items-center justify-between gap-3 border-b border-subtle pe-0.5 pb-2 text-default [padding-inline-start:var(--sectioned-page-leading-inset,0.5rem)] marker:hidden [&::-webkit-details-marker]:hidden">
         <span className="flex min-h-7 items-center gap-1.5 text-lg leading-6 font-medium">
-          Advanced
+          詳細設定
           <Glyph className="icon-2xs -rotate-90 transition-transform group-open/section:rotate-0 motion-reduce:transition-none" name="chevronDown" size={12} />
         </span>
-        <span className="text-sm text-tertiary">Package details</span>
+        <span className="text-sm text-tertiary">パッケージの詳細</span>
       </summary>
       <div className="flex flex-col gap-1 px-[var(--detail-page-inline-inset,0px)]">
-        <DriverDetailRow label="Kind" value={driver.name} />
-        <DriverDetailRow label="Substrate" value={driver.substrate_family} />
-        <DriverDetailRow label="Door interfaces" value={driver.door_interfaces.join(", ") || "None"} />
-        <DriverDetailRow label="Driver refs" value={driver.door_driver_refs.join(", ") || "None"} />
-        <DriverDetailRow label="Executors" value={driver.supported_executor_kinds.join(", ") || "None"} />
-        <DriverDetailRow label="Tool ids" value={driver.tool_ids.join(", ") || "None"} />
-        <DriverDetailRow label="Network ceiling" value={driver.boundary_defaults.network_ceiling || "unspecified"} />
-        <DriverDetailRow label="Worker consent" value={driver.worker_consent} />
-        <DriverDetailRow label="Instance config" value={driver.instance_config_files.join(", ") || "None"} />
-        <DriverDetailRow label="Release required" value={driver.lifecycle.requires_release ? "Yes" : "No"} />
-        <DriverDetailRow label="Descriptor" value={driver.descriptor_path} />
+        <DriverDetailRow label="種類" value={driver.name} />
+        <DriverDetailRow label="実行基盤" value={driver.substrate_family} />
+        <DriverDetailRow label="ツール実行用インターフェース" value={driver.door_interfaces.join(", ") || "None"} />
+        <DriverDetailRow label="ドライバーの参照" value={driver.door_driver_refs.join(", ") || "None"} />
+        <DriverDetailRow label="実行プログラム" value={driver.supported_executor_kinds.join(", ") || "None"} />
+        <DriverDetailRow label="ツール ID" value={driver.tool_ids.join(", ") || "None"} />
+        <DriverDetailRow label="ネットワーク権限の上限" value={driver.boundary_defaults.network_ceiling || "unspecified"} />
+        <DriverDetailRow label="ワーカーの同意" value={driver.worker_consent} />
+        <DriverDetailRow label="インスタンスの設定" value={driver.instance_config_files.join(", ") || "None"} />
+        <DriverDetailRow label="解放が必要" value={driver.lifecycle.requires_release ? "Yes" : "No"} />
+        <DriverDetailRow label="記述子" value={driver.descriptor_path} />
       </div>
     </details>
   );
@@ -1475,7 +1475,7 @@ function driverSummary(driver: DriverRecord): string {
 function driverInstallTitle(driver: DriverRecord, accessProfile: OctopusClientAccessProfile): string {
   if (accessProfile !== "live") return "Install drivers from the Administrator profile.";
   if (driver.install_block_reason) return driver.install_block_reason;
-  if (driver.source_available === true) return `Install ${driverName(driver)}`;
+  if (driver.source_available === true) return `インストール ${driverName(driver)}`;
   if (driver.source_available === false) return "No verified local package source is available.";
   return "Local package availability is not reported by this projection.";
 }
@@ -1483,9 +1483,9 @@ function driverInstallTitle(driver: DriverRecord, accessProfile: OctopusClientAc
 function driverRemovalTitle(driver: DriverRecord, accessProfile: OctopusClientAccessProfile): string {
   if (accessProfile !== "live") return "Remove drivers from the Administrator profile.";
   if (driver.removal_block_reason) return driver.removal_block_reason;
-  if (driver.removal_allowed === true) return `Remove ${driverName(driver)}`;
-  if (driver.removal_allowed === false) return "This driver cannot be removed in its current state.";
-  return "Removal availability is not reported by this projection.";
+  if (driver.removal_allowed === true) return `削除 ${driverName(driver)}`;
+  if (driver.removal_allowed === false) return "現在の状態では、このドライバーを削除できません。";
+  return "削除できるかどうかの情報がありません。";
 }
 
 function driverReceiptDetail(driver: DriverRecord): string {
@@ -1569,7 +1569,7 @@ function cleanStringRecord(value: Record<string, string>): Record<string, string
 }
 
 function driverProjectLabel(project: DriverProject | undefined, eeId: string, rootEeId: string): string {
-  if (eeId === rootEeId) return "Home";
+  if (eeId === rootEeId) return "ホーム";
   return project?.name || "Untitled project";
 }
 
@@ -1578,14 +1578,14 @@ function driverInstanceKey(instance: Record<string, unknown>, index: number): st
 }
 
 function driverInstanceLabel(instance: Record<string, unknown>, index: number): string {
-  return recordString(instance.worker_environment_id) || recordString(instance.id) || `Environment ${index + 1}`;
+  return recordString(instance.worker_environment_id) || recordString(instance.id) || `環境 ${index + 1}`;
 }
 
 function driverInstanceDetail(instance: Record<string, unknown>): string {
   const run = recordString(instance.run_id);
   const environment = recordString(instance.ee_id);
   const status = recordString(instance.status) || recordString(instance.lifecycle) || "Active";
-  return [status, run ? `Task ${run}` : "", environment ? `Project ${environment}` : ""].filter(Boolean).join(" · ");
+  return [status, run ? `タスク ${run}` : "", environment ? `プロジェクト ${environment}` : ""].filter(Boolean).join(" · ");
 }
 
 function recordString(value: unknown): string {

@@ -366,7 +366,7 @@ export async function submitOperatorTurnControl(
   if (window.octopusTransport?.submitOperatorTurnControl) {
     return window.octopusTransport.submitOperatorTurnControl(request);
   }
-  if (!import.meta.env.DEV) return { deliveryError: { stage: "not-sent", message: "No local operator turn-control writer is available." } };
+  if (!import.meta.env.DEV) return { deliveryError: { stage: "not-sent", message: "ユーザーのやり取りを制御するローカルの書き込み機能を利用できません。" } };
   const response = await fetch(DEV_OPERATOR_TURN_CONTROL_URL, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -376,7 +376,7 @@ export async function submitOperatorTurnControl(
   if (!response.ok) {
     return { deliveryError: {
       stage: [401, 403, 405].includes(response.status) ? "not-sent" : "outcome-unknown",
-      message: typeof payload?.error === "string" ? payload.error : `operator turn control failed: ${response.status}`,
+      message: typeof payload?.error === "string" ? payload.error : `ユーザーのやり取りの制御に失敗しました： ${response.status}`,
     } };
   }
   return payload as OctopusOperatorTurnControlResponse;

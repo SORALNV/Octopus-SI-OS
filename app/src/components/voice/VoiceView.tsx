@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../../locale";
 import { AnimatePresence, motion } from "motion/react";
 import "../icon-glyphs/chat";
 import "../icon-glyphs/voice";
@@ -98,7 +99,7 @@ const LAB_TASK_PROGRESS: TaskProgressWidget = {
   waiting: 3,
 };
 const LAB_INSIGHTS: InsightsWidget = {
-  label: "Leads this month",
+  label: "今月の見込み客",
   value: "1,284",
   change: "+18%",
   changeDetail: "vs last month",
@@ -250,10 +251,10 @@ export function VoiceView({ accessProfile, activity, builtinWidgetSources, comma
   const projectName = useMemo(() => {
     if (accessProfile === "lab") {
       return readClientChatProjects(accessProfile)
-        .find((project) => project.chatRunIds.includes(boundRunId))?.name || "No project";
+        .find((project) => project.chatRunIds.includes(boundRunId))?.name || "プロジェクトなし";
     }
     const boundRun = workspace.runs.find((run) => run.runId === boundRunId);
-    if (!boundRun || !target.environment || target.environment.id === boundRun.osRootEeId) return "No project";
+    if (!boundRun || !target.environment || target.environment.id === boundRun.osRootEeId) return "プロジェクトなし";
     return target.environment.name || target.environment.id;
   }, [accessProfile, boundRunId, target.environment, workspace.runs]);
   const contextItems = useMemo(() => projectContext(target, projectName), [projectName, target]);
@@ -534,7 +535,7 @@ export function VoiceView({ accessProfile, activity, builtinWidgetSources, comma
   if (!callActive && homeProjectionLoading) {
     return (
       <section className="voice-view is-loading">
-        <OctopusLoadingState className="surface-content-loading-state" label="Opening Home" />
+        <OctopusLoadingState className="surface-content-loading-state" label="ホームを開いています" />
       </section>
     );
   }
@@ -554,10 +555,10 @@ export function VoiceView({ accessProfile, activity, builtinWidgetSources, comma
         {topology.readError ? (
           <button className="voice-session-status is-error" type="button" title={topology.readError}
             disabled={topology.loading} onClick={topology.refresh}>
-            {topology.loading ? <OcLoadingText label="Loading environment" /> : "Couldn’t load environment · Retry"}
+            {topology.loading ? <OcLoadingText label="環境を読み込んでいます" /> : "環境を読み込めませんでした · 再試行"}
           </button>
         ) : !target.run && topology.loading ? (
-          <div className="voice-session-status is-pending"><OcLoadingText label="Loading environment" /></div>
+          <div className="voice-session-status is-pending"><OcLoadingText label="環境を読み込んでいます" /></div>
         ) : status.label ? (
           <div className={`voice-session-status is-${status.tone}`}>
             <span>{status.label}</span>
@@ -619,7 +620,7 @@ export function VoiceView({ accessProfile, activity, builtinWidgetSources, comma
         {session.pendingAudioArtifact ? (
           <motion.aside
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            aria-label="Incoming audio artifact"
+            aria-label="音声の成果物を受信"
             className="voice-incoming-audio"
             exit={{ opacity: 0, y: 5, scale: 0.985 }}
             initial={{ opacity: 0, y: 5, scale: 0.985 }}
@@ -628,11 +629,11 @@ export function VoiceView({ accessProfile, activity, builtinWidgetSources, comma
           >
             <span className="voice-incoming-audio__icon"><Glyph name="volume" size={16} /></span>
             <span className="voice-incoming-audio__copy">
-              <strong>Play incoming audio?</strong>
+              <strong>受信した音声を再生しますか？</strong>
               <small>{session.pendingAudioArtifact.mimeType} · {formatVoiceBytes(session.pendingAudioArtifact.size)}</small>
             </span>
-            <button onClick={() => session.respondToPendingAudioArtifact(false)} type="button">Skip</button>
-            <button className="is-primary" onClick={() => session.respondToPendingAudioArtifact(true)} type="button">Play</button>
+            <button onClick={() => session.respondToPendingAudioArtifact(false)} type="button">スキップ</button>
+            <button className="is-primary" onClick={() => session.respondToPendingAudioArtifact(true)} type="button">再生</button>
           </motion.aside>
         ) : null}
       </AnimatePresence>
@@ -737,7 +738,7 @@ function VoiceSessionTitle({ editable, onChange, title }: {
         }}
       >
         <input
-          aria-label="Home title"
+          aria-label="ホームのタイトル"
           maxLength={96}
           onBlur={commit}
           onChange={(event) => setDraft(event.target.value)}
@@ -761,8 +762,8 @@ function VoiceSessionTitle({ editable, onChange, title }: {
       transition={{ duration: 0.18, ease: [0.2, 0, 0, 1] }}
     >
       {editable ? (
-        <ShellTooltip label="Rename Home">
-          <button aria-label="Rename Home" onClick={() => setEditing(true)} type="button">
+        <ShellTooltip label="ホームの名前を変更">
+          <button aria-label="ホームの名前を変更" onClick={() => setEditing(true)} type="button">
             <span>{title}</span>
             <Glyph className="icon-xs" name="edit" size={16} />
           </button>
@@ -857,7 +858,7 @@ function HomeResponseStage({ operatorRequests, onOperatorRequestResponse, replyH
     <motion.section
       animate={{ opacity: 1 }}
       aria-busy={working || submitting}
-      aria-label="Home latest response viewport"
+      aria-label="ホームの最新の応答"
       className={`home-response-stage${working ? " is-generating is-transient" : ""}${hasResponse ? " has-response" : " is-empty"}${compact ? " is-compact" : " is-expanded"}${scrolled ? " is-scrolled" : ""}${dragOver ? " is-drag-over" : ""}${replyHidden ? " is-call" : ""}`}
       initial={{ opacity: 0 }}
       onDragLeave={dropEnabled ? onDragLeave : undefined}
@@ -868,13 +869,13 @@ function HomeResponseStage({ operatorRequests, onOperatorRequestResponse, replyH
     >
       <span aria-live="polite" className="sr-only">
         {submitting
-          ? "Sending to Octopus."
+          ? "Octopus に送信しています。"
           : turnFailed
-            ? "The latest Home turn failed. Review the error banner."
+            ? "ホームの最新のやり取りが失敗しました。エラーの案内を確認してください。"
             : working
               ? ""
               : finalVisible
-                ? "Octopus replied."
+                ? "Octopus から応答が届きました。"
                 : ""}
       </span>
       <motion.div
@@ -896,7 +897,7 @@ function HomeResponseStage({ operatorRequests, onOperatorRequestResponse, replyH
           tabIndex={hasResponse ? 0 : undefined}
         >
           <div className="home-response-stage__content">
-            {failure ? <div className="home-response-failure" role="alert"><strong>Home could not finish this reply</strong><p>{failure.text || failure.label || "Review the failed turn in Home history."}</p></div> : null}
+            {failure ? <div className="home-response-failure" role="alert"><strong>ホームの応答を完了できませんでした</strong><p>{failure.text || failure.label || "ホームの履歴で、失敗したやり取りを確認してください。"}</p></div> : null}
             {operatorRequests.map((message) => <OperatorRequestSurface key={message.id} message={message} onRespond={onOperatorRequestResponse} />)}
             {responseStreaming || finalVisible ? (
               <article
@@ -909,7 +910,7 @@ function HomeResponseStage({ operatorRequests, onOperatorRequestResponse, replyH
                   <header className="home-response-stage__header">
                     <time dateTime={datedResponse.toISOString()}>
                       {formatResponseDay(datedResponse)}
-                      {" at "}{datedResponse.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                      {" "}{datedResponse.toLocaleTimeString(APP_LOCALE, { hour: "numeric", minute: "2-digit" })}
                     </time>
                   </header>
                 ) : null}
@@ -928,8 +929,8 @@ function HomeResponseStage({ operatorRequests, onOperatorRequestResponse, replyH
               </article>
             ) : quiet || loading ? null : (
               <div className="home-response-empty" data-ocean-obstacle="" data-voice-placement-obstacle="" key="empty">
-                <h2>{homeInterfaceReady ? "What would you like to do?" : "Home is not available yet"}</h2>
-                <p>{homeInterfaceReady ? "Talk to Home or send a message." : "The Home connection has not been projected."}</p>
+                <h2>{homeInterfaceReady ? "何をしましょうか？" : "ホームはまだ利用できません"}</h2>
+                <p>{homeInterfaceReady ? "ホームに話しかけるか、メッセージを送ってください。" : "ホームの接続情報を取得できていません。"}</p>
               </div>
             )}
           </div>
@@ -946,9 +947,9 @@ function formatResponseDay(at: Date): string {
   const now = new Date();
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
-  if (at.toDateString() === now.toDateString()) return "Today";
-  if (at.toDateString() === yesterday.toDateString()) return "Yesterday";
-  return at.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
+  if (at.toDateString() === now.toDateString()) return "今日";
+  if (at.toDateString() === yesterday.toDateString()) return "昨日";
+  return at.toLocaleDateString(APP_LOCALE, { day: "numeric", month: "short", year: "numeric" });
 }
 
 function isCompactHomeResponse(text: string, attachments: ChatAttachmentView[]): boolean {
@@ -959,8 +960,8 @@ function isCompactHomeResponse(text: string, attachments: ChatAttachmentView[]):
 
 function HomeResponseAttachments({ attachments }: { attachments: ChatAttachmentView[] }) {
   return (
-    <section className="home-response-artifacts" aria-label="Evidence and references">
-      <h2><Glyph name="paperclip" size={12} /> Evidence &amp; references</h2>
+    <section className="home-response-artifacts" aria-label="記録と参照">
+      <h2><Glyph name="paperclip" size={12} /> 記録と参照</h2>
       <div>
         {attachments.map((attachment) => (
           <article key={attachment.id} title={`${attachment.name}\n${attachment.type || attachment.label}`}>
@@ -1051,7 +1052,7 @@ function HomeCommandDock({ awaitingClientResult, callActive, commandsActive, onV
           onSubmit={workspace.submit}
           onTextChange={workspace.setText}
           onVoiceStart={onVoiceStart}
-          placeholder="Message Home"
+          placeholder="ホームにメッセージを送る"
           providerInterfaceId={workspace.providerInterfaceId}
           providerModel={workspace.providerModel}
           providerInterfaces={workspace.providerInterfaces}
@@ -1122,15 +1123,15 @@ function HomeWidgetsControl({ accessProfile, errors, hasHiddenSurfaces, onOpenCh
             initial={{ opacity: 0, scale: 0.985, y: 4 }}
             transition={{ duration: 0.15, ease: [0.19, 1, 0.22, 1] }}
           >
-            <OcMenuSurface aria-label="Home widgets" className="home-widgets-menu-surface" role="menu">
-              <OcMenuSectionLabel>Home widgets</OcMenuSectionLabel>
+            <OcMenuSurface aria-label="ホームのウィジェット" className="home-widgets-menu-surface" role="menu">
+              <OcMenuSectionLabel>ホームのウィジェット</OcMenuSectionLabel>
               {errors.map((error, index) => <p className="home-widgets-menu-error" key={index} role="alert">{error}</p>)}
               {surfaces.map((surface) => {
                 const visible = surfaceVisible(surface);
                 return (
                   <OcMenuItem
                     aria-checked={visible}
-                    description={surface.document.target.kind === "voice.window" ? "Window" : "Widget"}
+                    description={surface.document.target.kind === "voice.window" ? "ウィンドウ" : "ウィジェット"}
                     key={homeSurfaceIdentity(surface)}
                     label={surface.document.title}
                     leadingIcon={surface.document.glyph}
@@ -1140,15 +1141,15 @@ function HomeWidgetsControl({ accessProfile, errors, hasHiddenSurfaces, onOpenCh
                   />
                 );
               })}
-              {surfaces.length === 0 ? <span className="home-widgets-menu-empty">No widgets available.</span> : null}
+              {surfaces.length === 0 ? <span className="home-widgets-menu-empty">利用できるウィジェットはありません。</span> : null}
               <div aria-hidden="true" className="home-widgets-menu-separator" />
-              {hasHiddenSurfaces ? <OcMenuItem label="Restore all" leadingIcon="viewAll" onClick={onShowAll} role="menuitem" /> : null}
-              <OcMenuItem label="Reset positions" leadingIcon="refresh" onClick={() => {
+              {hasHiddenSurfaces ? <OcMenuItem label="すべて復元" leadingIcon="viewAll" onClick={onShowAll} role="menuitem" /> : null}
+              <OcMenuItem label="位置をリセット" leadingIcon="refresh" onClick={() => {
                 try {
                   const previous = resetVoiceWidgetLayout(accessProfile);
                   appToast.info("Home widget positions reset", 8, {
                     action: {
-                      label: "Undo",
+                      label: "元に戻す",
                       onSelect: () => {
                         try {
                           restoreVoiceWidgetLayout(accessProfile, previous);
@@ -1186,7 +1187,7 @@ function VoiceDetailPanel({ items, kind, onClose }: {
     >
       <header>
         <span><Glyph className="icon-xs" name={detailGlyph(kind)} size={16} />{detailTitle(kind)}</span>
-        <button aria-label={`Close ${detailTitle(kind)}`} onClick={onClose} type="button"><Glyph className="icon-xs" name="close" size={16} /></button>
+        <button aria-label={`閉じる ${detailTitle(kind)}`} onClick={onClose} type="button"><Glyph className="icon-xs" name="close" size={16} /></button>
       </header>
       <div>
         {items.length ? items.map((item, index) => (
@@ -1195,7 +1196,7 @@ function VoiceDetailPanel({ items, kind, onClose }: {
             {item.detail ? <p>{item.detail}</p> : null}
             {item.state ? <small>{item.state}</small> : null}
           </article>
-        )) : <p className="voice-panel-empty">No projected data is available for this run.</p>}
+        )) : <p className="voice-panel-empty">この実行には表示できるデータがありません。</p>}
       </div>
     </motion.aside>
   );
@@ -1249,15 +1250,15 @@ function projectContext(target: ProjectionTarget, projectName: string): Projecti
   const recent = artifacts.slice(0, 2).map((artifact) => artifact.name).join("\n");
   const roots = run ? projectedRunRoots(run) : [];
   return [
-    { label: "Project", detail: projectName, tone: "accent" },
-    { label: "Focus", detail: run?.goal || target.environment?.goal || "No focus" },
-    { label: "Files", detail: run ? `${files.length} in context` : "No files" },
-    { label: "Recent", detail: recent || "Nothing recent" },
+    { label: "プロジェクト", detail: projectName, tone: "accent" },
+    { label: "注目", detail: run?.goal || target.environment?.goal || "注目項目なし" },
+    { label: "ファイル", detail: run ? `${files.length} コンテキスト内` : "ファイルなし" },
+    { label: "最近", detail: recent || "最近の項目はありません" },
     ...(roots.length
-      ? roots.map((root) => ({ label: "Workspace", detail: root }))
-      : [{ label: "Workspace", detail: "No workspace" }]),
-    ...(run?.interfaces || []).map((item) => ({ label: "Interface", detail: item.name, state: item.status })),
-    ...(run?.bindings || []).map((item) => ({ label: "Binding", detail: item.name, state: item.status })),
+      ? roots.map((root) => ({ label: "ワークスペース", detail: root }))
+      : [{ label: "ワークスペース", detail: "ワークスペースなし" }]),
+    ...(run?.interfaces || []).map((item) => ({ label: "インターフェース", detail: item.name, state: item.status })),
+    ...(run?.bindings || []).map((item) => ({ label: "紐付け", detail: item.name, state: item.status })),
   ];
 }
 
@@ -1269,7 +1270,7 @@ function projectTools(target: ProjectionTarget): ProjectionItem[] {
       ? [run.workerEnvironment]
       : [];
   const tools = environments.flatMap((environment) => environment.tools.map((tool) => ({ environment, tool })));
-  if (!tools.length) return [{ glyph: "plugins", label: "No active tools", state: "Off" }];
+  if (!tools.length) return [{ glyph: "plugins", label: "実行中のツールはありません", state: "Off" }];
   return tools.map(({ environment, tool }) => ({
     glyph: glyphForTool(tool),
     label: readableTool(tool),
@@ -1302,7 +1303,7 @@ function projectGoals(target: ProjectionTarget): ProjectionItem[] {
   const unique = [...new Set(values)];
   return unique.length
     ? unique.map((goal) => ({ glyph: "target", label: goal, detail: target.run?.statusLabel || target.environment?.statusLabel }))
-    : [{ glyph: "target", label: "No goals", detail: "Nothing is active yet." }];
+    : [{ glyph: "target", label: "目標はありません", detail: "まだ実行中のものはありません。" }];
 }
 
 function projectMemory(target: ProjectionTarget): ProjectionItem[] {
@@ -1321,7 +1322,7 @@ function projectInsights(activity: HomeRunActivity): InsightsWidget {
   const entries = activity.entries.filter((entry) => entry.createdAtMs > 0);
   if (!entries.length) {
     return {
-      label: "Home activity",
+      label: "ホームのアクティビティ",
       value: "0",
       change: "Ready",
       changeDetail: "for the next movement",
@@ -1340,7 +1341,7 @@ function projectInsights(activity: HomeRunActivity): InsightsWidget {
   const earlier = series.slice(0, 4).reduce((total, value) => total + value, 0);
   const delta = recent - earlier;
   return {
-    label: "Home activity",
+    label: "ホームのアクティビティ",
     value: String(activity.total || entries.length),
     change: delta === 0 ? "Even" : delta > 0 ? `+${delta}` : String(delta),
     changeDetail: "recent movements",
@@ -1413,8 +1414,8 @@ function formatScheduledTime(timestamp: number, now: number): string {
   tomorrow.setDate(tomorrow.getDate() + 1);
   const sameDay = at.toDateString() === today.toDateString();
   const nextDay = at.toDateString() === tomorrow.toDateString();
-  const day = sameDay ? "Today" : nextDay ? "Tomorrow" : at.toLocaleDateString([], { day: "numeric", month: "short" });
-  return `${day}, ${at.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
+  const day = sameDay ? "今日" : nextDay ? "明日" : at.toLocaleDateString(APP_LOCALE, { day: "numeric", month: "short" });
+  return `${day}, ${at.toLocaleTimeString(APP_LOCALE, { hour: "numeric", minute: "2-digit" })}`;
 }
 
 function detailItems(
@@ -1431,10 +1432,10 @@ function detailItems(
 }
 
 function detailTitle(kind: DetailPanelKind): string {
-  if (kind === "context") return "Live context";
-  if (kind === "tools") return "Active tools";
-  if (kind === "goals") return "Current goals";
-  return "Memory";
+  if (kind === "context") return "現在の状況";
+  if (kind === "tools") return "実行中のツール";
+  if (kind === "goals") return "現在の目標";
+  return "メモリ";
 }
 
 function detailGlyph(kind: DetailPanelKind): GlyphName {

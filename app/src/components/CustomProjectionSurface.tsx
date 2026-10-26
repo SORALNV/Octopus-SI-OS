@@ -40,24 +40,24 @@ export function CustomProjectionSurface({ surface, query }: Props) {
   const virtualRows = useFixedVirtualRange({ count: filteredRows.length, itemSize: 29 });
 
   if (!projection) {
-    return <SurfaceEmpty glyph="descriptor" title="Surface descriptor incomplete" detail="custom.projection requires projection.method" />;
+    return <SurfaceEmpty glyph="descriptor" title="画面の記述子が不完全です" detail="custom.projection には projection.method が必要です" />;
   }
 
   if (!hasProjectionBridge()) {
-    return <SurfaceEmpty glyph={surface.glyph} title="Projection bridge unavailable" detail="Open this surface through the desktop app" />;
+    return <SurfaceEmpty glyph={surface.glyph} title="表示用データの接続を利用できません" detail="デスクトップアプリからこの画面を開いてください" />;
   }
 
   if (state.phase === "initial-loading") {
-    return <ProjectionResourceLoading label="Reading projection" />;
+    return <ProjectionResourceLoading label="表示用データを読み込んでいます" />;
   }
 
   if (state.phase === "failed") {
-    return <ProjectionResourceFailure detail={state.error} onRetry={state.retry} retrying={false} title="Projection unavailable" />;
+    return <ProjectionResourceFailure detail={state.error} onRetry={state.retry} retrying={false} title="表示用データを利用できません" />;
   }
 
   return (
     <section className="custom-surface">
-      {state.error ? <ProjectionResourceIssue detail={state.error} onRetry={state.retry} retrying={state.phase === "refreshing"} title="Could not refresh this projection" /> : null}
+      {state.error ? <ProjectionResourceIssue detail={state.error} onRetry={state.retry} retrying={state.phase === "refreshing"} title="表示用データを更新できませんでした" /> : null}
       <header className="custom-surface-head">
         <div>
           <span>{projection.title || surface.label}</span>
@@ -90,7 +90,7 @@ export function CustomProjectionSurface({ surface, query }: Props) {
               {virtualRows.end < filteredRows.length ? <tr aria-hidden="true" className="custom-table-spacer"><td colSpan={columns.length} style={{ height: (filteredRows.length - virtualRows.end) * 29 }} /></tr> : null}
             </tbody>
           </table>
-          {filteredRows.length === 0 ? <div className="panel-empty table-empty">no projection rows match search</div> : null}
+          {filteredRows.length === 0 ? <div className="panel-empty table-empty">検索に一致するデータがありません</div> : null}
         </div>
       ) : (
         <JsonPanel value={projected} preClassName="registry-json custom-json" copyLabel="Copy projection payload" />
@@ -104,7 +104,7 @@ export function StaticSurface({ surface }: { surface: ClientSurfaceDescriptor })
     <section className="workspace-empty">
       <Glyph name={surface.glyph} size={28} />
       <strong>{surface.staticContent?.title || surface.label}</strong>
-      <span>{surface.staticContent?.body || "Static client surface descriptor is registered."}</span>
+      <span>{surface.staticContent?.body || "静的な画面の記述子が登録されています。"}</span>
     </section>
   );
 }
@@ -121,7 +121,7 @@ function SurfaceEmpty({ glyph, title, detail }: { glyph: ClientSurfaceDescriptor
 
 function inferColumns(rows: any[]): SurfaceProjectionColumn[] {
   const first = rows.find((row) => row && typeof row === "object" && !Array.isArray(row));
-  if (!first) return [{ key: "value", label: "value" }];
+  if (!first) return [{ key: "value", label: "値" }];
   return Object.keys(first).slice(0, 6).map((key) => ({
     key,
     label: key,

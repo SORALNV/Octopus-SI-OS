@@ -35,7 +35,7 @@ export function CollapsibleMessageBody({ children, maxLines = 20 }: { children: 
       </div>
       {overflowing ? (
         <button aria-expanded={expanded} className="collapsible-message-toggle" onClick={() => setExpanded((current) => !current)} type="button">
-          <span>{expanded ? "Show less" : "Show more"}</span>
+          <span>{expanded ? "表示を減らす" : "さらに表示"}</span>
           <Glyph className={`icon-2xs transition-transform${expanded ? " rotate-180" : ""}`} name="chevronDown" size={12} />
         </button>
       ) : null}

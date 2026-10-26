@@ -67,11 +67,11 @@ export function collectTaskSources(messages: ChatRenderMessage[]): TaskSourceRow
     }
   }
   const web = webQueries.length ? [{
-    activity: webQueries.length === 1 ? "Searched once" : `Searched ${webQueries.length} times`,
+    activity: webQueries.length === 1 ? "Searched once" : `検索済み ${webQueries.length}回`,
     details: webQueries,
     glyph: "search" as const,
     id: "web-search",
-    label: "Web search",
+    label: "ウェブ検索",
     meta: "",
   }] : [];
   return [...attachments, ...artifacts, ...web];

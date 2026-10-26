@@ -56,7 +56,7 @@ export function OctopusFilterField({ autoFocus, inputId = "file-tree-search", in
       />
       {searchQuery.length > 0 ? (
         <button
-          aria-label="Clear file filter"
+          aria-label="ファイルの絞り込みを解除"
           className="octopus-file-filter-clear"
           onClick={() => onQueryChange("")}
           type="button"

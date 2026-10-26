@@ -63,7 +63,7 @@ export function chatObservationFailureMessage(input: {
     id: input.id,
     runId: input.runId,
     role: "assistant",
-    text: `Task updates are unavailable. The current outcome is unconfirmed. ${input.detail}`,
+    text: `タスクの更新情報を取得できません。現在の結果は未確認です。 ${input.detail}`,
     createdAtMs: input.createdAtMs,
     direction: "out",
     eventKind: "warning",

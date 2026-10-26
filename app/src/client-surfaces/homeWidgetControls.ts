@@ -44,7 +44,7 @@ function inventory(options: HomeWidgetControls) {
   const rows = options.extensions.extensions.filter(extension => extension.manifest.category === "widget").map(extension => {
     const contribution = extension.manifest.contribution;
     const widgetId = contribution.kind === "builtin" ? contribution.surface_id : extension.surface?.document.id;
-    if (!widgetId) throw new Error(`Widget ${extension.manifest.name} has no admitted document.`);
+    if (!widgetId) throw new Error(`ウィジェット ${extension.manifest.name} has no admitted document.`);
     return {
       widget_id: widgetId, title: extension.manifest.name, source_digest: extension.sourceDigest,
       origin: contribution.kind === "builtin" ? "builtin" : "extension",
@@ -82,10 +82,10 @@ export async function applyHomeWidgetAction(options: HomeWidgetControls, action:
   const before = inventory(options);
   const widgets = changes.map((change) => {
     const matches = before.filter(item => item.widget_id === change.widget_id);
-    if (matches.length !== 1) throw new Error(`Widget ${change.widget_id} is unavailable or ambiguous; list widgets again.`);
-    if (matches[0].source_digest !== change.source_digest) throw new Error(`Widget ${change.widget_id} revision changed; list widgets again before changing it.`);
+    if (matches.length !== 1) throw new Error(`ウィジェット ${change.widget_id} is unavailable or ambiguous; list widgets again.`);
+    if (matches[0].source_digest !== change.source_digest) throw new Error(`ウィジェット ${change.widget_id} revision changed; list widgets again before changing it.`);
     if (change.state === "visible" && matches[0].extensionId && !matches[0].available) {
-      throw new Error(`Widget ${change.widget_id} requires source configuration or extension review before it can be enabled.`);
+      throw new Error(`ウィジェット ${change.widget_id} requires source configuration or extension review before it can be enabled.`);
     }
     return { change, widget: matches[0] };
   });
@@ -114,7 +114,7 @@ export async function applyHomeWidgetAction(options: HomeWidgetControls, action:
   const rows = inventory(current);
   for (const change of changes) {
     if (!rows.some(row => row.widget_id === change.widget_id && row.source_digest === change.source_digest && row.state === change.state)) {
-      throw new Error(`Widget ${change.widget_id} changed before its requested presentation state could be confirmed.`);
+      throw new Error(`ウィジェット ${change.widget_id} changed before its requested presentation state could be confirmed.`);
     }
   }
   return rows.map(({ extensionId: _extensionId, item: _item, ...row }) => row);

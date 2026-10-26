@@ -57,9 +57,9 @@ export function ChangesSurface({ active, assistantCodeComments = [], environment
   return (
     <div className="we-changes-shell">
       <LiveSurfaceEmpty
-        detail="Changes in this Worker Environment will appear here when a worktree diff is projected."
+        detail="ワークツリーの差分を取得すると、この作業環境での変更をここに表示します。"
         illustration={<ChangesEmptyIllustration />}
-        title="No file changes yet"
+        title="ファイルの変更はまだありません"
       />
     </div>
   );
@@ -108,9 +108,9 @@ export function ConnectionSurface({ surface }: { surface?: WorkerEnvironmentSurf
   if (!surface || (!address && facts.length === 0 && events.length === 0 && capabilities.length === 0)) {
     return (
       <LiveSurfaceEmpty
-        detail="Connection state appears only when the formed Worker Environment projects its own view address and lifecycle evidence."
+        detail="作業環境から表示用アドレスと起動・終了の記録が提供されると、接続状態を表示します。"
         glyph="interfaces"
-        title="Connection descriptor unavailable"
+        title="接続の記述子を取得できません"
       />
     );
   }
@@ -137,13 +137,13 @@ export function ConnectionSurface({ surface }: { surface?: WorkerEnvironmentSurf
       title={dataText(surface.data, "name") || surface.label}
     >
       {address ? (
-        <OctopusSection title="View address">
+        <OctopusSection title="表示用アドレス">
           <div className="flex min-h-9 items-center justify-between gap-2 px-3 py-1.5 text-sm">
             <code className="min-w-0 truncate font-mono text-xs text-token-foreground" title={address}>{address}</code>
             <span className="flex shrink-0 items-center">
               <OcIconButton
                 glyph={copied ? "check" : "copy"}
-                label={copied ? "Copied" : "Copy view address"}
+                label={copied ? "コピーしました" : "表示用アドレスをコピー"}
                 onClick={() => void copyAddress()}
                 size="sm"
                 variant="ghost"
@@ -151,7 +151,7 @@ export function ConnectionSurface({ surface }: { surface?: WorkerEnvironmentSurf
               {surface.mode === "direct" && isViewerUrl(surface.viewerUrl) ? (
                 <OcIconButton
                   glyph="openExternal"
-                  label="Open view address"
+                  label="表示用アドレスを開く"
                   onClick={() => window.open(surface.viewerUrl, "_blank", "noopener,noreferrer")}
                   size="sm"
                   variant="ghost"
@@ -162,22 +162,22 @@ export function ConnectionSurface({ surface }: { surface?: WorkerEnvironmentSurf
         </OctopusSection>
       ) : null}
       {facts.length ? (
-        <OctopusSection title="Environment">
+        <OctopusSection title="環境">
           {facts.map(([label, value]) => <OctopusRow key={label} label={label} value={value} />)}
         </OctopusSection>
       ) : null}
       <OctopusPillRow values={capabilities} />
-      <OctopusSection count={events.length} title="Lifecycle">
+      <OctopusSection count={events.length} title="ライフサイクル">
         {events.length ? events.map((event, index) => (
           <div className="flex min-h-9 items-center gap-2.5 border-b border-token-border px-3 py-1.5 text-sm last:border-b-0" key={`${dataText(event, "time")}:${dataText(event, "label")}:${index}`}>
             <span className={`size-1.5 shrink-0 rounded-full ${normalizeStatus(dataText(event, "state")) === "active" ? "bg-token-charts-green" : normalizeStatus(dataText(event, "state")) === "error" ? "bg-token-charts-red" : "bg-token-description-foreground"}`} />
             <span className="flex min-w-0 flex-1 flex-col">
-              <span className="truncate text-token-foreground">{dataText(event, "label") || "Environment event"}</span>
+              <span className="truncate text-token-foreground">{dataText(event, "label") || "環境のイベント"}</span>
               {dataText(event, "detail") ? <span className="truncate text-xs text-token-text-secondary">{dataText(event, "detail")}</span> : null}
             </span>
             <span className="shrink-0 text-xs text-token-input-placeholder-foreground">{dataText(event, "time")}</span>
           </div>
-        )) : <div className="px-3 py-2 text-sm text-token-description-foreground">No lifecycle events were projected.</div>}
+        )) : <div className="px-3 py-2 text-sm text-token-description-foreground">ライフサイクルのイベントがありません。</div>}
       </OctopusSection>
     </OctopusSurfaceShell>
   );
@@ -185,7 +185,7 @@ export function ConnectionSurface({ surface }: { surface?: WorkerEnvironmentSurf
 
 export function ContainerSurface({ surface }: { surface?: WorkerEnvironmentSurfaceProjection }) {
   if (!surface || (surface.mode !== "fixture" && surface.mode !== "evidence")) {
-    return <LiveSurfaceEmpty detail="Container state appears only when the Worker Environment projects an admitted runtime snapshot." glyph="ee" title="Container runtime unavailable" />;
+    return <LiveSurfaceEmpty detail="作業環境から許可された実行情報を取得すると、コンテナーの状態を表示します。" glyph="ee" title="コンテナーの実行基盤を利用できません" />;
   }
   const processes = dataRecordList(surface.data, "processes");
   const ports = dataRecordList(surface.data, "ports");
@@ -195,27 +195,27 @@ export function ContainerSurface({ surface }: { surface?: WorkerEnvironmentSurfa
       glyph="ee"
       status={dataText(surface.data, "state") || surface.status}
       statusTone={surface.data.running === true ? "active" : "muted"}
-      subtitle={dataText(surface.data, "image") || "No image evidence"}
+      subtitle={dataText(surface.data, "image") || "画像の記録がありません"}
       title={dataText(surface.data, "name") || surface.label}
     >
-      <OctopusSection title="Runtime">
-        <OctopusRow label="Health" value={dataText(surface.data, "health") || (surface.data.running === true ? "Running" : "—")} />
-        <OctopusRow label="Exit code" value={String(dataOptionalNumber(surface.data, "exit_code") ?? "—")} />
-        <OctopusRow label="Uptime" value={dataText(surface.data, "uptime") || "—"} />
-        <OctopusRow label="Network" value={dataText(surface.data, "network") || "—"} />
+      <OctopusSection title="実行基盤">
+        <OctopusRow label="稼働状況" value={dataText(surface.data, "health") || (surface.data.running === true ? "Running" : "—")} />
+        <OctopusRow label="終了コード" value={String(dataOptionalNumber(surface.data, "exit_code") ?? "—")} />
+        <OctopusRow label="稼働時間" value={dataText(surface.data, "uptime") || "—"} />
+        <OctopusRow label="ネットワーク" value={dataText(surface.data, "network") || "—"} />
       </OctopusSection>
-      <OctopusSection count={processes.length} title="Processes">
+      <OctopusSection count={processes.length} title="プロセス">
         {processes.length ? processes.map((process, index) => (
           <div className="flex min-h-9 items-center gap-3 border-b border-token-border px-3 py-1.5 text-sm last:border-b-0" key={`${dataText(process, "pid")}:${dataText(process, "command")}:${index}`}>
             <span className="w-12 shrink-0 font-mono text-xs text-token-text-secondary">{dataText(process, "pid") || "—"}</span>
-            <span className="min-w-0 flex-1 truncate font-mono text-xs text-token-foreground" title={dataText(process, "command")}>{dataText(process, "command") || "Unknown process"}</span>
+            <span className="min-w-0 flex-1 truncate font-mono text-xs text-token-foreground" title={dataText(process, "command")}>{dataText(process, "command") || "不明なプロセス"}</span>
             <span className="shrink-0 text-xs text-token-text-secondary">{dataText(process, "cpu") || "—"}</span>
             <span className="shrink-0 text-xs text-token-text-secondary">{dataText(process, "memory") || "—"}</span>
           </div>
-        )) : <div className="px-3 py-2 text-sm text-token-description-foreground">No process snapshot was projected.</div>}
+        )) : <div className="px-3 py-2 text-sm text-token-description-foreground">プロセスの情報がありません。</div>}
       </OctopusSection>
-      <ContainerEvidenceList items={ports} keyField="port" title="Ports" valueField="service" />
-      <ContainerEvidenceList items={mounts} keyField="target" title="Mounts" valueField="source" />
+      <ContainerEvidenceList items={ports} keyField="port" title="ポート" valueField="service" />
+      <ContainerEvidenceList items={mounts} keyField="target" title="マウント" valueField="source" />
     </OctopusSurfaceShell>
   );
 }
@@ -230,14 +230,14 @@ function ContainerEvidenceList({ items, keyField, title, valueField }: {
     <OctopusSection count={items.length} title={title}>
       {items.length ? items.map((item, index) => (
         <OctopusRow key={`${dataText(item, keyField)}:${index}`} label={dataText(item, keyField) || "—"} value={dataText(item, valueField) || "—"} />
-      )) : <div className="px-3 py-2 text-sm text-token-description-foreground">None projected</div>}
+      )) : <div className="px-3 py-2 text-sm text-token-description-foreground">情報がありません</div>}
     </OctopusSection>
   );
 }
 
 export function RuntimeSurface({ surface }: { surface?: WorkerEnvironmentSurfaceProjection }) {
   if (!surface || (surface.mode !== "fixture" && surface.mode !== "evidence")) {
-    return <LiveSurfaceEmpty detail="Runtime state appears only when the formed room publishes admitted live-state evidence." glyph="pulse" title="Runtime evidence unavailable" />;
+    return <LiveSurfaceEmpty detail="作業環境から許可された稼働記録が提供されると、実行状態を表示します。" glyph="pulse" title="実行記録を取得できません" />;
   }
   const activeCells = dataStringList(surface.data, "active_cells");
   const pendingCalls = dataRecordList(surface.data, "pending_tool_calls");
@@ -256,17 +256,17 @@ export function RuntimeSurface({ surface }: { surface?: WorkerEnvironmentSurface
       subtitle={surface.protocol || undefined}
       title={surface.label}
     >
-      {error ? <OctopusLogBlock label="Runtime error" tone="error">{error}</OctopusLogBlock> : null}
+      {error ? <OctopusLogBlock label="実行エラー" tone="error">{error}</OctopusLogBlock> : null}
       {detail ? <OctopusNoteLine>{detail}</OctopusNoteLine> : null}
       {server ? (
-        <OctopusSection title="Server">
+        <OctopusSection title="サーバー">
           {Object.entries(server).map(([key, value]) => (
             <OctopusRow key={key} label={key.replace(/_/g, " ")} value={renderSurfaceData(value)} />
           ))}
         </OctopusSection>
       ) : null}
       {activeCells.length || pendingCalls.length ? (
-        <OctopusSection count={`${activeCells.length} active`} title="Room activity">
+        <OctopusSection count={`${activeCells.length} active`} title="作業環境のアクティビティ">
           {activeCells.length ? (
             <div className="flex min-w-0 flex-wrap gap-1.5 border-b border-token-border px-3 py-2 last:border-b-0">
               {activeCells.map((cell) => <code className="rounded-md border border-token-border px-1.5 py-0.5 font-mono text-xs text-token-text-secondary" key={cell}>{cell}</code>)}
@@ -275,23 +275,23 @@ export function RuntimeSurface({ surface }: { surface?: WorkerEnvironmentSurface
           {pendingCalls.map((call, index) => (
             <OctopusRow
               key={`${dataText(call, "id")}:${index}`}
-              label={dataText(call, "tool") || dataText(call, "name") || `Pending call ${index + 1}`}
+              label={dataText(call, "tool") || dataText(call, "name") || `呼び出し待ち ${index + 1}`}
               value={dataText(call, "status") || "pending"}
             />
           ))}
         </OctopusSection>
       ) : null}
-      {eventLog ? <OctopusLogBlock label="Runtime event log">{eventLog}</OctopusLogBlock> : null}
-      {stderrLog ? <OctopusLogBlock label="Runtime standard error" tone="error">{stderrLog}</OctopusLogBlock> : null}
+      {eventLog ? <OctopusLogBlock label="実行基盤のイベントログ">{eventLog}</OctopusLogBlock> : null}
+      {stderrLog ? <OctopusLogBlock label="実行基盤の標準エラー出力" tone="error">{stderrLog}</OctopusLogBlock> : null}
       {!server && !activeCells.length && !pendingCalls.length && !eventLog && !stderrLog && !error && !detail ? (
-        <LiveSurfaceEmpty detail="The room is formed, but its current live-state carries no inspectable runtime payload." glyph="pulse" title="No runtime details" />
+        <LiveSurfaceEmpty detail="作業環境は作成されていますが、現在の状態に確認できる実行データがありません。" glyph="pulse" title="実行の詳細がありません" />
       ) : null}
     </OctopusSurfaceShell>
   );
 }
 
 export function CustomEnvironmentSurface({ surface }: { surface?: WorkerEnvironmentSurfaceProjection }) {
-  if (!surface) return <LiveSurfaceEmpty detail="No surface descriptor was projected." glyph="plugins" title="Surface unavailable" />;
+  if (!surface) return <LiveSurfaceEmpty detail="画面の記述子がありません。" glyph="plugins" title="画面を利用できません" />;
   const entries = Object.entries(surface.data);
   return (
     <OctopusSurfaceShell
@@ -302,13 +302,13 @@ export function CustomEnvironmentSurface({ surface }: { surface?: WorkerEnvironm
       title={surface.label}
     >
       {entries.length ? (
-        <OctopusSection title="Projected data">
+        <OctopusSection title="表示用データ">
           {entries.map(([key, value]) => (
             <OctopusRow key={key} label={key.replace(/_/g, " ")} value={renderSurfaceData(value)} />
           ))}
         </OctopusSection>
       ) : (
-        <LiveSurfaceEmpty detail="This custom surface descriptor carries no native client data." glyph="plugins" title={surface.label} />
+        <LiveSurfaceEmpty detail="このカスタム画面の記述子には、表示用のデータがありません。" glyph="plugins" title={surface.label} />
       )}
     </OctopusSurfaceShell>
   );
@@ -316,7 +316,7 @@ export function CustomEnvironmentSurface({ surface }: { surface?: WorkerEnvironm
 
 export function EnvironmentOverview({ environment }: { environment: WorkerEnvironmentProjection }) {
   const facts = ([
-    ["Declared kind", environment.kind || "Not projected"],
+    ["Declared kind", environment.kind || "情報なし"],
     ["Room lifecycle", environment.lifecycle || "Unknown"],
     ["Current process state", environment.status || "Unknown"],
     ["Session", environment.session || "No session attached"],
@@ -328,7 +328,7 @@ export function EnvironmentOverview({ environment }: { environment: WorkerEnviro
     ...(environment.root ? [[environment.root, environment.root] as const] : []),
     ...environment.surfaces.flatMap((surface) => surface.root ? [[
       surface.root,
-      `${surface.root} · ${surface.readOnly ? "Read only" : "Read and write"}`,
+      `${surface.root} · ${surface.readOnly ? "読み取り専用" : "Read and write"}`,
     ] as const] : []),
   ]).values());
   return (
@@ -336,7 +336,7 @@ export function EnvironmentOverview({ environment }: { environment: WorkerEnviro
       <div className="we-overview-content">
         <OcGroup
           description={environment.detail}
-          title={environment.label || "Worker Environment"}
+          title={environment.label || "作業環境"}
         >
           <OcCard className="we-overview-row-group">
             {facts.length ? facts.map(({ label, value }) => (
@@ -345,13 +345,13 @@ export function EnvironmentOverview({ environment }: { environment: WorkerEnviro
                 key={label}
                 label={label}
               />
-            )) : <OcSettingsRow label="No environment details projected" />}
+            )) : <OcSettingsRow label="環境の詳細がありません" />}
           </OcCard>
         </OcGroup>
-        <OverviewList items={roots} title="Filesystem access" />
-        <OverviewList items={environment.capabilities} title="Capabilities" />
-        <OverviewList items={environment.tools} title="Tools through the door" />
-        <OverviewList items={environment.surfaces.map((surface) => surface.label)} title="Projected surfaces" />
+        <OverviewList items={roots} title="ファイルへのアクセス" />
+        <OverviewList items={environment.capabilities} title="機能" />
+        <OverviewList items={environment.tools} title="実行可能なツール" />
+        <OverviewList items={environment.surfaces.map((surface) => surface.label)} title="表示できる画面" />
       </div>
     </div>
   );
@@ -389,14 +389,14 @@ export function WorktreeSurface({ surface }: { surface?: WorkerEnvironmentSurfac
   }, [fixture, fixturePhase]);
 
   if (!surface) {
-    return <LiveSurfaceEmpty detail="No worktree status surface was projected." glyph="worktree" title="Worktree unavailable" />;
+    return <LiveSurfaceEmpty detail="ワークツリーの状態を表示する画面がありません。" glyph="worktree" title="ワークツリーを利用できません" />;
   }
   if (projection.phase == null || fixturePhase == null) {
     return (
       <LiveSurfaceEmpty
-        detail="The projected worktree surface does not contain a supported phase. Expected queued, creating, setting-up, worktree-ready, or failed."
+        detail="ワークツリーの画面に対応する処理段階がありません。queued、creating、setting-up、worktree-ready、failed のいずれかが必要です。"
         glyph="worktree"
-        title="Worktree state unavailable"
+        title="ワークツリーの状態を取得できません"
       />
     );
   }
@@ -415,14 +415,14 @@ export function WorktreeSurface({ surface }: { surface?: WorkerEnvironmentSurfac
           </span>
           <div>
             <h2>{projection.label || surface.label}</h2>
-            <p>{projection.description || "Persistent project worktree"}</p>
+            <p>{projection.description || "プロジェクトの永続ワークツリー"}</p>
           </div>
           <span className={`we-worktree-phase is-${failed ? "failed" : phase === "worktree-ready" ? "ready" : "running"}`}>
             <i />{phaseLabel}
           </span>
         </header>
 
-        <div className="we-worktree-activities" aria-label="Worktree setup activity">
+        <div className="we-worktree-activities" aria-label="ワークツリーのセットアップ状況">
           {activities.map((activity, index) => (
             <WorktreeActivityRow activity={activity} key={activity.id} last={index === activities.length - 1} />
           ))}
@@ -432,8 +432,8 @@ export function WorktreeSurface({ surface }: { surface?: WorkerEnvironmentSurfac
 
         {failed ? (
           <div className="we-worktree-failure" role="alert">
-            <strong>Worktree setup failed</strong>
-            <p>{projection.errorMessage || "The projected state did not include a failure message."}</p>
+            <strong>ワークツリーのセットアップに失敗しました</strong>
+            <p>{projection.errorMessage || "取得した状態にエラーメッセージが含まれていません。"}</p>
           </div>
         ) : null}
 
@@ -445,14 +445,14 @@ export function WorktreeSurface({ surface }: { surface?: WorkerEnvironmentSurfac
           {fixture ? (
             <div>
               {failed ? (
-                <OcButton leadingIcon="retry" onClick={() => setFixturePhase("queued")} variant="primary">Retry</OcButton>
+                <OcButton leadingIcon="retry" onClick={() => setFixturePhase("queued")} variant="primary">再試行</OcButton>
               ) : (
-                <OcButton disabled={phase !== "worktree-ready"} leadingIcon="refresh" onClick={() => setFixturePhase("queued")} variant="secondary">Replay setup</OcButton>
+                <OcButton disabled={phase !== "worktree-ready"} leadingIcon="refresh" onClick={() => setFixturePhase("queued")} variant="secondary">セットアップを再実行</OcButton>
               )}
-              <OcButton disabled={phase !== "worktree-ready"} onClick={() => setFixturePhase("failed")} tone="danger" variant="ghost">Simulate failure</OcButton>
+              <OcButton disabled={phase !== "worktree-ready"} onClick={() => setFixturePhase("failed")} tone="danger" variant="ghost">失敗をシミュレーション</OcButton>
             </div>
           ) : failed ? (
-            <small>Repair actions require an explicit projected action target.</small>
+            <small>修復するには、対象の操作が表示用データで明示されている必要があります。</small>
           ) : null}
         </footer>
       </div>
@@ -473,14 +473,14 @@ function WorktreeContext({ projection }: { projection: ReturnType<typeof parseWo
     projection.untrackedCount == null ? "" : `${projection.untrackedCount} untracked`,
   ].filter(Boolean);
   const rows = [
-    { glyph: "worktree" as GlyphName, label: "Repository", values: repositoryValues },
-    { glyph: "changes" as GlyphName, label: "Revision", values: revisionValues },
-    { glyph: "folder" as GlyphName, label: "Workspace", values: [projection.workspaceRoot].filter(Boolean) },
-    { glyph: "pulse" as GlyphName, label: "Working tree", values: changeCounts },
+    { glyph: "worktree" as GlyphName, label: "リポジトリ", values: repositoryValues },
+    { glyph: "changes" as GlyphName, label: "リビジョン", values: revisionValues },
+    { glyph: "folder" as GlyphName, label: "ワークスペース", values: [projection.workspaceRoot].filter(Boolean) },
+    { glyph: "pulse" as GlyphName, label: "作業ツリー", values: changeCounts },
   ].filter((row) => row.values.length);
   if (!rows.length && !projection.linkedRuns.length) return null;
   return (
-    <section className="we-worktree-context" aria-label="Repository context">
+    <section className="we-worktree-context" aria-label="リポジトリの情報">
       {rows.map((row) => (
         <div key={row.label}>
           <span><Glyph name={row.glyph} size={13} /></span>
@@ -491,7 +491,7 @@ function WorktreeContext({ projection }: { projection: ReturnType<typeof parseWo
       {projection.linkedRuns.length ? (
         <div className="we-worktree-linked-runs">
           <span><Glyph name="chat" size={13} /></span>
-          <strong>Linked runs</strong>
+          <strong>関連する実行</strong>
           <p>{projection.linkedRuns.join(" · ")}</p>
         </div>
       ) : null}
@@ -518,7 +518,7 @@ function WorktreeActivityRow({ activity, last }: { activity: WorktreeActivity; l
         </div>
         {activity.output ? (
           <details>
-            <summary>View output</summary>
+            <summary>出力を表示</summary>
             <pre>{activity.output}</pre>
           </details>
         ) : null}
@@ -572,8 +572,8 @@ function worktreeActivities(phase: WorktreePhase, projection: ReturnType<typeof 
           ? "skipped"
           : "completed";
   return [
-    { id: "worktree", label: "Create worktree", status: worktreeStatus, output: projection.worktreeOutput },
-    { id: "setup", label: "Set up environment", status: setupStatus, output: projection.setupOutput },
+    { id: "worktree", label: "ワークツリーを作成", status: worktreeStatus, output: projection.worktreeOutput },
+    { id: "setup", label: "環境を設定", status: setupStatus, output: projection.setupOutput },
   ];
 }
 
@@ -581,16 +581,16 @@ function worktreePhaseLabel(phase: WorktreePhase): string {
   if (phase === "queued") return "Queued";
   if (phase === "creating") return "Creating worktree";
   if (phase === "setting-up") return "Running setup";
-  if (phase === "worktree-ready") return "Ready";
-  return "Failed";
+  if (phase === "worktree-ready") return "準備完了";
+  return "失敗";
 }
 
 function worktreeActivityStatusLabel(status: WorktreeActivityStatus): string {
-  if (status === "waiting") return "Waiting";
-  if (status === "running") return "In progress";
-  if (status === "completed") return "Completed";
+  if (status === "waiting") return "待機中";
+  if (status === "running") return "進行中";
+  if (status === "completed") return "完了";
   if (status === "skipped") return "Skipped";
-  return "Failed";
+  return "失敗";
 }
 
 function OverviewList({ items, title }: { items: string[]; title: string }) {
@@ -599,7 +599,7 @@ function OverviewList({ items, title }: { items: string[]; title: string }) {
       <OcCard className="we-overview-row-group">
         {items.length
           ? items.map((item) => <OcSettingsRow key={item} label={item} />)
-          : <OcSettingsRow label="None projected" />}
+          : <OcSettingsRow label="情報がありません" />}
       </OcCard>
     </OcGroup>
   );

@@ -139,14 +139,15 @@ validateBundledLayout([bundledRegistryRoot, localPackageRegistryRoot], installat
 
 setPlist("CFBundleName", "Octopus");
 setPlist("CFBundleDisplayName", "Octopus");
+setPlist("CFBundleDevelopmentRegion", "ja");
 setPlist("CFBundleExecutable", "Octopus");
 setPlist("CFBundleIdentifier", "com.octopus.desktop");
 setPlist("CFBundleIconFile", "octopus.icns");
 setPlist("CFBundleShortVersionString", packageVersion);
 setPlist("CFBundleVersion", packageVersion);
 setPlist("LSMinimumSystemVersion", minimumSystemVersion);
-setPlist("NSMicrophoneUsageDescription", "Octopus uses the microphone for persistent voice conversations with your agent.");
-setPlist("NSCameraUsageDescription", "Octopus uses the camera locally to recognize hand gestures. Frames are not recorded or sent to the runtime.");
+setPlist("NSMicrophoneUsageDescription", "エージェントとの音声通話にマイクを使用します。");
+setPlist("NSCameraUsageDescription", "手のジェスチャーを認識するため、カメラをローカルで使用します。映像は録画されず、実行基盤にも送信されません。");
 setPlistBoolean("NSCameraUseContinuityCameraDeviceType", true);
 
 const providerSigningInputs = captureProviderSigningInputs([bundledRegistryRoot, localPackageRegistryRoot]);

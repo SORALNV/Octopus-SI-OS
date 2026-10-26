@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../locale";
 import { OcLoadingRows } from "../design-system/LoadingSkeleton";
 import type { DragEndEvent } from "@dnd-kit/core";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
@@ -168,7 +169,7 @@ export function Sidebar({
 
   return (
     <aside className="octopus-sidebar app-shell-left-panel sidebar-page" data-app-shell-left-panel-appearance="content-surface">
-      <nav className="sidebar-foreground-muted flex min-h-0 flex-1 flex-col" aria-label={`${inbox ? "Inbox" : "Tasks"} navigation`} onKeyDown={moveSidebarFocus}>
+      <nav className="sidebar-foreground-muted flex min-h-0 flex-1 flex-col" aria-label={`${inbox ? "受信トレイ" : "タスク"} navigation`} onKeyDown={moveSidebarFocus}>
         {!inbox ? <TasksViewSwitcher
           value={archivedView ? "archived" : activeSurfaceId === "scheduled" ? "scheduled" : "tasks"}
           onChange={(view) => {
@@ -179,7 +180,7 @@ export function Sidebar({
           }}
         /> : null}
         {inbox ? (
-          <div className="sidebar-page-heading"><h1>Inbox</h1></div>
+          <div className="sidebar-page-heading"><h1>受信トレイ</h1></div>
         ) : null}
         {scheduledView ? <ScheduledSidebar onSelectChat={onSelectChat} /> : <div className="octopus-sidebar-scroll sidebar-page-scroll vertical-scroll-fade-mask flex min-h-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto px-0 pb-row-x" data-activity={inbox}>
           {inbox ? activityContent : (
@@ -487,7 +488,7 @@ function TaskNavigation({
         appToast.info(`${receipt.project.name} deleted`, 8, {
           dedupeKey: `lab-project-delete:${receipt.project.id}`,
           action: {
-            label: "Undo",
+            label: "元に戻す",
             onSelect: () => {
               void projectWorkspace.restoreProject(receipt).catch((failure) => {
                 appToast.danger(failure instanceof Error ? failure.message : String(failure));
@@ -588,9 +589,9 @@ function TaskNavigation({
       }}
     >
       {archivedView ? (
-        <OctopusNavSection className="px-row-x" title="Archived" titleTrailing={archivedChats.length || undefined}>
+        <OctopusNavSection className="px-row-x" title="アーカイブ済み" titleTrailing={archivedChats.length || undefined}>
           {archivedChats.map((chat) => <OctopusTaskRow
-            action={{ glyph: "retry", label: "Restore task", disabled: projectWorkspace.pending, onClick: () => dispatchRestoreClientTask(chat.runId) }}
+            action={{ glyph: "retry", label: "タスクを復元", disabled: projectWorkspace.pending, onClick: () => dispatchRestoreClientTask(chat.runId) }}
             active={chatActive && chat.runId === activeChatRunId}
             key={chat.runId}
             hoverDetails={hoverDetailsByRun.get(chat.runId)}
@@ -600,13 +601,13 @@ function TaskNavigation({
             onContextMenu={(event) => openTaskMenu(chat.runId, event)}
             title={clientTaskTitle(chat.runId, chat.title, organization)}
           />)}
-          {archivedChats.length === 0 ? chatRunsLoading ? <OcLoadingRows label="Loading archived tasks…" /> : <div className="p-2 text-base text-token-description-foreground opacity-50">No archived tasks</div> : null}
+          {archivedChats.length === 0 ? chatRunsLoading ? <OcLoadingRows label="アーカイブ済みのタスクを読み込んでいます…" /> : <div className="p-2 text-base text-token-description-foreground opacity-50">アーカイブ済みのタスクはありません</div> : null}
         </OctopusNavSection>
       ) : <>
       <div className="shrink-0 px-row-x">
         <OctopusNavSection
           collapsed={projectsCollapsed}
-          title={<SidebarSectionTitle collapsed={projectsCollapsed} label="Projects" onClick={() => toggleSection("projects", projectsCollapsed)} />}
+          title={<SidebarSectionTitle collapsed={projectsCollapsed} label="プロジェクト" onClick={() => toggleSection("projects", projectsCollapsed)} />}
         >
           <SidebarDropContainer containerId={PROJECTS_CONTAINER} entity="project" id="sidebar-drop-projects">
             <div className="flex flex-col gap-px">
@@ -656,7 +657,7 @@ function TaskNavigation({
                       <Glyph name="plus" size={13} />
                     </span>
                   </span>
-                  <span className="text-fade-truncate pr-1">Add project</span>
+                  <span className="text-fade-truncate pr-1">プロジェクトを追加</span>
                 </div>
               </button>
             </div>
@@ -672,14 +673,14 @@ function TaskNavigation({
               appearance="sidebar"
               disabled={!agentCreationAvailable}
               glyph="plus"
-              label={selectedProject ? `Create agent in ${selectedProject.name}` : "Create agent"}
+              label={selectedProject ? `エージェントの作成先： ${selectedProject.name}` : "エージェントを作成"}
               onClick={() => setAgentDialog({ mode: "create", presetId: "" })}
             />
           )}
           title={(
             <SidebarSectionTitle
               collapsed={agentsCollapsed}
-              label="Agents"
+              label="エージェント"
               onClick={() => toggleSection("agents", agentsCollapsed)}
             />
           )}
@@ -702,7 +703,7 @@ function TaskNavigation({
           ))}
           {visibleAgentPresets.length === 0 ? (
             <div className="p-2 text-base text-token-description-foreground opacity-50">
-              {selectedProject ? "No agents in this project" : "No agents yet"}
+              {selectedProject ? "このプロジェクトにエージェントはいません" : "エージェントはまだいません"}
             </div>
           ) : null}
         </OctopusNavSection>
@@ -717,7 +718,7 @@ function TaskNavigation({
         {pinnedChats.length > 0 ? (
           <OctopusNavSection
             collapsed={pinnedCollapsed}
-            title={<SidebarSectionTitle collapsed={pinnedCollapsed} label="Pinned" onClick={() => toggleSection("pinned", pinnedCollapsed)} />}
+            title={<SidebarSectionTitle collapsed={pinnedCollapsed} label="固定済み" onClick={() => toggleSection("pinned", pinnedCollapsed)} />}
           >
             <SidebarSortableList items={pinnedChats.map((chat) => sidebarItemDndId("chat", chat.runId))}>
               {pinnedChats.map((chat) => (
@@ -757,15 +758,15 @@ function TaskNavigation({
           collapsed={tasksCollapsed}
           titleActions={(
             <div className="flex items-center gap-0.5">
-              <OcIconButton appearance="sidebar" glyph="plus" label={selectedProject ? `New task in ${selectedProject.name}` : "New task"} onClick={() => onNewChat(selectedProjectId || undefined)} />
-              <OcIconButton appearance="sidebar" glyph="search" label="Search tasks" onClick={onSearch} />
+              <OcIconButton appearance="sidebar" glyph="plus" label={selectedProject ? `新しいタスクの作成先： ${selectedProject.name}` : "新しいタスク"} onClick={() => onNewChat(selectedProjectId || undefined)} />
+              <OcIconButton appearance="sidebar" glyph="search" label="タスクを検索" onClick={onSearch} />
             </div>
           )}
           titleRowClassName="flex items-center justify-between gap-2 pr-0.5 pl-2"
           title={(
             <SidebarSectionTitle
               collapsed={tasksCollapsed}
-              label="Tasks"
+              label="タスク"
               onOptions={(anchor) => {
                 const rect = anchor.getBoundingClientRect();
                 setSortMenu({
@@ -805,11 +806,11 @@ function TaskNavigation({
               </SidebarSortableItem>
             ))}
           </SidebarSortableList>
-          {visibleChats.length === 0 ? chatRunsLoading ? <OcLoadingRows label="Loading tasks…" /> : (
+          {visibleChats.length === 0 ? chatRunsLoading ? <OcLoadingRows label="タスクを読み込んでいます…" /> : (
             <div className="p-2 text-base text-token-description-foreground opacity-50">
               {selectedProject
-                  ? "No tasks in this project"
-                  : taskChats.length === 0 ? "No tasks yet" : "All visible tasks are pinned"}
+                  ? "このプロジェクトにタスクはありません"
+                  : taskChats.length === 0 ? "タスクはまだありません" : "表示中のタスクはすべて固定されています"}
             </div>
           ) : null}
         </OctopusNavSection>
@@ -842,8 +843,8 @@ function TaskNavigation({
         submitLabel={projectDialog?.mode === "edit" ? "Save" : "Create project"}
         templateOptions={dialogTemplateOptions}
         title={projectDialog?.mode === "edit"
-          ? "Edit project"
-          : dialogParentContext ? `New project in ${dialogParentContext.displayName}` : "Create project"}
+          ? "プロジェクトを編集"
+          : dialogParentContext ? `新しいプロジェクトの作成先： ${dialogParentContext.displayName}` : "プロジェクトを作成"}
         onCancel={() => setProjectDialog(null)}
         onSubmit={submitProjectDialog}
       />
@@ -937,17 +938,17 @@ function ProjectActionsMenu({
   if (!menu || !project) return null;
   return createPortal(
     <OcMenuSurface
-      aria-label={`Actions for ${project.name}`}
+      aria-label={`操作： ${project.name}`}
       data-settings-layer="true"
       className="fixed z-[100] w-52"
       role="menu"
       style={{ left: menu.left, top: menu.top } as CSSProperties}
       surfaceRef={menuRef}
     >
-      <OcMenuItem disabled={!canCreateInside} label="New project inside" leadingIcon="plus" onClick={() => onCreateInside(project)} role="menuitem" />
-      <OcMenuItem label="Edit project" leadingIcon="edit" onClick={() => onEdit(project.id)} role="menuitem" />
+      <OcMenuItem disabled={!canCreateInside} label="この中にプロジェクトを作成" leadingIcon="plus" onClick={() => onCreateInside(project)} role="menuitem" />
+      <OcMenuItem label="プロジェクトを編集" leadingIcon="edit" onClick={() => onEdit(project.id)} role="menuitem" />
       <div aria-hidden="true" className="mx-1 my-1 h-px bg-token-border" />
-      <OcMenuItem label="Delete project" leadingIcon="trash" onClick={() => onDelete(project.id)} role="menuitem" tone="danger" />
+      <OcMenuItem label="プロジェクトを削除" leadingIcon="trash" onClick={() => onDelete(project.id)} role="menuitem" tone="danger" />
     </OcMenuSurface>,
     document.body,
   );
@@ -970,32 +971,32 @@ function TaskSortMenu({
   if (!menu) return null;
   return createPortal(
     <OcMenuSurface
-      aria-label="Task sidebar options"
+      aria-label="タスクのサイドバー設定"
       data-settings-layer="true"
       className="task-actions-menu fixed z-[100] w-[236px]"
       role="menu"
       style={{ left: menu.left, top: menu.top } as CSSProperties}
       surfaceRef={menuRef}
     >
-      <div className="px-2 py-1 text-sm text-token-description-foreground">Sort by</div>
+      <div className="px-2 py-1 text-sm text-token-description-foreground">並べ替え</div>
       <OcMenuItem
         aria-checked={sortMode === "attention"}
-        description="Needs input and unread tasks first"
-        label="Priority"
+        description="入力待ち・未読のタスクを優先"
+        label="優先度"
         onClick={() => onSelect("attention")}
         role="menuitemradio"
         selected={sortMode === "attention"}
       />
       <OcMenuItem
         aria-checked={sortMode === "recent"}
-        label="Last updated"
+        label="更新日時"
         onClick={() => onSelect("recent")}
         role="menuitemradio"
         selected={sortMode === "recent"}
       />
       <OcMenuItem
         aria-checked={sortMode === "manual"}
-        label="Manual order"
+        label="手動"
         onClick={() => onSelect("manual")}
         role="menuitemradio"
         selected={sortMode === "manual"}
@@ -1033,16 +1034,16 @@ function ProjectDeleteDialog({
       panelClassName="p-5"
       size="compact"
     >
-        <OcDialogHeader className="p-0" title="Delete project?" titleId="octopus-project-delete-title" />
+        <OcDialogHeader className="p-0" title="プロジェクトを削除しますか？" titleId="octopus-project-delete-title" />
         <p className="mt-2 text-base text-token-description-foreground">
           {runtimeBacked
-            ? `“${project.name}” is a real execution environment. Deleting the project removes that EE record; its ledger history remains.`
-            : `“${project.name}” will be removed from this local workspace.`}
+            ? `“${project.name}」は実際の実行環境です。プロジェクトを削除すると実行環境のレコードを削除しますが、台帳の履歴は残ります。`
+            : `“${project.name}」をこのローカルワークスペースから削除します。`}
         </p>
         {blockedReason ? <p className="mt-2 text-sm text-token-error-foreground">{blockedReason}</p> : null}
         <OcDialogFooter className="mt-5 min-h-0 border-0 p-0">
-          <OcButton buttonRef={cancelRef} onClick={onCancel} variant="ghost">Cancel</OcButton>
-          <OcButton disabled={busy || Boolean(blockedReason)} onClick={onDelete} tone="danger" variant="primary">Delete</OcButton>
+          <OcButton buttonRef={cancelRef} onClick={onCancel} variant="ghost">キャンセル</OcButton>
+          <OcButton disabled={busy || Boolean(blockedReason)} onClick={onDelete} tone="danger" variant="primary">削除</OcButton>
         </OcDialogFooter>
     </OcDialog>
   );
@@ -1132,26 +1133,26 @@ function ProjectDialog({
             <OcDialogHeader className="p-0 pb-3" closeDisabled={busy} onClose={onCancel} title={title} titleId="octopus-project-name-title" />
             {runtimeBacked && creating ? (
               <div className="flex w-full flex-col gap-2 pt-3 first:pt-0">
-                <span className="text-base text-token-foreground">Parent project</span>
+                <span className="text-base text-token-foreground">親プロジェクト</span>
                 <div className="flex min-w-0 items-center gap-3 rounded-xl border border-token-border bg-token-main-surface-primary px-3 py-2.5">
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-token-foreground/5 text-token-icon-foreground">
                     <Glyph name="folder" size={16} />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-base text-token-foreground">{parent?.displayName || "Unavailable"}</span>
+                    <span className="truncate text-base text-token-foreground">{parent?.displayName || "利用できません"}</span>
                     <span className="truncate text-sm text-token-description-foreground">
-                      {parent ? "This project stays within its parent’s permissions" : "Choose a valid parent before creating this project"}
+                      {parent ? "このプロジェクトは親の権限の範囲内で動作します" : "プロジェクトを作成する前に、有効な親プロジェクトを選んでください"}
                     </span>
                   </span>
                 </div>
               </div>
             ) : null}
             <div className="flex w-full flex-col gap-2 pt-3 first:pt-0">
-              <label className="text-base text-token-foreground" htmlFor="octopus-project-name">Project name</label>
+              <label className="text-base text-token-foreground" htmlFor="octopus-project-name">プロジェクト名</label>
               <div className="flex items-center gap-2">
                 <ProjectAppearancePicker
                   disabled={busy}
-                  iconOptions={PROJECT_ICON_OPTIONS.map((option) => ({ id: option, label: `Use ${option}`, icon: <Glyph name={option} size={20} /> }))}
+                  iconOptions={PROJECT_ICON_OPTIONS.map((option) => ({ id: option, label: `使用 ${option}`, icon: <Glyph name={option} size={20} /> }))}
                   onColorChange={setColor}
                   onIconChange={setIcon}
                   projectName={name}
@@ -1163,9 +1164,9 @@ function ProjectDialog({
                   className="min-w-0 flex-1"
                   id="octopus-project-name"
                   inputRef={inputRef}
-                  label="Project name"
+                  label="プロジェクト名"
                   onChange={(event) => setName(event.currentTarget.value)}
-                  placeholder="Copenhagen Trip"
+                  placeholder="コペンハーゲン旅行"
                   value={name}
                 />
               </div>
@@ -1175,28 +1176,28 @@ function ProjectDialog({
               <div className="flex w-full flex-col gap-2 pt-3 first:pt-0">
                 <OcSelect
                   id="octopus-project-template"
-                  label="Project policy"
+                  label="プロジェクトのポリシー"
                   onChange={setTemplateName}
                   options={templateOptions.map((option) => ({
                     value: option.id,
                     label: option.label,
                     description: option.description || undefined,
                   }))}
-                  placeholder="Choose a policy"
+                  placeholder="ポリシーを選択"
                   showLabel
                   stretch
                   value={templateName}
                 />
                 {selectedPolicy ? (
                   <details className="text-sm leading-5 text-token-description-foreground">
-                    <summary className="cursor-pointer">Policy source and limits</summary>
-                    <p className="mt-2 break-words">Source: {selectedPolicy.source}</p>
+                    <summary className="cursor-pointer">ポリシーの継承元と制限</summary>
+                    <p className="mt-2 break-words">継承元： {selectedPolicy.source}</p>
                     <p>{selectedPolicy.inheritsParentPolicy
-                      ? "Access follows the parent’s policy through the existing Project template. Nested projects use that same template."
+                      ? "既存のプロジェクトテンプレートを通じて、親のポリシーを引き継ぎます。子プロジェクトも同じテンプレートを使います。"
                       : selectedPolicy.goal}</p>
-                    <p>All parent restrictions still apply. Creation is checked against the formed child policy.</p>
+                    <p>親の制限はすべて引き継がれます。作成時には子のポリシーに照らして確認します。</p>
                   </details>
-                ) : <p className="text-sm leading-5 text-token-description-foreground">Choose an installed policy allowed by the parent.</p>}
+                ) : <p className="text-sm leading-5 text-token-description-foreground">親で許可されているインストール済みのポリシーを選んでください。</p>}
               </div>
             ) : null}
             <div className="flex w-full flex-col pt-3 first:pt-0">
@@ -1204,8 +1205,8 @@ function ProjectDialog({
                 <Glyph className="icon-base mr-3 shrink-0 text-token-description-foreground" name="lightbulb" size={21} />
                 <p className="text-sm text-pretty text-token-description-foreground">
                   {runtimeBacked && creating
-                    ? `Tasks in this project stay within ${parent?.displayName || "the parent"}’s permissions. A preset can restrict them further; it never grants extra access.`
-                    : "Projects group tasks around one goal. Select a project to focus its tasks; select it again to see everything."}
+                    ? `このプロジェクトのタスクが使える権限は ${parent?.displayName || "the parent"}の範囲内です。プリセットでさらに制限できますが、権限を追加することはありません。`
+                    : "プロジェクトは一つの目標に関するタスクをまとめます。選択するとそのタスクだけを表示し、もう一度選ぶとすべて表示します。"}
                 </p>
               </aside>
             </div>
@@ -1216,7 +1217,7 @@ function ProjectDialog({
                   type="submit"
                   variant="primary"
                 >
-                  {busy ? creating ? "Creating…" : "Saving…" : submitLabel}
+                  {busy ? creating ? "作成しています…" : "保存しています…" : submitLabel}
                 </OcButton>
             </OcDialogFooter>
           </form>
@@ -1375,17 +1376,17 @@ function orderProjects(projects: ClientChatProject[], orderIds: string[]): Clien
 }
 
 function taskSubtitle(chat: ChatRun): string {
-  const messages = `${chat.messageCount} ${chat.messageCount === 1 ? "message" : "messages"}`;
-  const lineage = chat.writable ? chat.continuedFrom ? "continued run" : "run" : "read-only run";
+  const messages = `${chat.messageCount} 件のメッセージ`;
+  const lineage = chat.writable ? chat.continuedFrom ? "継続した実行" : "実行" : "読み取り専用の実行";
   return `${lineage}, ${messages}${chat.providerInterfaceId ? `, ${chat.providerInterfaceId}` : ""}`;
 }
 
 function scheduledLabelForChat(chat: ChatRun, now: number): string {
   if (chat.turnState !== "idle" || !chat.nextScheduledAtMs || chat.nextScheduledAtMs <= now) return "";
   const at = new Date(chat.nextScheduledAtMs);
-  const time = at.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const time = at.toLocaleTimeString(APP_LOCALE, { hour: "numeric", minute: "2-digit" });
   const sameDay = at.toDateString() === new Date(now).toDateString();
-  return `Scheduled · ${sameDay ? time : `${at.toLocaleDateString([], { day: "numeric", month: "short" })} ${time}`}`;
+  return `予定 · ${sameDay ? time : `${at.toLocaleDateString(APP_LOCALE, { day: "numeric", month: "short" })} ${time}`}`;
 }
 
 function useSidebarClock(): number {

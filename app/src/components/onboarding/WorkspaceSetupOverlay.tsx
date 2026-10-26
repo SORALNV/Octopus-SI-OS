@@ -62,10 +62,10 @@ type Props = {
 };
 
 const STEPS: Array<{ id: Exclude<WorkspaceSetupStep, "applying">; tag: string; title: string; body: string }> = [
-  { id: "space", tag: "Your space", title: "How will you use Octopus?", body: "This only prepares a starting structure. You can change every project later." },
-  { id: "projects", tag: "Projects", title: "Name the areas you care about", body: "Projects keep related tasks together. Nest one only when it really belongs inside another." },
-  { id: "capabilities", tag: "Capabilities", title: "Choose what Octopus can use", body: "Included components form the working experience. Recommended additions stay optional." },
-  { id: "review", tag: "Review", title: "Ready to set up", body: "Octopus installs the selected components, creates Home and these projects, then verifies the result." },
+  { id: "space", tag: "Your space", title: "Octopus をどのように使いますか？", body: "This only prepares a starting structure. You can change every project later." },
+  { id: "projects", tag: "Projects", title: "分野ごとに名前を付けましょう", body: "Projects keep related tasks together. Nest one only when it really belongs inside another." },
+  { id: "capabilities", tag: "Capabilities", title: "Octopus に使わせる機能を選びましょう", body: "Included components form the working experience. Recommended additions stay optional." },
+  { id: "review", tag: "Review", title: "セットアップの準備ができました", body: "Octopus installs the selected components, creates Home and these projects, then verifies the result." },
 ];
 
 const PRESETS: Array<{
@@ -74,10 +74,10 @@ const PRESETS: Array<{
   description: string;
   glyph: GlyphName;
 }> = [
-  { id: "life", label: "Life", description: "Personal plans, study and travel.", glyph: "globe" },
-  { id: "work", label: "Work", description: "A focused home for your active work.", glyph: "briefcase" },
-  { id: "founder", label: "Founder", description: "Life and work, with products nested under Work.", glyph: "rocket" },
-  { id: "custom", label: "Custom", description: "Start with a small tree and shape it yourself.", glyph: "folder" },
+  { id: "life", label: "暮らし", description: "個人の予定、学習、旅行など。", glyph: "globe" },
+  { id: "work", label: "仕事", description: "進行中の仕事をまとめる場所です。", glyph: "briefcase" },
+  { id: "founder", label: "事業運営", description: "暮らしと仕事を分け、仕事の下に製品ごとのプロジェクトを配置します。", glyph: "rocket" },
+  { id: "custom", label: "カスタム", description: "小さな構成から始めて、自分に合わせて育てられます。", glyph: "folder" },
 ];
 
 const KIND_LABELS: Record<WorkspaceSetupCapabilityKind, string> = {
@@ -190,7 +190,7 @@ export function WorkspaceSetupOverlay({
         <div className="welcome-footer-side welcome-footer-left">
           {backVisible ? (
             <button className="welcome-back" type="button" onClick={goBack}>
-              {applying ? "Review choices" : "Back"}
+              {applying ? "設定内容を確認" : "戻る"}
             </button>
           ) : null}
         </div>
@@ -206,14 +206,14 @@ export function WorkspaceSetupOverlay({
         <div className="welcome-footer-side welcome-footer-right">
           {!applying ? (
             <button className="welcome-next" type="button" disabled={!canContinue} onClick={continueForward}>
-              {activeStep === "review" ? "Set up Octopus" : "Continue"}
+              {activeStep === "review" ? "Octopus をセットアップ" : "続ける"}
             </button>
           ) : applyState.state === "awaiting_sign_in" ? (
-            <button className="welcome-next" type="button" onClick={() => void onSignIn()}>Sign in with ChatGPT</button>
+            <button className="welcome-next" type="button" onClick={() => void onSignIn()}>ChatGPT でログイン</button>
           ) : applyState.state === "failed" ? (
-            <button className="welcome-next" type="button" onClick={() => void onApply(draft)}>Try again</button>
+            <button className="welcome-next" type="button" onClick={() => void onApply(draft)}>再試行</button>
           ) : (
-            <button className="welcome-next" type="button" disabled>Working…</button>
+            <button className="welcome-next" type="button" disabled>処理しています…</button>
           )}
         </div>
       </footer>
@@ -242,13 +242,13 @@ function SpaceStep({ draft, onChange }: { draft: WorkspaceSetupDraft; onChange: 
       </div>
       <div className="setup-fields">
         <SetupField
-          label="Space name"
+          label="スペース名"
           maxLength={80}
           onCommit={(spaceName) => onChange({ ...draft, spaceName, updatedAt: new Date().toISOString() })}
           value={draft.spaceName}
         />
         <SetupField
-          label="What is it for?"
+          label="何のための場所ですか？"
           maxLength={240}
           onCommit={(spaceGoal) => onChange({ ...draft, spaceGoal, updatedAt: new Date().toISOString() })}
           value={draft.spaceGoal}
@@ -264,14 +264,14 @@ function ProjectsStep({ draft, onChange }: { draft: WorkspaceSetupDraft; onChang
       <div className="setup-row setup-row-static">
         <Glyph name="home" size={16} className="setup-row-glyph" />
         <span className="setup-row-name">{draft.spaceName}</span>
-        <span className="setup-row-note">Home lives here</span>
+        <span className="setup-row-note">ホームの保存先</span>
       </div>
       {orderedProjects(draft.projects).map(({ project, depth }) => (
         <ProjectRow depth={depth} draft={draft} key={project.key} onChange={onChange} project={project} />
       ))}
       <button className="welcome-pill setup-add" type="button" onClick={() => onChange(addProject(draft))}>
         <Glyph name="plus" size={14} />
-        Add project
+        プロジェクトを追加
       </button>
     </div>
   );
@@ -294,21 +294,21 @@ function ProjectRow({
     <div className="setup-row" style={{ marginLeft: 22 * (depth + 1) }}>
       <Glyph name={project.icon as GlyphName} size={16} className="setup-row-glyph" />
       <SetupInlineInput
-        label="Project name"
+        label="プロジェクト名"
         maxLength={80}
         onCommit={(name) => onChange(updateProject(draft, project.key, { name, goal: name }))}
         value={project.name}
       />
       <select
-        aria-label={`Parent for ${project.name}`}
+        aria-label={`親プロジェクト： ${project.name}`}
         className="setup-select"
         onChange={(event) => onChange(updateProject(draft, project.key, { parentKey: event.target.value === "root" ? null : event.target.value }))}
         value={project.parentKey ?? "root"}
       >
-        <option value="root">In {draft.spaceName}</option>
-        {parents.map((candidate) => <option key={candidate.key} value={candidate.key}>In {candidate.name}</option>)}
+        <option value="root">保存先 {draft.spaceName}</option>
+        {parents.map((candidate) => <option key={candidate.key} value={candidate.key}>保存先 {candidate.name}</option>)}
       </select>
-      <button aria-label={`Remove ${project.name}`} className="setup-remove" onClick={() => onChange(removeProject(draft, project.key))} type="button">
+      <button aria-label={`削除 ${project.name}`} className="setup-remove" onClick={() => onChange(removeProject(draft, project.key))} type="button">
         <Glyph name="trash" size={14} />
       </button>
     </div>
@@ -332,12 +332,12 @@ function CapabilitiesStep({
   onRetry: () => void;
   provider: OctopusProviderInterface | null;
 }) {
-  if (loading) return <p className="setup-note">Loading available capabilities…</p>;
+  if (loading) return <p className="setup-note">利用できる機能を読み込んでいます…</p>;
   if (!catalog.length) {
     return (
       <div className="setup-list">
-        <InlineError detail={error || "The local package library contains no setup recommendations."} title="Capabilities could not be loaded" />
-        <button className="welcome-pill setup-add" type="button" onClick={onRetry}>Try again</button>
+        <InlineError detail={error || "ローカルのパッケージ一覧に、セットアップのおすすめはありません。"} title="機能を読み込めませんでした" />
+        <button className="welcome-pill setup-add" type="button" onClick={onRetry}>再試行</button>
       </div>
     );
   }
@@ -347,19 +347,19 @@ function CapabilitiesStep({
   return (
     <div className="setup-list">
       <div className="setup-row setup-row-static">
-        <span className="setup-row-name">Model for Home</span>
+        <span className="setup-row-name">ホームのモデル</span>
         <select
-          aria-label="Model for Home"
+          aria-label="ホームのモデル"
           className="setup-select"
           onChange={(event) => onChange({ ...draft, providerModel: event.target.value, reasoningEffort: models.find((entry) => entry.model === event.target.value)?.defaultReasoningEffort ?? "" })}
           value={draft.providerModel ?? ""}
         >
-          {draft.providerModel ? null : <option value="">Choose a model</option>}
+          {draft.providerModel ? null : <option value="">モデルを選択</option>}
           {models.map((entry) => <option key={entry.model} value={entry.model}>{entry.displayName}</option>)}
         </select>
         {model?.supportedReasoningEfforts.length ? (
           <select
-            aria-label="Reasoning"
+            aria-label="推論"
             className="setup-select"
             onChange={(event) => onChange({ ...draft, reasoningEffort: event.target.value })}
             value={draft.reasoningEffort ?? ""}
@@ -367,13 +367,13 @@ function CapabilitiesStep({
             {model.supportedReasoningEfforts.map((effort) => <option key={effort} value={effort}>{effort}</option>)}
           </select>
         ) : null}
-        {provider && model ? <select aria-label="Speed for Home" className="setup-select"
+        {provider && model ? <select aria-label="ホームの応答速度" className="setup-select"
           value={draft.serviceTier || "default"} onChange={(event) => onChange({ ...draft, serviceTier: event.target.value })}>
-          {providerServiceTierAvailable(provider, model.model, draft.serviceTier ?? "default") ? null : <option value={draft.serviceTier} disabled>{draft.serviceTier} · unavailable</option>}
+          {providerServiceTierAvailable(provider, model.model, draft.serviceTier ?? "default") ? null : <option value={draft.serviceTier} disabled>{draft.serviceTier} · 利用できません</option>}
           {providerServiceTiers(provider, model.model).map((tier) => <option key={tier.id} value={tier.id}>{tier.name}</option>)}
         </select> : null}
       </div>
-      {error ? <InlineError detail={error} title="Some local packages could not be read" /> : null}
+      {error ? <InlineError detail={error} title="一部のローカルパッケージを読み込めませんでした" /> : null}
       {catalog.map((capability) => {
         const selection = selections.get(`${capability.kind}:${capability.id}`);
         return (
@@ -414,13 +414,13 @@ function CapabilityRow({
           <span className="setup-row-note">{capability.description}</span>
         </button>
         {capability.included ? (
-          <span className="setup-badge">Included</span>
+          <span className="setup-badge">含まれています</span>
         ) : (
           <span className="setup-check">
-            {capability.recommended ? "Recommended" : "Add"}
+            {capability.recommended ? "おすすめ" : "追加"}
             <OcCheckbox
               checked={checked}
-              label={`${checked ? "Remove" : "Add"} ${capability.name}`}
+              label={`${checked ? "削除" : "追加"} ${capability.name}`}
               onCheckedChange={(selected) => onChange(updateCapability(draft, capability, selected === true))}
             />
           </span>
@@ -436,12 +436,12 @@ function CapabilityRow({
           ))}
           {!capability.components.length ? (
             <p className="setup-detail-copy">
-              {capability.setupDetail || (capability.installed ? (capability.configured ? "Already installed and configured." : "Installed; setup is still required.") : "Available on this device.")}
+              {capability.setupDetail || (capability.installed ? (capability.configured ? "インストールと設定が完了しています。" : "インストール済みですが、設定が必要です。") : "このデバイスで利用できます。")}
             </p>
           ) : capability.setupDetail ? <p className="setup-detail-copy">{capability.setupDetail}</p> : null}
           {projectChoice ? (
             <div className="setup-detail-projects">
-              <span className="setup-detail-name">Available in projects</span>
+              <span className="setup-detail-name">使用できるプロジェクト</span>
               {draft.projects.map((project) => (
                 <OcCheckbox
                   checked={selection?.projectKeys.includes(project.key) === true}
@@ -468,7 +468,7 @@ function ReviewStep({ catalog, draft, agentPresets }: { catalog: WorkspaceSetupC
         <span className="welcome-card-title">{intent.root.name}</span>
         <div className="setup-review-line">
           <Glyph name="home" size={14} className="setup-row-glyph" />
-          Home · {draft.providerModel}
+          ホーム · {draft.providerModel}
         </div>
         {orderedProjects(draft.projects).map(({ project, depth }) => (
           <div className="setup-review-line" key={project.key} style={{ paddingLeft: 18 * (depth + 1) }}>
@@ -478,7 +478,7 @@ function ReviewStep({ catalog, draft, agentPresets }: { catalog: WorkspaceSetupC
         ))}
       </section>
       <section className="welcome-card setup-review-card" style={{ "--i": 1 } as React.CSSProperties}>
-        <span className="welcome-card-title">Capabilities</span>
+        <span className="welcome-card-title">機能</span>
         {intent.capabilities.map((selection) => (
           <div className="setup-review-line" key={`${selection.kind}:${selection.id}`}>
             <span className="setup-review-name">{names.get(`${selection.kind}:${selection.id}`) ?? selection.id}</span>
@@ -492,7 +492,7 @@ function ReviewStep({ catalog, draft, agentPresets }: { catalog: WorkspaceSetupC
           const projects = draft.projects.filter((project) => selected?.projectKeys.includes(project.key)).map((project) => project.name);
           return projects.length ? (
             <div className="setup-review-line" key={preset.id}>
-              <span className="setup-review-name">{preset.name} Agent</span>
+              <span className="setup-review-name">{preset.name} エージェント</span>
               <span className="setup-row-note">{projects.join(", ")}</span>
             </div>
           ) : null;
@@ -511,16 +511,16 @@ function ApplyingStep({ applyState, draft }: { applyState: WorkspaceSetupApplySt
       {running ? (
         <span className="setup-loading-logo"><OctopusLoadingLogo /></span>
       ) : (
-        <span className="welcome-tag">{failed ? "Needs attention" : "Account"}</span>
+        <span className="welcome-tag">{failed ? "確認が必要" : "アカウント"}</span>
       )}
       <h1 id="welcome-title" className="welcome-title">
-        {failed ? "Setup needs attention" : applyState.label || `Creating ${draft.spaceName}`}
+        {failed ? "セットアップの確認が必要" : applyState.label || `作成中 ${draft.spaceName}`}
       </h1>
       <p className="welcome-body" data-tone={failed ? "danger" : undefined}>
-        {failed ? applyState.error : applyState.detail || "Your choices are being verified and applied. You can safely reopen Octopus if this window closes."}
+        {failed ? applyState.error : applyState.detail || "設定を確認して適用しています。ウィンドウが閉じても、Octopus を開き直せます。"}
       </p>
       {running ? (
-        <div aria-label={applyState.label || "Applying setup"} className="setup-progress" role="status">
+        <div aria-label={applyState.label || "設定を適用しています"} className="setup-progress" role="status">
           <span className="setup-progress-track"><span className="setup-progress-fill" style={{ width: `${shown}%` }} /></span>
           <span className="setup-progress-value">{Math.round(shown)}%</span>
         </div>
@@ -627,8 +627,8 @@ function addProject(draft: WorkspaceSetupDraft): WorkspaceSetupDraft {
     projects: [...draft.projects, {
       key,
       parentKey: null,
-      name: `Project ${number}`,
-      goal: `Project ${number}`,
+      name: `プロジェクト ${number}`,
+      goal: `プロジェクト ${number}`,
       icon: "folder",
       color: "violet",
     }],

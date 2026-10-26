@@ -97,98 +97,98 @@ export function AboutSection() {
   return (
     <section className="settings-section">
       <SettingsHeading
-        description="Application facts, diagnostics, and local client state."
-        title="About & Diagnostics"
+        description="アプリの情報、診断結果、ローカルの状態を確認できます。"
+        title="アプリ情報と診断"
       />
 
-      <OcGroup title="Application" description="Read-only facts reported by the current desktop process.">
+      <OcGroup title="アプリケーション" description="現在のデスクトッププロセスが報告する、読み取り専用の情報です。">
         <OcCard>
-          <FactRow label="Application" value={info?.name ?? "Not reported in this environment"} />
-          <FactRow label="Version" value={info ? `${info.version}${info.isPackaged ? "" : " · development"}` : "Not reported"} />
-          <FactRow label="Platform" value={info?.platform ?? "Not reported"} />
+          <FactRow label="アプリケーション" value={info?.name ?? "Not reported in this environment"} />
+          <FactRow label="バージョン" value={info ? `${info.version}${info.isPackaged ? "" : " · development"}` : "Not reported"} />
+          <FactRow label="プラットフォーム" value={info?.platform ?? "Not reported"} />
           <OcSettingsRow {...settingsTargetProps("about.update-channel")}
-            control={<OcStatus label={info?.isPackaged ? "Packaged build" : "Development build"} tone="neutral" />}
-            description="No updater or release-channel contract is installed, so the client reports its build mode instead of exposing a false selector."
-            label="Update channel"
+            control={<OcStatus label={info?.isPackaged ? "パッケージ版" : "開発版"} tone="neutral" />}
+            description="更新機能やリリースチャンネルが未設定のため、現在のビルドモードを表示します。"
+            label="更新チャンネル"
           />
           <OcSettingsRow {...settingsTargetProps("about.licenses")}
-            control={<OcButton onClick={() => setLicensesOpen(true)} size="sm" variant="secondary">View</OcButton>}
-            description="Production dependency licenses and notices generated from the packaged renderer graph."
-            label="Open-source licenses"
+            control={<OcButton onClick={() => setLicensesOpen(true)} size="sm" variant="secondary">表示</OcButton>}
+            description="アプリに同梱される表示処理の依存パッケージについて、ライセンスと告知を表示します。"
+            label="オープンソースライセンス"
           />
         </OcCard>
       </OcGroup>
 
-      <OcGroup title="Diagnostics" description="Snapshot facts for support and debugging.">
+      <OcGroup title="診断" description="サポートやデバッグに使う現在の情報です。">
         <OcCard>
           <OcSettingsRow {...settingsTargetProps("about.diagnostics")}
             control={(
               <div className="settings-inline-actions">
-                {copied ? <OcStatus label="Copied" tone="success" /> : null}
-                <OcButton onClick={() => void copyDiagnostics()}>Copy diagnostics</OcButton>
+                {copied ? <OcStatus label="コピーしました" tone="success" /> : null}
+                <OcButton onClick={() => void copyDiagnostics()}>診断情報をコピー</OcButton>
               </div>
             )}
-            description="Copies application facts and projection state as JSON."
-            label="Diagnostics report"
+            description="アプリの情報と表示用データの状態を JSON でコピーします。"
+            label="診断レポート"
           />
           <OcSettingsRow
             control={(
               <div className="settings-inline-actions">
-                {doctorState === "complete" ? <OcStatus label={doctorReport?.findings.length ? `${doctorReport.findings.length} finding${doctorReport.findings.length === 1 ? "" : "s"}` : "Passed"} tone={doctorReport?.findings.length ? "warning" : "success"} /> : null}
+                {doctorState === "complete" ? <OcStatus label={doctorReport?.findings.length ? `${doctorReport.findings.length} finding${doctorReport.findings.length === 1 ? "" : "s"}` : "合格"} tone={doctorReport?.findings.length ? "warning" : "success"} /> : null}
                 <OcButton disabled={doctorState === "running"} onClick={() => void runDoctor()}>
-                  {doctorState === "running" ? "Inspecting…" : "Run doctor"}
+                  {doctorState === "running" ? "確認しています…" : "診断を実行"}
                 </OcButton>
               </div>
             )}
-            description="Reads run, ledger, package ownership, receipts, and bound context digests without changing Octopus Home."
-            label="Doctor"
+            description="Octopus のホームを変更せず、実行、台帳、パッケージの所有情報、記録、紐付けられたコンテキストのダイジェストを確認します。"
+            label="診断ツール"
           />
           {doctorReport?.findings.map((finding) => (
             <div className="mx-4 my-2 rounded-xl border border-token-border-default bg-token-main-surface-secondary px-4 py-3 text-sm" key={`${finding.code}:${finding.subject}`}>
               <div className="font-medium text-token-foreground">{finding.code} · {finding.subject}</div>
               <div className="mt-1 text-token-text-secondary">{finding.reason}</div>
-              <div className="mt-2 text-token-text-secondary"><span className="font-medium text-token-foreground">Next manual step:</span> {finding.next_step}</div>
+              <div className="mt-2 text-token-text-secondary"><span className="font-medium text-token-foreground">次に手動で行うこと：</span> {finding.next_step}</div>
             </div>
           ))}
           <OcSettingsRow {...settingsTargetProps("about.logs")}
             control={(
               <div className="settings-inline-actions">
-                {logsState === "opened" ? <OcStatus label="Opened" tone="success" /> : null}
+                {logsState === "opened" ? <OcStatus label="開きました" tone="success" /> : null}
                 <OcButton disabled={logsState === "opening"} onClick={() => void openLogs()}>
-                  {logsState === "opening" ? "Opening…" : "Open logs"}
+                  {logsState === "opening" ? "開いています…" : "ログを開く"}
                 </OcButton>
               </div>
             )}
-            description="Opens the local rotating JSONL log written by the desktop client."
-            label="Logs"
+            description="デスクトップアプリがローカルに記録する、ローテーション式の JSONL ログを開きます。"
+            label="ログ"
           />
-          <FactRow label="Projection generation" value={String(generation)} />
+          <FactRow label="表示用データの世代" value={String(generation)} />
         </OcCard>
       </OcGroup>
 
-      <OcGroup title="Runtime facts" description="Read-only facts projected from the desktop and registry.">
+      <OcGroup title="実行基盤の情報" description="デスクトップとレジストリから取得した読み取り専用の情報です。">
         <OcCard>
-          <FactRow label="Octopus home" mono value={defaults?.octopusHome || "Not resolved"} />
-          <FactRow label="Active registry" mono value={defaults?.registryRoot || providerState.registryRoot || "Not resolved"} />
-          <FactRow label="Runtime state" mono value={defaults?.stateRoot || "Not resolved"} />
-          <FactRow label="Movement ledger" mono value={defaults?.ledgerPath || "Not resolved"} />
-          <FactRow label="Source checkout" mono value={defaults?.repoRoot || providerState.repoRoot || "Not resolved"} />
-          <FactRow label="Desktop default endpoint" mono value={defaults?.endpoint || "Not reported"} />
+          <FactRow label="Octopus のホーム" mono value={defaults?.octopusHome || "Not resolved"} />
+          <FactRow label="有効なレジストリ" mono value={defaults?.registryRoot || providerState.registryRoot || "Not resolved"} />
+          <FactRow label="実行基盤の状態" mono value={defaults?.stateRoot || "Not resolved"} />
+          <FactRow label="移動台帳" mono value={defaults?.ledgerPath || "Not resolved"} />
+          <FactRow label="ソースのチェックアウト先" mono value={defaults?.repoRoot || providerState.repoRoot || "Not resolved"} />
+          <FactRow label="デスクトップの既定の接続先" mono value={defaults?.endpoint || "Not reported"} />
         </OcCard>
       </OcGroup>
 
-      <OcGroup title="Welcome" description="The welcome flow is client state, not runtime state.">
+      <OcGroup title="ようこそ" description="初回案内の進行状況は、アプリ側で管理します。">
         <OcCard>
           <OcSettingsRow {...settingsTargetProps("about.welcome")}
             control={(
               <div className="settings-inline-actions">
-                {welcomeState === "ready" ? <OcStatus label="Ready for next launch" tone="success" /> : null}
-                {welcomeState === "error" ? <OcStatus label="Could not reset" tone="danger" /> : null}
-                <OcButton onClick={resetWelcome} variant="secondary">Show on next launch</OcButton>
+                {welcomeState === "ready" ? <OcStatus label="次回の起動に設定済み" tone="success" /> : null}
+                {welcomeState === "error" ? <OcStatus label="リセットできませんでした" tone="danger" /> : null}
+                <OcButton onClick={resetWelcome} variant="secondary">次回起動時に表示</OcButton>
               </div>
             )}
-            description="Clears the local completion marker. The welcome window will appear the next time the app launches."
-            label="Welcome window"
+            description="ローカルの完了記録を消去し、次回起動時に初回案内を表示します。"
+            label="初回案内"
           />
         </OcCard>
       </OcGroup>

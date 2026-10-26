@@ -41,7 +41,7 @@ function RetainedTerminalTab({ accessProfile, active, cwd, onNewTerminalTab, onT
       style={{ display: active ? "flex" : "none" }}
     >
       <SurfaceRenderBoundary resetKey={terminalId}>
-        <Suspense fallback={<SurfaceLoadingState label="Loading terminal…" />}>
+        <Suspense fallback={<SurfaceLoadingState label="ターミナルを読み込んでいます…" />}>
           <TerminalTab
             accessProfile={accessProfile}
             active={active}

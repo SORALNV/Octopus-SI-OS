@@ -90,12 +90,12 @@ export function decodeOperatorActivity(value: unknown, marks: readonly MarkActiv
   const attention = result.activity.map((row: unknown): MarkActivityItem => {
     if (!row || typeof row !== "object" || Array.isArray(row)) throw new Error("Activity row is invalid");
     const item = row as Record<string, unknown>;
-    for (const field of ["id", "kind", "title", "name", "run_id", "artifact_id"]) if (typeof item[field] !== "string" || !item[field]) throw new Error(`Activity ${field} is invalid`);
+    for (const field of ["id", "kind", "title", "name", "run_id", "artifact_id"]) if (typeof item[field] !== "string" || !item[field]) throw new Error(`アクティビティ ${field} is invalid`);
     if (!["message", "approval", "user_input", "elicitation"].includes(item.kind as string) || !chats.has(item.run_id as string)) throw new Error("Activity row has no exact chat/kind");
     if (item.client_surface_role !== "home" && item.client_surface_role !== "task") throw new Error("Activity chat role is invalid");
     if (typeof item.worker !== "string" || !Number.isSafeInteger(item.seq) || (item.seq as number) < 0) throw new Error("Activity movement is invalid");
     if (item.created_at_ms !== null && (typeof item.created_at_ms !== "number" || !Number.isFinite(item.created_at_ms) || item.created_at_ms <= 0)) throw new Error("Activity timestamp is invalid");
-    for (const key of ["movement_id", "request_id", "excerpt"]) if (item[key] !== null && (typeof item[key] !== "string" || !item[key])) throw new Error(`Activity ${key} is invalid`);
+    for (const key of ["movement_id", "request_id", "excerpt"]) if (item[key] !== null && (typeof item[key] !== "string" || !item[key])) throw new Error(`アクティビティ ${key} is invalid`);
     if (item.kind === "message" ? !item.movement_id || item.request_id !== null : !item.request_id) throw new Error("Activity receipt identity is missing");
     if (identities.has(item.id as string)) throw new Error("Activity identity is duplicated");
     identities.add(item.id as string);

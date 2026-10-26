@@ -12,7 +12,7 @@ function createLabFileStore(options) {
   if (typeof options?.registryRoot !== "function") throw new Error("Test files require the bundled registry root");
   if (typeof options?.workspaceFiles !== "function") throw new Error("Test files require the lab workspace");
   const registry = createOsFileStore({
-    resolveRoots: () => [{ id: "registry", label: "Registry", root: options.registryRoot() }],
+    resolveRoots: () => [{ id: "registry", label: "レジストリ", root: options.registryRoot() }],
   });
   const openedAt = new Date().toISOString();
   const workspace = new Map(Object.entries(options.workspaceFiles()).map(([path, text]) => [path, { text, modifiedAt: openedAt }]));

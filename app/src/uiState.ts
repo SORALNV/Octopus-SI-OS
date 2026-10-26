@@ -9,15 +9,15 @@ export type DashboardFilters = {
 };
 
 export const statusLabels: Record<FilterStatus, string> = {
-  projected: "Projected",
-  active: "Active",
-  idle: "Idle",
-  settled: "Settled",
-  done: "Completed",
-  blocked: "Blocked",
-  stale: "Stale",
-  offline: "Offline",
-  unknown: "Unknown",
+  projected: "表示中",
+  active: "実行中",
+  idle: "待機中",
+  settled: "処理済み",
+  done: "完了",
+  blocked: "ブロック中",
+  stale: "更新停止",
+  offline: "オフライン",
+  unknown: "不明",
 };
 
 export const defaultDashboardFilters: DashboardFilters = {

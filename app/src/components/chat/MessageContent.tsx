@@ -326,13 +326,13 @@ function SafeMarkdownLink({ children, href = "", onOpenFile }: { children: React
       >
         <OcDialogHeader
           className="p-0"
-          description={`This link opens ${host} in your default browser.`}
-          title="Open external link?"
+          description={`次のリンクを ${host} 既定のブラウザーで開きます。`}
+          title="外部リンクを開きますか？"
           titleId="external-link-dialog-title"
         />
         <div className="mt-3 max-h-28 overflow-auto rounded-lg bg-token-foreground/[0.04] px-3 py-2 font-mono text-xs break-all text-token-text-secondary">{href}</div>
         <OcDialogFooter className="mt-5 min-h-0 border-0 p-0">
-          <OcButton buttonRef={cancelRef} onClick={() => setConfirming(false)} variant="ghost">Cancel</OcButton>
+          <OcButton buttonRef={cancelRef} onClick={() => setConfirming(false)} variant="ghost">キャンセル</OcButton>
           <OcButton
             onClick={() => {
               setConfirming(false);
@@ -340,7 +340,7 @@ function SafeMarkdownLink({ children, href = "", onOpenFile }: { children: React
             }}
             variant="primary"
           >
-            Open link
+            リンクを開く
           </OcButton>
         </OcDialogFooter>
       </OcDialog>
@@ -371,7 +371,7 @@ function SafeMarkdownImage({ alt, revealKey, src }: { alt: string; revealKey?: s
     return (
       <span className={joinClassNames("my-2 flex min-h-16 w-full items-center gap-3 rounded-xl border border-token-border bg-token-foreground/[0.025] px-3 py-2 text-sm text-token-description-foreground", reveal.className)} ref={reveal.ref}>
         <Glyph className="shrink-0" name="image" size={18} />
-        <span className="min-w-0"><strong className="block font-medium text-token-text-secondary">Image preview unavailable</strong><span className="block truncate">{alt || "The message does not provide an admitted media URL."}</span></span>
+        <span className="min-w-0"><strong className="block font-medium text-token-text-secondary">画像をプレビューできません</strong><span className="block truncate">{alt || "メッセージに許可されたメディア URL がありません。"}</span></span>
       </span>
     );
   }
@@ -379,7 +379,7 @@ function SafeMarkdownImage({ alt, revealKey, src }: { alt: string; revealKey?: s
     return (
       <span className={joinClassNames("my-2 flex min-h-20 w-full items-center gap-3 rounded-xl border border-token-border bg-token-foreground/[0.025] px-3 py-2", reveal.className)} ref={reveal.ref}>
         <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-token-list-hover-background text-token-description-foreground"><Glyph name="image" size={18} /></span>
-        <span className="min-w-0 flex-1 text-sm"><strong className="block font-medium">{failed ? "Image could not be loaded" : "External image blocked"}</strong><span className="block truncate text-token-description-foreground">{alt || host}</span></span>
+        <span className="min-w-0 flex-1 text-sm"><strong className="block font-medium">{failed ? "画像を読み込めませんでした" : "外部画像をブロックしました"}</strong><span className="block truncate text-token-description-foreground">{alt || host}</span></span>
         <button
           className="no-drag shrink-0 cursor-interaction rounded-lg bg-token-foreground px-2.5 py-1.5 text-sm text-token-main-surface-primary hover:opacity-90 focus:outline-none focus-visible:ring-1 focus-visible:ring-token-focus-border"
           onClick={() => {
@@ -388,7 +388,7 @@ function SafeMarkdownImage({ alt, revealKey, src }: { alt: string; revealKey?: s
           }}
           type="button"
         >
-          {failed ? "Retry" : "Load image"}
+          {failed ? "再試行" : "画像を読み込む"}
         </button>
       </span>
     );
@@ -712,9 +712,9 @@ function TableBlock({ children, lead, markdownSource }: { children: ReactNode; l
       <div className="octopus-markdown-table-wrapper group relative" data-markdown-table tabIndex={-1}>
         <table className="octopus-markdown-text octopus-markdown-table">{children}</table>
         <div className="absolute end-0 top-0 select-none" data-markdown-copy="exclude">
-          <ShellTooltip label={copied ? "Copied" : "Copy table"}>
+          <ShellTooltip label={copied ? "コピーしました" : "表をコピー"}>
             <button
-              aria-label={copied ? "Copied" : "Copy table"}
+              aria-label={copied ? "コピーしました" : "表をコピー"}
               className="border-token-border no-drag cursor-interaction m-1 flex items-center gap-1 border whitespace-nowrap select-none focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 rounded-full electron:rounded-md text-token-text-tertiary enabled:hover:bg-token-list-hover-background data-[state=open]:bg-token-list-hover-background border-transparent electron:p-1 electron:[&>svg]:icon-sm justify-center p-0.5 group-[:not(:hover):not(:focus-within)]:pointer-events-none group-[:not(:hover):not(:focus-within)]:opacity-0"
               onClick={copyTable}
               type="button"
@@ -788,18 +788,18 @@ function MermaidBlock({ reveal = NO_STREAMING_REVEAL, value }: { reveal?: Stream
   return (
     <div className={joinClassNames("group/diagram relative my-2 w-full min-w-0 overflow-hidden rounded-xl border border-token-border bg-token-text-code-block-background text-token-foreground", reveal.className)} data-mermaid-diagram ref={reveal.ref}>
       <div className="flex min-h-8 items-center gap-2 px-2 text-sm text-token-description-foreground select-none">
-        <span className="min-w-0 flex-1 truncate">Mermaid diagram</span>
+        <span className="min-w-0 flex-1 truncate">Mermaid の図</span>
         <button
           aria-expanded={sourceOpen}
           className="no-drag cursor-interaction rounded-md px-1.5 py-0.5 hover:bg-token-list-hover-background focus:outline-none focus-visible:ring-1 focus-visible:ring-token-focus-border"
           onClick={() => setSourceOpen((open) => !open)}
           type="button"
         >
-          Source
+          ソース
         </button>
-        <ShellTooltip label={copied ? "Copied" : "Copy diagram source"}>
+        <ShellTooltip label={copied ? "コピーしました" : "図のソースをコピー"}>
           <button
-            aria-label={copied ? "Copied" : "Copy diagram source"}
+            aria-label={copied ? "コピーしました" : "図のソースをコピー"}
             className="no-drag cursor-interaction rounded-md p-1 hover:bg-token-list-hover-background focus:outline-none focus-visible:ring-1 focus-visible:ring-token-focus-border"
             onClick={() => void copyText(value).then((didCopy) => setCopied(didCopy))}
             type="button"
@@ -813,19 +813,19 @@ function MermaidBlock({ reveal = NO_STREAMING_REVEAL, value }: { reveal?: Stream
         <div className="min-h-20 overflow-auto p-3">
           {svg ? (
             <div
-              aria-label="Mermaid diagram generated from the message"
+              aria-label="メッセージから生成した Mermaid の図"
               className="mx-auto min-w-fit [&_svg]:mx-auto [&_svg]:max-w-none"
               dangerouslySetInnerHTML={{ __html: svg }}
               role="img"
             />
           ) : error ? (
             <div className="flex min-h-20 flex-col items-center justify-center gap-1 px-4 py-3 text-center">
-              <strong className="text-sm font-medium">Diagram could not be rendered</strong>
+              <strong className="text-sm font-medium">図を表示できませんでした</strong>
               <span className="max-w-xl text-xs text-token-description-foreground">{error}</span>
             </div>
           ) : (
             <div aria-live="polite" className="flex min-h-20 items-center justify-center text-sm text-token-description-foreground">
-              Rendering diagram…
+              図を描画しています…
             </div>
           )}
         </div>
@@ -869,9 +869,9 @@ function CodeBlock({ language, reveal = NO_STREAMING_REVEAL, value }: { language
         <div className="ml-auto flex shrink-0 items-center">
           <div className="flex items-center gap-px">
             {userControlledWrap ? (
-              <ShellTooltip label={shouldWrap ? "Disable word wrap" : "Enable word wrap"}>
+              <ShellTooltip label={shouldWrap ? "折り返しを無効にする" : "折り返しを有効にする"}>
                 <button
-                  aria-label={shouldWrap ? "Disable word wrap" : "Enable word wrap"}
+                  aria-label={shouldWrap ? "折り返しを無効にする" : "折り返しを有効にする"}
                   aria-pressed={shouldWrap}
                   className={`border-token-border no-drag cursor-interaction flex items-center gap-1 border whitespace-nowrap select-none focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 rounded-full electron:rounded-md text-token-text-tertiary enabled:hover:bg-token-list-hover-background data-[state=open]:bg-token-list-hover-background border-transparent electron:p-1 electron:[&>svg]:icon-sm items-center justify-center p-0.5${shouldWrap ? " hover:text-token-foreground" : ""}`}
                   onClick={() => setCodeBlockWordWrap(!shouldWrap)}
@@ -883,9 +883,9 @@ function CodeBlock({ language, reveal = NO_STREAMING_REVEAL, value }: { language
                 </button>
               </ShellTooltip>
             ) : null}
-          <ShellTooltip label={copied ? "Copied" : "Copy code"}>
+          <ShellTooltip label={copied ? "コピーしました" : "コードをコピー"}>
             <button
-              aria-label={copied ? "Copied" : "Copy code"}
+              aria-label={copied ? "コピーしました" : "コードをコピー"}
               className={`border-token-border no-drag cursor-interaction flex items-center gap-1 border whitespace-nowrap select-none focus:outline-none disabled:cursor-not-allowed disabled:opacity-40 rounded-full electron:rounded-md text-token-text-tertiary enabled:hover:bg-token-list-hover-background data-[state=open]:bg-token-list-hover-background border-transparent electron:p-1 electron:[&>svg]:icon-sm items-center justify-center p-0.5${copied ? " text-token-foreground" : ""}`}
               onClick={() => {
                 copyText(value);

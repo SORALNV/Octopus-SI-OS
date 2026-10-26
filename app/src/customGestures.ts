@@ -101,7 +101,7 @@ export function curlDistance(left: FingerCurls, right: FingerCurls): number {
 }
 
 export function customGestureCommandLabel(command: ClientCommandId | "none"): string {
-  if (command === "none") return "No action";
+  if (command === "none") return "操作なし";
   return clientCommands.find((candidate) => candidate.id === command)?.label ?? command;
 }
 

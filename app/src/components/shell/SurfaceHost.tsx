@@ -107,11 +107,11 @@ function SurfaceContent({
   onOpenRun,
 }: SurfaceHostProps) {
   if (surface.rendererKind === "builtin.inbox") {
-    return inbox ? <Suspense fallback={<SurfaceLoadingState label="Loading Inbox…" />}><InboxSurface {...inbox} /></Suspense>
-      : <div className="inbox-summary" role="alert">Inbox activity is unavailable.</div>;
+    return inbox ? <Suspense fallback={<SurfaceLoadingState label="受信トレイを読み込んでいます…" />}><InboxSurface {...inbox} /></Suspense>
+      : <div className="inbox-summary" role="alert">受信トレイのアクティビティを利用できません。</div>;
   }
   const surfaceFallback = surface.rendererKind === "builtin.chat" || surface.rendererKind === "builtin.voice"
-    ? <OctopusLoadingState className="surface-content-loading-state" label={surface.rendererKind === "builtin.chat" ? "Loading task" : "Opening Home"} />
+    ? <OctopusLoadingState className="surface-content-loading-state" label={surface.rendererKind === "builtin.chat" ? "タスクを読み込んでいます" : "ホームを開いています"} />
     : <SurfaceLoadingState label={surfaceLoadingLabel(surface)} />;
   if (surface.rendererKind === "builtin.dashboard") {
     return (
@@ -121,7 +121,7 @@ function SurfaceContent({
         mainLabel="Topology"
         asideLabel="Inspector"
         main={(
-          <Suspense fallback={<SurfaceLoadingState label="Loading topology…" />}>
+          <Suspense fallback={<SurfaceLoadingState label="構成図を読み込んでいます…" />}>
             <TopologyStage
               snapshot={topology}
               query={query}
@@ -133,13 +133,13 @@ function SurfaceContent({
             />
           </Suspense>
         )}
-        aside={<Suspense fallback={<SurfaceLoadingState label="Loading inspector…" />}><Inspector snapshot={topology} selection={selected} onSelect={onSelect} onClose={onCloseInspector} surfaces={workerEnvironmentSurfaces} /></Suspense>}
+        aside={<Suspense fallback={<SurfaceLoadingState label="インスペクターを読み込んでいます…" />}><Inspector snapshot={topology} selection={selected} onSelect={onSelect} onClose={onCloseInspector} surfaces={workerEnvironmentSurfaces} /></Suspense>}
       />
     );
   }
   if (surface.rendererKind === "builtin.event_log") {
     return (
-      <Suspense fallback={<SurfaceLoadingState label="Loading movements…" />}>
+      <Suspense fallback={<SurfaceLoadingState label="移動を読み込んでいます…" />}>
         <EventLogView
           accessProfile={accessProfile}
           focusedMovement={focusedMovement}
@@ -193,7 +193,7 @@ function renderSurface(
     case "extension.builtin":
       return surface.extension
         ? <BuiltinClientExtensionSurface query={query} searchFocusTick={searchFocusTick} surfaceId={surface.extension.surfaceId} />
-        : <StaticSurface surface={{ ...surface, staticContent: { title: "Extension unavailable", body: "The installed extension has no admitted surface contribution." } }} />;
+        : <StaticSurface surface={{ ...surface, staticContent: { title: "拡張機能を利用できません", body: "The installed extension has no admitted surface contribution." } }} />;
     case "builtin.applications":
       return <ApplicationsView accessProfile={accessProfile} searchFocusTick={searchFocusTick} />;
     case "builtin.drivers":
@@ -234,5 +234,5 @@ function safeClass(value: string): string {
 
 function surfaceLoadingLabel(surface: ClientSurfaceDescriptor): string {
   if (surface.rendererKind === "builtin.voice") return "Loading Home…";
-  return `Loading ${surface.label}…`;
+  return `読み込み中 ${surface.label}…`;
 }

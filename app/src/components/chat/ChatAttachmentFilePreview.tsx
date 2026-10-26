@@ -9,18 +9,18 @@ export function ChatAttachmentFilePreview({ file, model, error, onClose }: {
   file: ArtifactFile; model?: ArtifactPreviewModel; error?: string; onClose: () => void;
 }) {
   return <OcDialog ariaLabel={`Preview ${file.filename}`} open onClose={onClose} panelClassName="chat-attachment-file-preview" size="editor">
-    <section aria-label={`Preview ${file.filename}`} className="artifact-workbench is-embedded">
+    <section aria-label={`プレビュー ${file.filename}`} className="artifact-workbench is-embedded">
       <header className="artifact-workbench-header">
         <div className="artifact-workbench-identity"><h2 title={file.filename}>{file.filename}</h2></div>
         <div className="artifact-workbench-actions">
-          <OcIconButton glyph="openExternal" label="Open file" onClick={() => {
+          <OcIconButton glyph="openExternal" label="ファイルを開く" onClick={() => {
             void openArtifactFile(file, "open").catch((error: unknown) => appToast.danger(error instanceof Error ? error.message : "The file could not be opened."));
           }} size="xs" variant="ghost" />
-          <OcIconButton glyph="close" label="Close preview" onClick={onClose} size="xs" variant="ghost" />
+          <OcIconButton glyph="close" label="プレビューを閉じる" onClick={onClose} size="xs" variant="ghost" />
         </div>
       </header>
       <div className="artifact-workbench-content">{model ? <ArtifactPreview model={model} zoomPercent={100} />
-        : <div className="artifact-preview-unavailable" role="alert"><strong>Preview unavailable</strong><span>{error}</span></div>}</div>
+        : <div className="artifact-preview-unavailable" role="alert"><strong>プレビューを利用できません</strong><span>{error}</span></div>}</div>
     </section>
   </OcDialog>;
 }

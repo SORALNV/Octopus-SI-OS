@@ -947,7 +947,7 @@ function runGitRaw(cwd, args, maxOutputBytes = MAX_GIT_OUTPUT_BYTES, extraEnv = 
     let settled = false;
     const timeout = setTimeout(() => {
       child.kill("SIGKILL");
-      finish(new Error(`Git operator action exceeded ${GIT_TIMEOUT_MS / 1000} seconds`));
+      finish(new Error(`Git operator action exceeded ${GIT_TIMEOUT_MS / 1000} 秒`));
     }, GIT_TIMEOUT_MS);
     function collect(target, chunk) {
       outputBytes += chunk.length;

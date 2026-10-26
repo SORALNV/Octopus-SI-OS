@@ -85,40 +85,40 @@ export function DesktopSurface({ active = true, environment, surface }: {
   }
   if (surface?.mode === "fixture") return <div className="we-desktop-shell"><div className="we-desktop-fixture">
     <div className="we-desktop-fixture-toolbar"><span /><span /><span /><strong>{dataText(surface.data, "title") || surface.label}</strong></div>
-    <div><Glyph name="desktop" size={28} /><strong>{dataText(surface.data, "detail") || "Test desktop room"}</strong><small>No host desktop is connected.</small></div>
+    <div><Glyph name="desktop" size={28} /><strong>{dataText(surface.data, "detail") || "デスクトップのテスト用作業環境"}</strong><small>接続されたデスクトップがありません。</small></div>
   </div></div>;
-  if (!surface || !window.octopusTransport?.desktopSurfaceRequest) return <LiveSurfaceEmpty glyph="desktop" title="Computer use unavailable" detail="This task has no connected application view." />;
+  if (!surface || !window.octopusTransport?.desktopSurfaceRequest) return <LiveSurfaceEmpty glyph="desktop" title="コンピューター操作を利用できません" detail="このタスクには接続されたアプリ画面がありません。" />;
   const mode = evidence?.control.mode;
   const permissionsMissing = evidence && (!evidence.permissions.screen_capture || !evidence.permissions.accessibility);
-  const state = mode === "stopped" ? "Stopped" : mode === "human" ? "You have control" : "Computer use";
+  const state = mode === "stopped" ? "Stopped" : mode === "human" ? "You have control" : "コンピューター操作";
   return <div className="we-browser-shell we-desktop-application-shell" data-control={mode || "unknown"}>
     <div className="we-browser-toolbar we-desktop-application-toolbar">
       <span className="we-desktop-application-heading"><Glyph name="desktop" size={16} />
-        {presentations.length > 1 ? <OcSelect label="Application" onChange={setSelected} value={application?.source_id ?? ""}
+        {presentations.length > 1 ? <OcSelect label="アプリケーション" onChange={setSelected} value={application?.source_id ?? ""}
           options={presentations.map(value => ({ value: value.source_id, label: value.window_title ? `${value.display_name} · ${value.window_title}` : value.display_name }))} />
           : <span>{application?.display_name ?? state}</span>}
       </span>
       <div className="we-browser-history">
-        <DesktopToolbarButton glyph="settings" label="Computer use settings" onClick={openSettings} />
+        <DesktopToolbarButton glyph="settings" label="コンピューター操作の設定" onClick={openSettings} />
         {mode === "human" || mode === "stopped"
-          ? <DesktopToolbarButton disabled={busy || surface.readOnly} glyph="resume" label="Release control" onClick={() => void control("release_control")} selected />
-          : <DesktopToolbarButton disabled={busy || surface.readOnly || !evidence} glyph="hand" label="Take control" onClick={() => setWarning(true)} />}
-        <DesktopToolbarButton disabled={pendingControl === "stop" || surface.readOnly || (mode === "stopped" && !busy)} glyph="stop" label="Stop computer use" onClick={() => void control("stop")} />
+          ? <DesktopToolbarButton disabled={busy || surface.readOnly} glyph="resume" label="操作権を返す" onClick={() => void control("release_control")} selected />
+          : <DesktopToolbarButton disabled={busy || surface.readOnly || !evidence} glyph="hand" label="操作を引き継ぐ" onClick={() => setWarning(true)} />}
+        <DesktopToolbarButton disabled={pendingControl === "stop" || surface.readOnly || (mode === "stopped" && !busy)} glyph="stop" label="コンピューター操作を停止" onClick={() => void control("stop")} />
       </div>
     </div>
     <div className="we-desktop-native-viewport">
       {application?.phase === "published" && !permissionsMissing && mode !== "stopped"
         ? <NativeApplicationView key={`${identity}:${application.source_id}`} active={active} application={application} environment={environment} surface={surface} retry={refresh} />
         : <div className="we-desktop-permission">
-          <LiveSurfaceEmpty glyph="desktop" title={permissionsMissing ? "Set up computer use" : mode === "stopped" ? "Computer use stopped" : "Waiting for an app"}
-            detail={permissionsMissing ? "Enable computer use and allow access in Settings." : mode === "stopped" ? "You can resume when you’re ready." : "The app this task uses will appear here."} />
-          {permissionsMissing ? <OcButton onClick={openSettings} size="sm" variant="secondary">Open Settings</OcButton> : null}
+          <LiveSurfaceEmpty glyph="desktop" title={permissionsMissing ? "コンピューター操作を設定" : mode === "stopped" ? "コンピューター操作を停止しました" : "アプリを待っています"}
+            detail={permissionsMissing ? "設定でコンピューター操作を有効にし、アクセスを許可してください。" : mode === "stopped" ? "準備ができたら再開できます。" : "このタスクが使うアプリをここに表示します。"} />
+          {permissionsMissing ? <OcButton onClick={openSettings} size="sm" variant="secondary">設定を開く</OcButton> : null}
         </div>}
     </div>
-    {error || inventoryError || application?.error ? <div className="we-desktop-view-error" role="alert"><span>Application view unavailable.</span>
-      <details><summary>Error details</summary>{error || inventoryError || application?.error}</details>
-      <OcButton onClick={() => setRefresh(value => value + 1)} size="sm" variant="ghost">Try again</OcButton></div> : null}
-    <ManualRoomControlWarning glyph="desktop" onCancel={() => setWarning(false)} onContinue={() => void control("take_control")} open={warning} title="Take control of the desktop" />
+    {error || inventoryError || application?.error ? <div className="we-desktop-view-error" role="alert"><span>アプリの画面を利用できません。</span>
+      <details><summary>エラーの詳細</summary>{error || inventoryError || application?.error}</details>
+      <OcButton onClick={() => setRefresh(value => value + 1)} size="sm" variant="ghost">再試行</OcButton></div> : null}
+    <ManualRoomControlWarning glyph="desktop" onCancel={() => setWarning(false)} onContinue={() => void control("take_control")} open={warning} title="デスクトップの操作を引き継ぐ" />
   </div>;
 }
 
@@ -177,9 +177,9 @@ function NativeApplicationView({ active, application, environment, surface, retr
       void transport({ ...target, operation: "detach" }).catch(failure => console.error("Application preview detach failed", failure));
     };
   }, [active, application.source_id, environment.id, environment.runId, surface.id, retry, attempt]);
-  return <div className="we-desktop-application-view" ref={frame} aria-label={`${application.display_name} application view`} data-attached={attached || undefined}>
-    {!attached ? <LiveSurfaceEmpty glyph="desktop" title={error ? "Application view interrupted" : "Connecting to app"} detail={error || application.display_name} /> : null}
-    {error ? <OcButton onClick={() => setAttempt(value => value + 1)} size="sm" variant="ghost">Try again</OcButton> : null}
+  return <div className="we-desktop-application-view" ref={frame} aria-label={`${application.display_name} アプリ画面`} data-attached={attached || undefined}>
+    {!attached ? <LiveSurfaceEmpty glyph="desktop" title={error ? "アプリの表示が中断されました" : "アプリに接続しています"} detail={error || application.display_name} /> : null}
+    {error ? <OcButton onClick={() => setAttempt(value => value + 1)} size="sm" variant="ghost">再試行</OcButton> : null}
   </div>;
 }
 

@@ -24,19 +24,19 @@ export function LiveScheduledView({ searchFocusTick, navigationInPane = false, o
   }, [searchFocusTick, requestSearch, navigationInPane]);
 
   return (
-    <section aria-label="Triggers" className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden" data-scheduled-content="">
+    <section aria-label="トリガー" className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden" data-scheduled-content="">
       {navigationInPane ? <div className="flex flex-none items-center px-3 py-2">
-        <OcButton buttonRef={navigationRef} leadingIcon="scheduled" onClick={() => setNavigationOpen(!navigationOpen)} trailingIcon="chevronDown" variant="ghost">Triggers</OcButton>
-        <OcDropdown anchorRef={navigationRef} aria-label="Triggers" className="flex h-[min(560px,calc(100vh-80px))] w-[340px] flex-col py-3" onOpenChange={setNavigationOpen} open={navigationOpen} role="dialog" surface="opaque">
+        <OcButton buttonRef={navigationRef} leadingIcon="scheduled" onClick={() => setNavigationOpen(!navigationOpen)} trailingIcon="chevronDown" variant="ghost">トリガー</OcButton>
+        <OcDropdown anchorRef={navigationRef} aria-label="トリガー" className="flex h-[min(560px,calc(100vh-80px))] w-[340px] flex-col py-3" onOpenChange={setNavigationOpen} open={navigationOpen} role="dialog" surface="opaque">
           <ScheduledSidebar onNavigate={() => setNavigationOpen(false)} onSelectChat={onSelectChat} />
         </OcDropdown>
       </div> : null}
       {error ? (
         <OcEmptyState
-          action={<OcButton onClick={() => void workspace.reload()} size="sm" variant="secondary">Try again</OcButton>}
+          action={<OcButton onClick={() => void workspace.reload()} size="sm" variant="secondary">再試行</OcButton>}
           detail={error}
           glyph="warning"
-          title="Triggers could not be loaded"
+          title="トリガーを読み込めませんでした"
           tone="danger"
         />
       ) : selected ? (
@@ -51,13 +51,13 @@ export function LiveScheduledView({ searchFocusTick, navigationInPane = false, o
           task={selected}
         />
       ) : loading ? (
-        <OctopusLoadingState className="flex min-h-0 flex-1 items-center justify-center" label="Loading triggers" />
+        <OctopusLoadingState className="flex min-h-0 flex-1 items-center justify-center" label="トリガーを読み込んでいます" />
       ) : selectedId ? (
         <OcEmptyState
-          action={<OcButton onClick={() => workspace.selectTask("")} size="sm" variant="secondary">Back to triggers</OcButton>}
-          detail="This trigger may have been deleted or is no longer available in this Home."
+          action={<OcButton onClick={() => workspace.selectTask("")} size="sm" variant="secondary">トリガー一覧に戻る</OcButton>}
+          detail="このトリガーは削除されたか、このホームでは利用できなくなった可能性があります。"
           glyph="scheduled"
-          title="Trigger unavailable"
+          title="トリガーを利用できません"
         />
       ) : (
         <ScheduledLanding disabledReason={workspace.createUnavailableReason} onCreate={workspace.startCreate} templates={workspace.templates} timeDisabledReason={workspace.timeSuggestionUnavailableReason} />
@@ -76,10 +76,10 @@ export function LiveScheduledView({ searchFocusTick, navigationInPane = false, o
         />
       ) : null}
       <OcDialog ariaLabelledBy="scheduled-delete-title" busy={pending} onClose={workspace.cancelDelete} open={workspace.deleteCandidate !== null} panelClassName="max-w-md">
-        <OcDialogHeader closeDisabled={pending} description="This will permanently delete the trigger and stop future runs. Ledger evidence is kept." onClose={workspace.cancelDelete} title={`Delete ${workspace.deleteCandidate?.displayName ?? "trigger"}?`} titleId="scheduled-delete-title" />
+        <OcDialogHeader closeDisabled={pending} description="トリガーを完全に削除し、今後の実行を停止します。台帳の記録は保持されます。" onClose={workspace.cancelDelete} title={`削除 ${workspace.deleteCandidate?.displayName ?? "trigger"}?`} titleId="scheduled-delete-title" />
         <OcDialogFooter>
-          <OcButton disabled={pending} onClick={workspace.cancelDelete} variant="ghost">Cancel</OcButton>
-          <OcButton disabled={!canEdit || pending} onClick={workspace.confirmDelete} tone="danger" variant="primary">{pending ? "Deleting…" : "Delete trigger"}</OcButton>
+          <OcButton disabled={pending} onClick={workspace.cancelDelete} variant="ghost">キャンセル</OcButton>
+          <OcButton disabled={!canEdit || pending} onClick={workspace.confirmDelete} tone="danger" variant="primary">{pending ? "削除しています…" : "トリガーを削除"}</OcButton>
         </OcDialogFooter>
       </OcDialog>
       <UndoDialog canEdit={canEdit} delivery={workspace.undoCandidate} onCancel={workspace.cancelUndo} onConfirm={workspace.confirmUndo} pending={pending} />
@@ -91,7 +91,7 @@ function UndoDialog({ canEdit, delivery, onCancel, onConfirm, pending }: { canEd
   const journal = delivery?.journal ?? null;
   return (
     <OcDialog ariaLabelledBy="scheduled-undo-title" busy={pending} onClose={onCancel} open={delivery !== null} panelClassName="max-w-md">
-      <OcDialogHeader closeDisabled={pending} description="Each recorded file returns to its exact earlier bytes. Undo stops if a file has changed since this run." onClose={onCancel} title="Undo this run's changes?" titleId="scheduled-undo-title" />
+      <OcDialogHeader closeDisabled={pending} description="記録された各ファイルを実行前の内容に戻します。実行後にファイルが変更されている場合は、元に戻す操作を停止します。" onClose={onCancel} title="この実行による変更を元に戻しますか？" titleId="scheduled-undo-title" />
       {delivery && journal ? (
         <div className="flex min-h-0 flex-col gap-3 overflow-y-auto px-6 pb-4 text-sm" data-scheduled-journal="">
           <p className="m-0 text-token-text-secondary">{runTitle(delivery)} · {formatEvidenceTime(delivery.atMs)}</p>
@@ -100,12 +100,12 @@ function UndoDialog({ canEdit, delivery, onCancel, onConfirm, pending }: { canEd
               {journal.changes.map((change, index) => change.kind === "file" ? (
                 <li className="flex min-w-0 list-none flex-col gap-0.5" key={`${change.path}:${index}`} title={change.reason}>
                   <span className="min-w-0 break-all text-default">{change.action} · {change.path}</span>
-                  <span className="text-xs text-tertiary">{change.status === "applied" ? change.restorable ? "In place" : `In place · ${change.unrestorableReason}` : change.status === "undone" ? "Restored" : "Changed since this run"}</span>
+                  <span className="text-xs text-tertiary">{change.status === "applied" ? change.restorable ? "適用済み" : `適用済み · ${change.unrestorableReason}` : change.status === "undone" ? "復元済み" : "実行後に変更されています"}</span>
                 </li>
               ) : (
                 <li className="flex min-w-0 list-none flex-col gap-0.5" key={`other:${index}`}>
                   <span className="text-default">{change.description}</span>
-                  {change.undo ? <span className="text-xs text-tertiary">Undo: {change.undo}</span> : null}
+                  {change.undo ? <span className="text-xs text-tertiary">元に戻す： {change.undo}</span> : null}
                 </li>
               ))}
               {journal.checks.map((check, index) => (
@@ -119,8 +119,8 @@ function UndoDialog({ canEdit, delivery, onCancel, onConfirm, pending }: { canEd
         </div>
       ) : null}
       <OcDialogFooter>
-        <OcButton disabled={pending} onClick={onCancel} variant="ghost">Cancel</OcButton>
-        <OcButton disabled={!canEdit || pending} onClick={onConfirm} variant="primary">{pending ? "Restoring…" : "Undo changes"}</OcButton>
+        <OcButton disabled={pending} onClick={onCancel} variant="ghost">キャンセル</OcButton>
+        <OcButton disabled={!canEdit || pending} onClick={onConfirm} variant="primary">{pending ? "復元しています…" : "変更を元に戻す"}</OcButton>
       </OcDialogFooter>
     </OcDialog>
   );

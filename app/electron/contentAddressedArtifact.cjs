@@ -100,7 +100,7 @@ async function readStableContentAddressedBytes(filePath, expectedHash, maximumBy
 async function readStableContentAddressedChunks(filePath, expectedHash, maximumBytes, label, consume, onVerifiedFile) {
   const stat = await fs.lstat(filePath);
   if (stat.isSymbolicLink() || !stat.isFile()) throw new Error(`${label} is not a regular file`);
-  if (stat.size > maximumBytes) throw new Error(`${label} exceeds ${maximumBytes} bytes`);
+  if (stat.size > maximumBytes) throw new Error(`${label} exceeds ${maximumBytes} バイト`);
   const handle = await fs.open(filePath, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
   try {
     const before = await handle.stat();

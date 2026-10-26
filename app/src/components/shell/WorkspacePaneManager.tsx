@@ -142,12 +142,12 @@ export function WorkspacePaneManager({
       ref={rootRef}
       data-pane-manager-id={managerId}
     >
-      <section aria-hidden={primaryBlocked || undefined} className="workspace-pane workspace-pane-primary" aria-label="Primary workspace" data-pane-role={primaryPaneRole} inert={primaryBlocked || undefined} ref={primaryRef} tabIndex={-1}>
+      <section aria-hidden={primaryBlocked || undefined} className="workspace-pane workspace-pane-primary" aria-label="メインのワークスペース" data-pane-role={primaryPaneRole} inert={primaryBlocked || undefined} ref={primaryRef} tabIndex={-1}>
         {primary}
       </section>
       {secondaryOpen || resizing ? (
           <motion.aside
-            aria-label="Secondary workspace"
+            aria-label="サブのワークスペース"
             className="workspace-pane workspace-pane-secondary"
             aria-hidden={!secondaryOpen || undefined}
             inert={!secondaryOpen || undefined}
@@ -171,7 +171,7 @@ export function WorkspacePaneManager({
                   setResizing(next);
                   setLiveWidth(next ? resolvedWidth : null);
                 }}
-                title="Drag to resize · double-click to reset"
+                title="ドラッグでサイズ変更 · ダブルクリックでリセット"
                 value={resolvedWidth}
               />
             ) : null}

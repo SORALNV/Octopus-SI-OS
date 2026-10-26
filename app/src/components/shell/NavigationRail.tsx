@@ -31,7 +31,7 @@ export function NavigationRail({
   onLogOut: () => void;
 }) {
   return (
-    <nav className="navigation-rail" aria-hidden={disabled || undefined} inert={disabled || undefined} aria-label="App navigation" data-app-navigation-rail="true" onKeyDown={moveRailFocus}>
+    <nav className="navigation-rail" aria-hidden={disabled || undefined} inert={disabled || undefined} aria-label="アプリのナビゲーション" data-app-navigation-rail="true" onKeyDown={moveRailFocus}>
       <div className="navigation-rail-destinations">
         {clientNavigationDestinations.filter((destination) => surfaces.some((surface) => surface.id === destination.surfaceId)).map((destination) => (
           <div className="navigation-rail-item" key={destination.id}>
@@ -41,7 +41,7 @@ export function NavigationRail({
                 aria-current={destination.id === activeSection ? "page" : undefined}
                 data-navigation-destination={destination.id}
                 glyph={destination.id === activeSection ? destination.selectedGlyph : destination.glyph}
-                label={destination.id === "inbox" && unreadCount > 0 ? `Inbox, ${unreadCount} unread` : destination.label}
+                label={destination.id === "inbox" && unreadCount > 0 ? `受信トレイ、未読 ${unreadCount} 件` : destination.label}
                 onClick={() => onNavigate(destination.id)}
                 selected={destination.id === activeSection}
                 title=""

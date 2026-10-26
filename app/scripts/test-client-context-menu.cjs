@@ -198,15 +198,15 @@ test("task controller revalidates native context menus and anchored titlebar men
     const failure = await open(); await React.act(async () => { failure.reject(new Error("native failed")); await tick(); }); assert.equal(errors.pop(), "native failed"); assert.equal(w.document.querySelector('[role="menu"]'), null);
     w.octopusTransport = {}; await open(); assert.match(errors.pop(), /native task menu is unavailable/); assert.equal(w.document.querySelector('[role="menu"]'), null); w.octopusTransport = transport;
     const rename = await open(); await finish(rename, "rename"); assert.ok(w.document.querySelector('[role="dialog"]'));
-    await render({ projectWorkspace: { ...props.projectWorkspace, pending: true } }); const save = [...w.document.querySelectorAll('button')].find((b) => b.textContent === "Save"); assert.equal(save.disabled, true);
+    await render({ projectWorkspace: { ...props.projectWorkspace, pending: true } }); const save = [...w.document.querySelectorAll('button')].find((b) => b.textContent === "保存"); assert.equal(save.disabled, true);
     await React.act(async () => w.document.querySelector('form').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }))); assert.deepEqual(effects, []);
     await render({ runtimeHome: "/home/b" }); assert.equal(w.document.querySelector('[role="dialog"]'), null);
     await render({ projectWorkspace: { ...props.projectWorkspace, pending: false } });
     const deletion = await open(); await finish(deletion, "delete"); assert.ok(w.document.querySelector('[role="dialog"]'));
     await render({ projectWorkspace: { ...props.projectWorkspace, pending: true } });
-    const deleteButton = [...w.document.querySelectorAll('button')].find((b) => b.textContent === "Delete task"); assert.equal(deleteButton.disabled, true);
+    const deleteButton = [...w.document.querySelectorAll('button')].find((b) => b.textContent === "タスクを削除"); assert.equal(deleteButton.disabled, true);
     await render({ projectWorkspace: { ...props.projectWorkspace, pending: false } });
-    await React.act(async () => [...w.document.querySelectorAll('button')].find((b) => b.textContent === "Delete task").click());
+    await React.act(async () => [...w.document.querySelectorAll('button')].find((b) => b.textContent === "タスクを削除").click());
     assert.deepEqual(effects.splice(0), [["delete", "task"], ["removeClientTaskPresentation", "live", "task"], ["pin", []], ["order", []], ["select", "home"]]);
     await render({ chatRuns: [{ ...originalRuns[0], archived: true, writable: false }] }); const archived = await open(); assert.deepEqual(ids(archived.value.items), ["restore", "copy-menu", "copy-title", "copy"]); await finish(archived, "restore"); assert.deepEqual(effects.pop(), ["archive", "task", false]);
     await render({ chatRuns: originalRuns }); const archive = await open(); await finish(archive, "archive"); assert.deepEqual(effects.pop(), ["archive", "task", true]);

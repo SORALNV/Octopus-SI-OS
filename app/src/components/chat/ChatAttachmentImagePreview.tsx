@@ -149,7 +149,7 @@ export function ChatAttachmentImagePreview({ blob, filename, src, onClose, onErr
     }
   }
 
-  return createPortal(<div aria-label="Image preview" aria-modal="true" className="chat-attachment-lightbox" data-oc-dialog ref={dialogRef} role="dialog" tabIndex={-1}
+  return createPortal(<div aria-label="画像のプレビュー" aria-modal="true" className="chat-attachment-lightbox" data-oc-dialog ref={dialogRef} role="dialog" tabIndex={-1}
     onKeyDown={(event) => {
       containModalFocus(event, dialogRef.current);
       if (event.defaultPrevented || !isTopmostModal(dialogRef.current)) return;
@@ -168,23 +168,23 @@ export function ChatAttachmentImagePreview({ blob, filename, src, onClose, onErr
     <div className={`chat-attachment-lightbox-content${onPreviousImage || onNextImage ? " has-gallery" : ""}`}
       onPointerDown={(event) => { if (event.currentTarget === event.target) onClose(); }}>
       <div className="chat-attachment-lightbox-toolbar">
-        <button aria-label="Download image" className="chat-attachment-lightbox-action" onClick={() => { void download(); }} type="button"><AttachmentIcon name="download" size={16} /></button>
-        <button aria-label="Close image preview" className="chat-attachment-lightbox-action" onClick={onClose} type="button"><AttachmentIcon name="close" size={18} /></button>
+        <button aria-label="画像をダウンロード" className="chat-attachment-lightbox-action" onClick={() => { void download(); }} type="button"><AttachmentIcon name="download" size={16} /></button>
+        <button aria-label="画像のプレビューを閉じる" className="chat-attachment-lightbox-action" onClick={onClose} type="button"><AttachmentIcon name="close" size={18} /></button>
       </div>
-      {onPreviousImage ? <button aria-label="Previous image" className="chat-attachment-lightbox-action is-previous" onClick={onPreviousImage} type="button"><AttachmentIcon name="previous" size={18} /></button> : null}
-      {onNextImage ? <button aria-label="Next image" className="chat-attachment-lightbox-action is-next" onClick={onNextImage} type="button"><AttachmentIcon name="previous" size={18} /></button> : null}
+      {onPreviousImage ? <button aria-label="前の画像" className="chat-attachment-lightbox-action is-previous" onClick={onPreviousImage} type="button"><AttachmentIcon name="previous" size={18} /></button> : null}
+      {onNextImage ? <button aria-label="次の画像" className="chat-attachment-lightbox-action is-next" onClick={onNextImage} type="button"><AttachmentIcon name="previous" size={18} /></button> : null}
       <div className="chat-attachment-lightbox-viewport" onPointerCancelCapture={pointerUp} onPointerDownCapture={pointerDown} onPointerMoveCapture={pointerMove} onPointerUpCapture={pointerUp} ref={viewportRef}
         onPointerDown={(event) => { if (event.currentTarget === event.target) onClose(); }}>
-        <h2 className="sr-only">Image preview</h2>
+        <h2 className="sr-only">画像のプレビュー</h2>
         <img alt={filename} className={currentZoom && naturalSize ? "is-sized" : undefined} draggable={false} onError={onError} onLoad={measure}
           onPointerDown={(event) => event.stopPropagation()} ref={imageRef} referrerPolicy="no-referrer" src={src}
           style={currentZoom && naturalSize ? { width: naturalSize.width * currentZoom / 100, height: naturalSize.height * currentZoom / 100 } : undefined} />
       </div>
       <div className="chat-attachment-lightbox-bottom">
         <div className="chat-attachment-lightbox-zoom">
-          <button aria-label="Zoom out image" disabled={currentZoom == null || currentZoom <= minimum} onClick={() => step("out")} type="button"><AttachmentIcon name="minus" size={16} /></button>
+          <button aria-label="画像を縮小" disabled={currentZoom == null || currentZoom <= minimum} onClick={() => step("out")} type="button"><AttachmentIcon name="minus" size={16} /></button>
           <span>{currentZoom == null ? "" : `${Math.round(currentZoom)}%`}</span>
-          <button aria-label="Zoom in image" disabled={currentZoom == null || currentZoom >= maximum} onClick={() => step("in")} type="button"><AttachmentIcon name="plus" size={16} /></button>
+          <button aria-label="画像を拡大" disabled={currentZoom == null || currentZoom >= maximum} onClick={() => step("in")} type="button"><AttachmentIcon name="plus" size={16} /></button>
         </div>
       </div>
     </div>

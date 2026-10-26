@@ -48,8 +48,8 @@ export class ChatRenderBoundary extends Component<Props, State> {
           <span>{this.props.detail}</span>
         </div>
         <div className="chat-render-failure-actions">
-          <OcButton onClick={() => void window.octopusTransport?.copyText(detail)} size="xs" variant="ghost">Copy details</OcButton>
-          <OcButton onClick={() => this.setState({ componentStack: "", error: null })} size="xs" variant="secondary">Try again</OcButton>
+          <OcButton onClick={() => void window.octopusTransport?.copyText(detail)} size="xs" variant="ghost">詳細をコピー</OcButton>
+          <OcButton onClick={() => this.setState({ componentStack: "", error: null })} size="xs" variant="secondary">再試行</OcButton>
         </div>
       </section>
     );

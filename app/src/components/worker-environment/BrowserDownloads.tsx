@@ -1,3 +1,4 @@
+import { APP_LOCALE } from "../../locale";
 import { useDeferredValue, useEffect, useRef, useState, type MouseEvent } from "react";
 import type { WorkerEnvironmentProjection, WorkerEnvironmentSurfaceProjection } from "../../data/topology";
 import type { OctopusBrowserDownload, OctopusBrowserDownloadHistory, OctopusBrowserDownloadRequest, OctopusBrowserDownloadSnapshot, OctopusClientContextMenuItem } from "../../electron";
@@ -25,7 +26,7 @@ export function browserDownloadIndicator(snapshot: OctopusBrowserDownloadSnapsho
 
 function statusText(record: OctopusBrowserDownload) {
   if (record.artifactError) return record.artifactError;
-  const bytes = record.totalBytes > 0 && record.status !== "complete" ? `${formatBytes(record.receivedBytes)} of ${formatBytes(record.totalBytes)}` : formatBytes(record.receivedBytes);
+  const bytes = record.totalBytes > 0 && record.status !== "complete" ? `${formatBytes(record.receivedBytes)} / ${formatBytes(record.totalBytes)}` : formatBytes(record.receivedBytes);
   if (record.status === "in_progress") {
     const speed = record.receivedBytes / Math.max(1, (record.updatedAtMs - record.startedAtMs) / 1000);
     const seconds = Math.ceil((record.totalBytes - record.receivedBytes) / speed);
@@ -33,7 +34,7 @@ function statusText(record: OctopusBrowserDownload) {
     return [`${formatBytes(speed)}/s`, bytes, ...(record.totalBytes > 0 ? [remaining] : [])].join(" · ");
   }
   const text = record.status === "complete" ? record.artifactPending ? "Collecting downloaded file" : record.fileExists ? "Downloaded" : "File moved or deleted" : record.status === "started" ? "Starting" : record.status === "paused" ? "Paused" : record.status === "failed" ? "Download failed" : record.status === "canceled" ? "Stopped" : "Native download no longer available";
-  const time = activeStatuses.has(record.status) ? [] : [new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(record.updatedAtMs)];
+  const time = activeStatuses.has(record.status) ? [] : [new Intl.DateTimeFormat(APP_LOCALE, { hour: "numeric", minute: "2-digit" }).format(record.updatedAtMs)];
   return [text, ...(record.status === "canceled" && !record.receivedBytes ? [] : [bytes]), ...time].join(" · ");
 }
 
@@ -159,11 +160,11 @@ export function BrowserDownloads({ active, environment, surface, standalone = fa
   const menu = async (event: MouseEvent, record: OctopusBrowserDownload) => {
     event.preventDefault(); event.stopPropagation();
     const actions: OctopusClientContextMenuItem[] = [];
-    if (record.status === "complete") actions.push({ id: "open", label: "Open", enabled: record.fileExists });
-    actions.push({ id: "show-in-folder", label: "Show in Finder", enabled: record.fileExists });
-    if (activeStatuses.has(record.status)) actions.push({ id: "cancel", label: "Stop", enabled: record.canCancel });
-    actions.push({ id: "copy-address", label: "Copy address" }, { id: "copy-path", label: "Copy path" });
-    if (!activeStatuses.has(record.status)) actions.push({ type: "separator" }, { id: "remove", label: "Remove from list" });
+    if (record.status === "complete") actions.push({ id: "open", label: "開く", enabled: record.fileExists });
+    actions.push({ id: "show-in-folder", label: "Finder で表示", enabled: record.fileExists });
+    if (activeStatuses.has(record.status)) actions.push({ id: "cancel", label: "停止", enabled: record.canCancel });
+    actions.push({ id: "copy-address", label: "アドレスをコピー" }, { id: "copy-path", label: "パスをコピー" });
+    if (!activeStatuses.has(record.status)) actions.push({ type: "separator" }, { id: "remove", label: "一覧から削除" });
     if (!window.octopusTransport?.showClientContextMenu) { setError("Native download actions are unavailable."); return; }
     try {
       const result = await window.octopusTransport.showClientContextMenu({ requestId: crypto.randomUUID(), items: actions, position: { x: event.clientX, y: event.clientY } });
@@ -174,41 +175,41 @@ export function BrowserDownloads({ active, environment, surface, standalone = fa
   const records = historyMode ? history?.downloads ?? [] : [...(snapshot?.downloads ?? []).filter(record => activeStatuses.has(record.status)), ...(snapshot?.downloads ?? []).filter(record => !activeStatuses.has(record.status))];
   if (!standalone && !open && !peek && !records.length && !error) return null;
   const content = <>
-    <header><span>Downloads</span><button aria-label="Download settings" aria-expanded={preferencesOpen} onClick={() => setPreferencesOpen(value => !value)} type="button"><Glyph name="settings" size={16} /></button><button aria-label="Open downloads folder" disabled={pending === "open-folder"} onClick={() => { void perform("open-folder"); }} type="button"><Glyph name="folder" size={16} /></button></header>
+    <header><span>ダウンロード</span><button aria-label="ダウンロードの設定" aria-expanded={preferencesOpen} onClick={() => setPreferencesOpen(value => !value)} type="button"><Glyph name="settings" size={16} /></button><button aria-label="ダウンロードフォルダーを開く" disabled={pending === "open-folder"} onClick={() => { void perform("open-folder"); }} type="button"><Glyph name="folder" size={16} /></button></header>
     {historyMode ? <div className="flex flex-col gap-2 border-b border-token-border px-4 py-3">
-      <label className="flex flex-col gap-1 text-sm"><span>Search download history</span><input type="search" value={query} placeholder="Filename or address" onChange={event => { ++historyEpoch.current; setHistory(null); setHistoryPending(true); setQuery(event.currentTarget.value); }} className="rounded border border-token-border bg-token-surface px-2 py-1" /></label>
-      <div className="flex items-center justify-between gap-2">{!standalone ? <OcButton size="sm" onClick={() => { setHistoryMode(false); setQuery(""); }}>Recent downloads</OcButton> : <span />}
-        <OcButton size="sm" disabled={pending !== null || !records.some(record => !activeStatuses.has(record.status))} onClick={() => { void perform("clear-history"); }}>Clear history</OcButton></div>
-    </div> : <div className="border-b border-token-border px-4 py-2"><OcButton size="sm" onClick={() => { setHistoryMode(true); }}>View all downloads</OcButton></div>}
+      <label className="flex flex-col gap-1 text-sm"><span>ダウンロード履歴を検索</span><input type="search" value={query} placeholder="ファイル名またはアドレス" onChange={event => { ++historyEpoch.current; setHistory(null); setHistoryPending(true); setQuery(event.currentTarget.value); }} className="rounded border border-token-border bg-token-surface px-2 py-1" /></label>
+      <div className="flex items-center justify-between gap-2">{!standalone ? <OcButton size="sm" onClick={() => { setHistoryMode(false); setQuery(""); }}>最近のダウンロード</OcButton> : <span />}
+        <OcButton size="sm" disabled={pending !== null || !records.some(record => !activeStatuses.has(record.status))} onClick={() => { void perform("clear-history"); }}>履歴を消去</OcButton></div>
+    </div> : <div className="border-b border-token-border px-4 py-2"><OcButton size="sm" onClick={() => { setHistoryMode(true); }}>すべてのダウンロードを表示</OcButton></div>}
     {preferencesOpen && snapshot ? <div className="flex flex-col gap-3 border-b border-token-border px-4 py-3 text-sm">
-      <div className="flex items-center gap-2"><span className="min-w-0 flex-1 break-all">{snapshot.preferences.directory ?? "System Downloads folder"}</span><OcButton size="sm" disabled={pending !== null} onClick={() => { void perform("choose-directory"); }}>Change</OcButton>
-        {snapshot.preferences.directory !== null ? <OcButton size="sm" disabled={pending !== null} onClick={() => { void perform("reset-directory"); }}>Reset</OcButton> : null}</div>
-      <label className="flex items-center gap-2"><input type="checkbox" checked={snapshot.preferences.promptForLocation} disabled={pending !== null} onChange={event => { void perform("set-prompt", undefined, event.currentTarget.checked); }} />Ask where to save each file</label>
+      <div className="flex items-center gap-2"><span className="min-w-0 flex-1 break-all">{snapshot.preferences.directory ?? "システムのダウンロードフォルダー"}</span><OcButton size="sm" disabled={pending !== null} onClick={() => { void perform("choose-directory"); }}>変更</OcButton>
+        {snapshot.preferences.directory !== null ? <OcButton size="sm" disabled={pending !== null} onClick={() => { void perform("reset-directory"); }}>リセット</OcButton> : null}</div>
+      <label className="flex items-center gap-2"><input type="checkbox" checked={snapshot.preferences.promptForLocation} disabled={pending !== null} onChange={event => { void perform("set-prompt", undefined, event.currentTarget.checked); }} />ファイルごとに保存先を確認</label>
     </div> : null}
     {error || snapshot?.error ? <div className="we-download-error" role="alert">{error || snapshot?.error}</div> : null}
     <div className="we-download-list">
-      {snapshot === null || historyMode && history === null ? <div className="we-download-empty">{historyPending || snapshot === null ? "Loading downloads" : "Download history is unavailable"}</div> : !records.length ? <div className="we-download-empty"><Glyph name="download" size={24} /><strong>{historyMode && query ? "No matching downloads" : "No downloads yet"}</strong><span>{historyMode && query ? "Try another filename or address" : "Files downloaded from the built-in browser will appear here"}</span></div> : records.map(record => {
+      {snapshot === null || historyMode && history === null ? <div className="we-download-empty">{historyPending || snapshot === null ? "ダウンロードを読み込んでいます" : "ダウンロード履歴を取得できません"}</div> : !records.length ? <div className="we-download-empty"><Glyph name="download" size={24} /><strong>{historyMode && query ? "一致するダウンロードがありません" : "ダウンロードはまだありません"}</strong><span>{historyMode && query ? "別のファイル名またはアドレスで検索してください" : "内蔵ブラウザーでダウンロードしたファイルをここに表示します"}</span></div> : records.map(record => {
         const busy = pending === record.id, progress = record.totalBytes > 0 ? Math.min(1, record.receivedBytes / record.totalBytes) : null;
         const body = <><span className="we-download-file"><Glyph name="file" size={16} /></span><span className="we-download-copy"><span>{record.filename}</span><small className={record.status === "failed" ? "is-failed" : ""}>{statusText(record)}</small>{activeStatuses.has(record.status) ? <span className="we-download-progress"><i className={`${record.status === "paused" ? "is-paused" : ""}${progress === null ? " is-indeterminate" : ""}`} style={progress === null ? undefined : { transform: `scaleX(${Math.max(0.03, progress)})`, opacity: progress === 0 ? 0 : 1 }} /></span> : null}</span></>;
         return <div className="we-download-row" key={record.id} onContextMenu={event => { void menu(event, record); }}>
-          {record.status === "complete" && record.fileExists ? <button className="we-download-main" aria-label={`Open ${record.filename}`} disabled={busy} onClick={event => { if (event.detail <= 1) void perform("open", record.id); }} type="button">{body}</button> : <div className="we-download-main">{body}</div>}
+          {record.status === "complete" && record.fileExists ? <button className="we-download-main" aria-label={`開く ${record.filename}`} disabled={busy} onClick={event => { if (event.detail <= 1) void perform("open", record.id); }} type="button">{body}</button> : <div className="we-download-main">{body}</div>}
           <div className="we-download-row-actions">
-            {record.canResume || record.canPause ? <button aria-label={record.canResume ? "Resume download" : "Pause download"} disabled={busy} onClick={() => { void perform(record.canResume ? "resume" : "pause", record.id); }} type="button"><Glyph name={record.canResume ? "play" : "pause"} size={14} /></button> : null}
-            {record.canCancel ? <button aria-label="Stop downloading" disabled={busy} onClick={() => { void perform("cancel", record.id); }} type="button"><Glyph name="close" size={14} /></button> : <button aria-label={`Download actions for ${record.filename}`} disabled={busy} onClick={event => { void menu(event, record); }} type="button"><Glyph name="more" size={14} /></button>}
+            {record.canResume || record.canPause ? <button aria-label={record.canResume ? "ダウンロードを再開" : "ダウンロードを一時停止"} disabled={busy} onClick={() => { void perform(record.canResume ? "resume" : "pause", record.id); }} type="button"><Glyph name={record.canResume ? "play" : "pause"} size={14} /></button> : null}
+            {record.canCancel ? <button aria-label="ダウンロードを停止" disabled={busy} onClick={() => { void perform("cancel", record.id); }} type="button"><Glyph name="close" size={14} /></button> : <button aria-label={`ダウンロードの操作： ${record.filename}`} disabled={busy} onClick={event => { void menu(event, record); }} type="button"><Glyph name="more" size={14} /></button>}
           </div>
         </div>;
       })}
-      {historyMode && history?.hasMore ? <div className="px-4 py-3"><OcButton size="sm" disabled={historyPending || query !== deferredQuery} onClick={() => { void loadMore(); }}>{historyPending ? "Loading" : "Load more"}</OcButton></div> : null}
+      {historyMode && history?.hasMore ? <div className="px-4 py-3"><OcButton size="sm" disabled={historyPending || query !== deferredQuery} onClick={() => { void loadMore(); }}>{historyPending ? "読み込み中" : "さらに読み込む"}</OcButton></div> : null}
     </div>
   </>;
   return <div className={`we-downloads${standalone ? " is-standalone" : ""}`} ref={root}>
     {!standalone ? <button aria-label={indicator.label} aria-expanded={open} className={indicator.active || indicator.attention ? "has-download-activity" : ""} ref={trigger} onClick={() => { dismissPeek(); setOpen(!open); }} type="button">
       <Glyph name="download" size={18} />{indicator.active ? <svg className={`we-download-ring${indicator.paused ? " is-paused" : ""}${indicator.percent === null && !indicator.paused ? " is-indeterminate" : ""}`} viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" pathLength="100" strokeDasharray={`${indicator.percent ?? 25} 100`} /></svg> : null}
     </button> : null}
-    {standalone ? <section className="we-download-panel" aria-label="Downloads">{content}</section> : open ? <OcMenuSurface className="we-download-panel" aria-label="Downloads" role="dialog" onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setOpen(false); trigger.current?.focus(); } }}>{content}</OcMenuSurface> : null}
-    {peek && active && !open ? <OcMenuSurface role="status" className="we-download-peek" aria-label={`Download ${peek.status === "complete" ? "complete" : "failed"}: ${peek.filename}`} onPointerEnter={() => holdPeek("pointer")} onPointerLeave={() => resumePeek("pointer")} onFocus={() => holdPeek("focus")} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) resumePeek("focus"); }}>
-      <header><strong>Download {peek.status === "complete" ? "complete" : "failed"}</strong><button aria-label="Dismiss download" onClick={dismissPeek} type="button"><Glyph name="close" size={14} /></button></header><p>{peek.filename}</p>
-      <div>{peek.status === "complete" && peek.fileExists ? <><OcButton size="sm" disabled={pending !== null} onClick={() => { void perform("show-in-folder", peek.id); }}>Show in folder</OcButton><OcButton size="sm" disabled={pending !== null} onClick={() => { void perform("open", peek.id); }}>Open</OcButton></> : <OcButton size="sm" onClick={() => { dismissPeek(); setOpen(true); }}>View downloads</OcButton>}</div>
+    {standalone ? <section className="we-download-panel" aria-label="ダウンロード">{content}</section> : open ? <OcMenuSurface className="we-download-panel" aria-label="ダウンロード" role="dialog" onKeyDown={event => { if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setOpen(false); trigger.current?.focus(); } }}>{content}</OcMenuSurface> : null}
+    {peek && active && !open ? <OcMenuSurface role="status" className="we-download-peek" aria-label={`ダウンロード ${peek.status === "complete" ? "complete" : "failed"}: ${peek.filename}`} onPointerEnter={() => holdPeek("pointer")} onPointerLeave={() => resumePeek("pointer")} onFocus={() => holdPeek("focus")} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) resumePeek("focus"); }}>
+      <header><strong>ダウンロード {peek.status === "complete" ? "complete" : "failed"}</strong><button aria-label="ダウンロード表示を閉じる" onClick={dismissPeek} type="button"><Glyph name="close" size={14} /></button></header><p>{peek.filename}</p>
+      <div>{peek.status === "complete" && peek.fileExists ? <><OcButton size="sm" disabled={pending !== null} onClick={() => { void perform("show-in-folder", peek.id); }}>フォルダーで表示</OcButton><OcButton size="sm" disabled={pending !== null} onClick={() => { void perform("open", peek.id); }}>開く</OcButton></> : <OcButton size="sm" onClick={() => { dismissPeek(); setOpen(true); }}>ダウンロードを表示</OcButton>}</div>
     </OcMenuSurface> : null}
     <span className="we-download-announcement" aria-live="polite" aria-atomic="true">{active ? announcement : ""}</span>
   </div>;

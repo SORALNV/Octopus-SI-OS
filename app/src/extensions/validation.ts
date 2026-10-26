@@ -48,7 +48,7 @@ export function admitClientExtensionManifest(
     issues.push({
       code: "manifest.size.exceeded",
       path: "",
-      message: `manifest is ${sourceBytes} bytes; maximum is ${MAX_MANIFEST_BYTES}`,
+      message: `マニフェストのサイズ： ${sourceBytes} バイト。上限： ${MAX_MANIFEST_BYTES}`,
     });
   }
   const schemaPassed = validateManifestSchema(value);
@@ -67,7 +67,7 @@ export function admitClientExtensionManifest(
         issues.push({
           code: "manifest.package.identity_mismatch",
           path: "/id",
-          message: "extension id must match its package directory name",
+          message: "拡張機能の ID はパッケージのディレクトリ名と一致する必要があります",
         });
       }
     }
@@ -115,7 +115,7 @@ function schemaIssues(errors: ErrorObject[] | null | undefined): ClientExtension
   return (errors ?? []).slice(0, 64).map((error) => ({
     code: `schema.${error.keyword}`,
     path: error.instancePath,
-    message: error.message || "schema validation failed",
+    message: error.message || "スキーマの検証に失敗しました",
   }));
 }
 

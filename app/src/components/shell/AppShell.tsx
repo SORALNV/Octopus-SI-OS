@@ -363,7 +363,7 @@ export function AppShell({
       <div className="app-shell-page">
         <div className="app-shell-page-region" aria-hidden={interactionDisabled || undefined} inert={interactionDisabled || undefined}>
           {compactSidebar && sidebarOpen ? (
-            <button aria-label="Close navigation" className="app-shell-sidebar-backdrop" onClick={() => setSidebarOpen(false)} type="button" />
+            <button aria-label="ナビゲーションを閉じる" className="app-shell-sidebar-backdrop" onClick={() => setSidebarOpen(false)} type="button" />
           ) : null}
 
           <motion.aside

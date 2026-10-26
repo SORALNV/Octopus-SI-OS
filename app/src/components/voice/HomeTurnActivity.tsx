@@ -83,9 +83,9 @@ export function HomeTurnActivity({ activities, startedAtMs, toolPresentations, t
   terminalNotice: string | null;
 }) {
   const hasActivity = activities.some((message) => conversationTraceAdmission(message, toolPresentations) === "visible");
-  if (!hasActivity && turnInProgress) return <span role="status"><CadencedShimmerText active>Octopus is working</CadencedShimmerText></span>;
+  if (!hasActivity && turnInProgress) return <span role="status"><CadencedShimmerText active>Octopus が作業しています</CadencedShimmerText></span>;
   return (
-    <section aria-label="Current run activity" className="home-live-activity">
+    <section aria-label="現在の実行のアクティビティ" className="home-live-activity">
       {hasActivity ? <TurnActivity
         activities={activities}
         activityWindow="latest-context"
@@ -117,7 +117,7 @@ function HomeActivityDetail({ message, toolPresentations, turnInProgress }: {
       <div className="conversation-notice is-danger">
         <Glyph name="warning" size={13} />
         <div>
-          <strong>{homeEventText(data.message) || message.text || "Warning"}</strong>
+          <strong>{homeEventText(data.message) || message.text || "警告"}</strong>
           {detail ? <span>{detail}</span> : null}
         </div>
       </div>
@@ -157,7 +157,7 @@ function projectHomeLiveActions(
   if (kind === "file_change") {
     const changes = homeEventArray(data.changes).map(homeEventRecord);
     if (changes.length) return changes.map((change, index) => {
-      const path = homeEventText(change.path, change.file, change.name) || `File ${index + 1}`;
+      const path = homeEventText(change.path, change.file, change.name) || `ファイル ${index + 1}`;
       const status = homeEventText(change.kind, change.type, change.status);
       return {
         glyph: "file",
@@ -166,10 +166,10 @@ function projectHomeLiveActions(
       };
     });
     const path = homeEventText(data.path, data.file);
-    return [{ glyph: "file", id: `${identity}:file`, label: path ? `Updated ${path}` : homeActivityLine(entry.text) || "Updated files" }];
+    return [{ glyph: "file", id: `${identity}:file`, label: path ? `更新済み ${path}` : homeActivityLine(entry.text) || "ファイルを更新しました" }];
   }
-  if (kind === "file_change_delta") return [{ glyph: "file", id: `${identity}:file-delta`, label: homeActivityLine(entry.text) || "Updating files" }];
-  if (kind === "diff") return [{ glyph: "changes", id: `${identity}:diff`, label: "Updated the working tree diff" }];
+  if (kind === "file_change_delta") return [{ glyph: "file", id: `${identity}:file-delta`, label: homeActivityLine(entry.text) || "ファイルを更新しています" }];
+  if (kind === "diff") return [{ glyph: "changes", id: `${identity}:diff`, label: "作業ツリーの差分を更新しました" }];
   if (kind === "tool" || kind === "tool_output_delta") {
     const summary = homeEventText(data.summary, data.action) || homeActivityLine(entry.text);
     const command = homeEventText(data.command, data.tool);
@@ -180,11 +180,11 @@ function projectHomeLiveActions(
   }
   if (kind === "web_search") {
     const query = homeEventText(data.query) || homeActivityLine(entry.text);
-    return [{ glyph: "search", id: `${identity}:search`, label: query ? `Searched for ${query}` : "Searched the web" }];
+    return [{ glyph: "search", id: `${identity}:search`, label: query ? `検索しました： ${query}` : "ウェブを検索しました" }];
   }
-  if (kind === "model_verification") return [{ glyph: "check", id: `${identity}:verification`, label: homeActivityLine(entry.text) || "Verified the projected result" }];
-  if (kind === "auth_recovery_started") return [{ glyph: "pulse", id: `${identity}:auth-recovery`, label: homeActivityLine(entry.text) || "Recovering authentication" }];
-  if (kind === "auth_recovery_completed") return [{ glyph: "check", id: `${identity}:auth-recovery`, label: homeActivityLine(entry.text) || "Authentication recovered" }];
+  if (kind === "model_verification") return [{ glyph: "check", id: `${identity}:verification`, label: homeActivityLine(entry.text) || "結果を検証しました" }];
+  if (kind === "auth_recovery_started") return [{ glyph: "pulse", id: `${identity}:auth-recovery`, label: homeActivityLine(entry.text) || "認証を復旧しています" }];
+  if (kind === "auth_recovery_completed") return [{ glyph: "check", id: `${identity}:auth-recovery`, label: homeActivityLine(entry.text) || "認証が復旧しました" }];
   if (kind === "dynamic_tool") {
     const presentation = dynamicToolPresentation(entry as ChatRenderMessage, toolPresentations);
     const active = homeActivityIsActive(entry);
@@ -201,10 +201,10 @@ function projectHomeLiveActions(
   }
   if (kind === "mcp_tool" || kind === "mcp_progress" || kind === "mcp_status") {
     const target = [homeEventText(data.server), homeEventText(data.tool, data.name)].filter(Boolean).join(" · ");
-    return [{ glyph: "plugins", id: `${identity}:mcp`, label: homeActivityLine(entry.text) || (target ? `Called ${target}` : "Completed an interface action") }];
+    return [{ glyph: "plugins", id: `${identity}:mcp`, label: homeActivityLine(entry.text) || (target ? `呼び出しました ${target}` : "インターフェースの操作が完了しました") }];
   }
-  if (kind === "collaboration" || kind === "subagent_activity") return [{ glyph: "user", id: `${identity}:collaboration`, label: homeActivityLine(entry.text) || "Coordinated run work" }];
-  if (kind === "image_view" || kind === "image_generation") return [{ glyph: "image", id: `${identity}:image`, label: homeActivityLine(entry.text) || (kind === "image_generation" ? "Generated an image" : "Inspected an image") }];
+  if (kind === "collaboration" || kind === "subagent_activity") return [{ glyph: "user", id: `${identity}:collaboration`, label: homeActivityLine(entry.text) || "実行間の作業を調整しました" }];
+  if (kind === "image_view" || kind === "image_generation") return [{ glyph: "image", id: `${identity}:image`, label: homeActivityLine(entry.text) || (kind === "image_generation" ? "画像を生成しました" : "画像を確認しました") }];
   const label = homeActivityLine(entry.text) || entry.label?.trim() || "Updated run activity";
   return [{ glyph: "pulse", id: `${identity}:${kind}`, label }];
 }

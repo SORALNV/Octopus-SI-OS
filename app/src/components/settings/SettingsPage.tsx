@@ -160,7 +160,7 @@ export function SettingsPage({
 
   return (
     <div
-      aria-label="Settings"
+      aria-label="設定"
       className="settings-page flex h-full min-h-0"
       ref={dialogRef}
       role="region"
@@ -170,7 +170,7 @@ export function SettingsPage({
         className={`settings-rail app-shell-left-panel relative flex min-h-0 w-token-sidebar shrink-0 flex-col overflow-hidden${query ? " is-searching" : ""}`}
         style={{ "--settings-sidebar-width": `${sidebarWidth}px` } as CSSProperties}
       >
-        <nav className="flex min-h-0 flex-1 flex-col px-row-x select-none" aria-label="Settings sections">
+        <nav className="flex min-h-0 flex-1 flex-col px-row-x select-none" aria-label="設定のカテゴリー">
           <div className="flex min-h-0 flex-1 flex-col">
           <div className="mb-4 flex shrink-0 items-center gap-2">
           <div className="settings-search sidebar-item no-drag flex h-[var(--height-token-row)] min-w-0 flex-1 items-center bg-background-secondary-soft-alpha py-0 pe-[var(--padding-row-cell-x,var(--padding-row-x))] text-base leading-[18px]">
@@ -179,25 +179,25 @@ export function SettingsPage({
                 <Glyph className="icon-sm text-secondary" name="search" size={16} />
               </span>
             </div>
-            <label className="sr-only" htmlFor="settings-search">Search settings</label>
+            <label className="sr-only" htmlFor="settings-search">設定を検索</label>
             <input
               aria-activedescendant={highlightedSearchIndex >= 0 ? `settings-search-result-${highlightedSearchIndex}` : undefined}
               aria-controls="settings-search-results"
-              aria-label="Search settings"
+              aria-label="設定を検索"
               autoComplete="off"
               autoFocus
               className="min-w-0 flex-1 bg-transparent text-base leading-[18px] text-default outline-none select-text placeholder:text-tertiary [&::placeholder]:select-none"
               id="settings-search"
               onChange={(event) => setClientPreferences({ settingsSearch: event.currentTarget.value })}
               onKeyDown={onSearchKeyDown}
-              placeholder="Search settings…"
+              placeholder="設定を検索…"
               role="searchbox"
               type="text"
               value={preferences.settingsSearch}
             />
             {preferences.settingsSearch ? (
               <button
-                aria-label="Clear settings search"
+                aria-label="設定の検索を解除"
                 className="flex size-6 shrink-0 cursor-interaction items-center justify-center text-secondary hover:text-default"
                 onClick={() => setClientPreferences({ settingsSearch: "" })}
                 type="button"
@@ -237,7 +237,7 @@ export function SettingsPage({
                   </div>
                 ))}
                 {searchResults.length === 0 ? (
-                  <div className="px-row-x pt-2 text-sm text-secondary">No results found</div>
+                  <div className="px-row-x pt-2 text-sm text-secondary">見つかりませんでした</div>
                 ) : null}
               </div>
             ) : SETTINGS_SECTION_GROUPS.map((group) => {
@@ -246,7 +246,7 @@ export function SettingsPage({
               return (
                 <div className="settings-rail-group flex flex-col gap-1" key={group}>
                   <div className="settings-rail-group-title group/nav-section-title flex items-center justify-between gap-2 pr-0.5 pl-2">
-                    <div className="min-w-0 flex-1 text-base font-medium text-token-input-placeholder-foreground opacity-75">{group}</div>
+                    <div className="min-w-0 flex-1 text-base font-medium text-token-input-placeholder-foreground opacity-75">{({ Personal: "個人設定", Interaction: "操作", Octopus: "Octopus", Test: "テスト" })[group]}</div>
                   </div>
                   <div className="flex flex-col gap-px">
                     {items.map((item) => (
@@ -278,7 +278,7 @@ export function SettingsPage({
       <div className="relative isolate min-h-0 min-w-0 flex-1 overflow-visible">
         <div className="main-surface flex h-full min-h-0 flex-col">
           <div className="settings-compact-navigation">
-            <OcSelect label="Settings section" value={activeSection ?? ""} options={visibleSections.map((section) => ({ value: section.id, label: section.label }))} onChange={(section) => { setClientPreferences({ settingsSearch: "" }); onSectionChange(section); }} />
+            <OcSelect label="設定のカテゴリー" value={activeSection ?? ""} options={visibleSections.map((section) => ({ value: section.id, label: section.label }))} onChange={(section) => { setClientPreferences({ settingsSearch: "" }); onSectionChange(section); }} />
           </div>
           <main className="settings-main scrollbar-stable flex-1 overflow-y-auto p-panel" ref={mainRef}>
             <div className="settings-content mx-auto flex w-full min-w-0 max-w-3xl flex-col" data-settings-section={activeSection} tabIndex={-1}>
@@ -297,8 +297,8 @@ export function SettingsPage({
               {!activeSection ? (
                 <section className="settings-section settings-empty-section">
                   <Glyph name="search" size={22} />
-                  <h1>No matching settings</h1>
-                  <p>Clear the search or use a different term.</p>
+                  <h1>一致する設定がありません</h1>
+                  <p>検索を解除するか、別のキーワードを使ってください。</p>
                 </section>
               ) : null}
             </div>

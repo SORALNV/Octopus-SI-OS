@@ -8,7 +8,7 @@ export function TaskSourcesPaneTab({ sources }: { sources: TaskSourceRow[] }) {
   const [artifactTarget, setArtifactTarget] = useState<ArtifactReference | null>(null);
   return (
     <div className="task-sources-panel">
-      <ul aria-label="Sources">
+      <ul aria-label="出典">
         {sources.map((source) => (
           <li key={source.id}>
             {source.reference ? (

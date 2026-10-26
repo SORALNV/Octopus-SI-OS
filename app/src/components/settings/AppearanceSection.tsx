@@ -38,9 +38,9 @@ import { useAppErrorToast } from "../../toasts";
 import { copyText } from "../../runtimeFormat";
 
 const themeOptions: Array<{ value: ThemeMode; label: string }> = [
-  { value: "system", label: "System" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
+  { value: "system", label: "システム" },
+  { value: "light", label: "ライト" },
+  { value: "dark", label: "ダーク" },
 ];
 
 const themeCardClass = "flex flex-col [&>*:not(:last-child)]:relative [&>*:not(:last-child)]:after:pointer-events-none [&>*:not(:last-child)]:after:absolute [&>*:not(:last-child)]:after:inset-x-4 [&>*:not(:last-child)]:after:bottom-0 [&>*:not(:last-child)]:after:h-[0.5px] [&>*:not(:last-child)]:after:bg-border [&>*:not(:last-child)]:after:content-[''] overflow-hidden rounded-2xl border border-default";
@@ -144,11 +144,11 @@ export function AppearanceSection() {
 
   return (
     <section className="settings-section settings-appearance">
-      <SettingsHeading title="Appearance" />
+      <SettingsHeading title="外観" />
 
-      <OcGroup title="Theme">
+      <OcGroup title="テーマ">
         <div className="flex flex-col gap-4">
-          <div aria-label="Theme" className="grid max-w-lg grid-cols-3 gap-3" role="radiogroup">
+          <div aria-label="テーマ" className="grid max-w-lg grid-cols-3 gap-3" role="radiogroup">
             {themeOptions.map((option) => (
               <ThemeOption
                 checked={appearance.themeMode === option.value}
@@ -221,7 +221,7 @@ export function AppearanceSection() {
         </div>
       </OcGroup>
 
-      <OcGroup title="Preferences">
+      <OcGroup title="環境設定">
         <div
           className={themeCardClass}
           style={{ backgroundColor: "var(--color-background-panel, var(--color-background-primary-soft-alpha))" }}
@@ -230,92 +230,92 @@ export function AppearanceSection() {
             control={(
               <OcSwitch
                 checked={appearance.pointerCursors}
-                label="Use pointer cursors"
+                label="ポインターカーソルを使う"
                 onCheckedChange={(pointerCursors) => setAppearance({ pointerCursors })}
               />
             )}
-            description="Change the cursor to a pointer when hovering over interactive elements"
-            label="Use pointer cursors"
+            description="操作できる要素にカーソルを合わせたとき、ポインターに変えます"
+            label="ポインターカーソルを使う"
           />
           <PreferenceRow
             control={(
               <PreferenceSegmented<MotionMode>
-                label="Reduce motion"
+                label="視差効果を減らす"
                 onChange={(motionMode) => setAppearance({ motionMode })}
                 options={[
-                  { value: "system", label: "System" },
-                  { value: "reduce", label: "On" },
-                  { value: "full", label: "Off" },
+                  { value: "system", label: "システム" },
+                  { value: "reduce", label: "実行日" },
+                  { value: "full", label: "オフ" },
                 ]}
                 value={appearance.motionMode}
               />
             )}
-            description="Reduce animations or match your system"
-            label="Reduce motion"
+            description="アニメーションを減らすか、システム設定に合わせます"
+            label="視差効果を減らす"
           />
           <PreferenceRow
             control={(
               <OcSwitch
                 checked={appearance.octopuses}
-                label="Octopuses"
+                label="タコのアニメーション"
                 onCheckedChange={(octopuses) => setAppearance({ octopuses })}
               />
             )}
-            description="Octopuses swim through the waves on Home and leave when a call starts; on the new-task screen each task's agent swims in its colour"
-            label="Octopuses"
+            description="ホームではタコが波間を泳ぎ、通話を始めると姿を消します。新しいタスクの画面では、各エージェントが自分の色で泳ぎます"
+            label="タコのアニメーション"
           />
           <PreferenceRow
             control={(
               <NumberUnitField
-                label="Sans font size"
+                label="本文の文字サイズ"
                 max={16}
                 min={11}
                 onChange={(uiFontSize) => setAppearance({ uiFontSize })}
                 value={appearance.uiFontSize}
               />
             )}
-            description="Adjust the base size used for the Octopus UI"
-            label="UI font size"
+            description="Octopus の画面で使う基本の文字サイズを調整します"
+            label="画面の文字サイズ"
           />
           <PreferenceRow
             control={(
               <NumberUnitField
-                label="Code font size"
+                label="コードの文字サイズ"
                 max={24}
                 min={8}
                 onChange={(codeFontSize) => setAppearance({ codeFontSize })}
                 value={appearance.codeFontSize}
               />
             )}
-            description="Adjust the base size used for code across runs and artifacts"
-            label="Code font size"
+            description="実行記録や成果物のコード表示で使う文字サイズを調整します"
+            label="コードの文字サイズ"
           />
           <PreferenceRow
             className="gap-6"
             control={(
               <PreferenceSegmented<DiffMarkerStyle>
-                label="Diff markers"
+                label="差分の表示"
                 onChange={(diffMarkerStyle) => setAppearance({ diffMarkerStyle })}
                 options={[
-                  { value: "color", label: "Color", ariaLabel: "Color diff markers" },
+                  { value: "color", label: "色", ariaLabel: "Color diff markers" },
                   { value: "symbols", label: "+/-", ariaLabel: "Plus / minus diff markers" },
                 ]}
                 value={appearance.diffMarkerStyle}
               />
             )}
-            description="Show changes using colors or +/− markers"
-            label="Diff markers"
+            description="変更を色または +/− の記号で表示します"
+            label="差分の表示"
           />
           <PreferenceRow
             control={(
               <OcSwitch
                 checked={appearance.fontSmoothing}
-                label="Font smoothing"
+                label="文字を滑らかに表示"
                 onCheckedChange={(fontSmoothing) => setAppearance({ fontSmoothing })}
               />
             )}
-            description="Use native macOS font anti-aliasing"
-            label="Font smoothing"
+            description="macOS のフォントのアンチエイリアスを使います"
+            label="文字を滑らかに表示"
           />
         </div>
       </OcGroup>
@@ -514,8 +514,8 @@ function ThemeEditor({
           className="gap-6 py-3"
           control={(
             <div className="flex items-center gap-2 max-sm:w-full max-sm:flex-wrap max-sm:justify-end">
-              <OcButton aria-label={`Import ${title}`} onClick={onImport} variant="ghost">Import</OcButton>
-              <OcButton aria-label={`Copy ${title}`} onClick={onCopy} variant="ghost">Copy theme</OcButton>
+              <OcButton aria-label={`読み込む ${title}`} onClick={onImport} variant="ghost">読み込む</OcButton>
+              <OcButton aria-label={`コピー ${title}`} onClick={onCopy} variant="ghost">テーマをコピー</OcButton>
               <CodeThemePicker
                 accent={accent}
                 ariaLabel={`${capitalize(mode)} code theme`}
@@ -529,13 +529,13 @@ function ThemeEditor({
           )}
           label={<h2 id={titleId}>{title}</h2>}
         />
-        <ThemeRow control={<ColorField label={`${capitalize(mode)} accent color`} onChange={onAccent} value={accent} />} label="Accent" />
-        <ThemeRow control={<ColorField label={`${capitalize(mode)} background color`} onChange={onBackground} value={background} />} label="Background" />
-        <ThemeRow control={<ColorField label={`${capitalize(mode)} ink color`} onChange={onForeground} value={foreground} />} label="Foreground" />
-        <ThemeRow control={<ThemeFontField label={`${capitalize(mode)} UI font`} onChange={onUiFont} placeholder={'-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'} value={uiFont} />} label="UI font" />
-        <ThemeRow control={<ThemeFontField label={`${capitalize(mode)} code font`} onChange={onCodeFont} placeholder={'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace'} value={codeFont} />} label="Code font" />
-        <ThemeRow control={<OcSwitch checked={translucent} label={`${capitalize(mode)} translucent sidebar`} onCheckedChange={onTranslucent} />} label="Translucent sidebar" />
-        <ThemeRow control={<ThemeContrast accent={accent} background={background} label={`${capitalize(mode)} contrast`} onChange={onContrast} value={contrast} />} label="Contrast" />
+        <ThemeRow control={<ColorField label={`${capitalize(mode)} アクセントの色`} onChange={onAccent} value={accent} />} label="アクセント" />
+        <ThemeRow control={<ColorField label={`${capitalize(mode)} 背景の色`} onChange={onBackground} value={background} />} label="背景" />
+        <ThemeRow control={<ColorField label={`${capitalize(mode)} 文字の色`} onChange={onForeground} value={foreground} />} label="文字色" />
+        <ThemeRow control={<ThemeFontField label={`${capitalize(mode)} 画面のフォント`} onChange={onUiFont} placeholder={'-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'} value={uiFont} />} label="画面のフォント" />
+        <ThemeRow control={<ThemeFontField label={`${capitalize(mode)} コードのフォント`} onChange={onCodeFont} placeholder={'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace'} value={codeFont} />} label="コードのフォント" />
+        <ThemeRow control={<OcSwitch checked={translucent} label={`${capitalize(mode)} 半透明のサイドバー`} onCheckedChange={onTranslucent} />} label="半透明のサイドバー" />
+        <ThemeRow control={<ThemeContrast accent={accent} background={background} label={`${capitalize(mode)} コントラスト`} onChange={onContrast} value={contrast} />} label="コントラスト" />
       </div>
     </section>
   );
@@ -568,12 +568,12 @@ function ThemeImportDialog({
       open={Boolean(mode)}
       panelClassName="max-w-[520px]"
     >
-      <OcDialogHeader onClose={onClose} title="Import theme" titleId="appearance-theme-import-title" />
+      <OcDialogHeader onClose={onClose} title="テーマを読み込む" titleId="appearance-theme-import-title" />
       <div className="min-h-0 px-6 pb-6">
         <OcTextField
           inputClassName="font-mono text-sm"
           inputRef={inputRef}
-          label={`${capitalize(mode)} theme share string`}
+          label={`${capitalize(mode)} テーマの共有用テキスト`}
           onChange={(event) => onValueChange(event.currentTarget.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter" && valid) {
@@ -589,8 +589,8 @@ function ThemeImportDialog({
         />
       </div>
       <OcDialogFooter>
-        <OcButton onClick={onClose} variant="ghost">Cancel</OcButton>
-        <OcButton disabled={!valid} onClick={onSubmit} variant="primary">Import theme</OcButton>
+        <OcButton onClick={onClose} variant="ghost">キャンセル</OcButton>
+        <OcButton disabled={!valid} onClick={onSubmit} variant="primary">テーマを読み込む</OcButton>
       </OcDialogFooter>
     </OcDialog>
   );
@@ -793,7 +793,7 @@ function ColorField({ label, value, onChange }: { label: string; value: string; 
         <button
           aria-expanded={open}
           aria-haspopup="dialog"
-          aria-label={`Choose ${label}`}
+          aria-label={`選択 ${label}`}
           className="h-3.5 w-3.5 shrink-0 rounded-full disabled:cursor-default"
           onClick={() => setOpen((current) => !current)}
           ref={triggerRef}

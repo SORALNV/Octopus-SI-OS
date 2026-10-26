@@ -66,20 +66,20 @@ export function RegistryArtifactsColumns({ onOpenFiles, query }: {
   return (
     <section aria-busy={artifacts.phase === "refreshing"} className="rg-col rg-col-artifact-library">
       <header className="rg-col-head">
-        <div className="rg-col-title">Artifacts</div>
+        <div className="rg-col-title">成果物</div>
       </header>
       <div className="rg-col-body flex min-h-0 flex-col">
         {!projectionAvailable ? (
-          <OcEmptyState className="h-full" detail="Artifacts are read from the movement ledger through the desktop app." glyph="warning" title="Artifacts are unavailable" />
+          <OcEmptyState className="h-full" detail="成果物はデスクトップアプリを通じて移動台帳から読み取ります。" glyph="warning" title="成果物を利用できません" />
         ) : artifacts.phase === "initial-loading" && !artifacts.error ? (
-          <ProjectionResourceLoading label="Reading artifacts" />
+          <ProjectionResourceLoading label="成果物を読み込んでいます" />
         ) : collection === null ? (
           <ProjectionResourceFailure
             className="h-full"
             detail={artifacts.error}
             onRetry={artifacts.retry}
             retrying={artifacts.phase === "initial-loading" || artifacts.phase === "refreshing"}
-            title="Unable to load artifacts"
+            title="成果物を読み込めません"
           />
         ) : (
           <>
@@ -89,20 +89,20 @@ export function RegistryArtifactsColumns({ onOpenFiles, query }: {
                 detail={artifacts.error}
                 onRetry={artifacts.retry}
                 retrying={artifacts.phase === "refreshing"}
-                title="Artifacts could not be refreshed"
+                title="成果物を更新できませんでした"
               />
             ) : null}
             {rows.length === 0 ? (
               <OcEmptyState
                 className="h-full"
                 detail={collection.unavailableCount > 0
-                  ? "Recorded artifact movements are still visible in Movements. Opening a payload requires exact admitted run and interface coordinates."
-                  : "Artifacts appear here after they cross a declared interface in a run."}
+                  ? "記録済みの成果物の移動は「移動」で確認できます。データを開くには、許可された実行とインターフェースの正確な指定が必要です。"
+                  : "実行中に成果物がインターフェースを通過すると、ここに表示されます。"}
                 glyph="artifact"
-                title={collection.unavailableCount > 0 ? "No available artifact payloads" : "No recorded artifacts"}
+                title={collection.unavailableCount > 0 ? "利用できる成果物のデータがありません" : "記録された成果物がありません"}
               />
             ) : visibleRows.length === 0 ? (
-              <OcEmptyState className="h-full" detail="Try a different artifact, task, interface, or movement term." glyph="search" title="No matching artifacts" />
+              <OcEmptyState className="h-full" detail="別の成果物、タスク、インターフェース、移動のキーワードで検索してください。" glyph="search" title="一致する成果物がありません" />
             ) : (
               <div className="min-h-0 flex-1">
                 <ArtifactLibrary

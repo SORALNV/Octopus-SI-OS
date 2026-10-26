@@ -144,8 +144,8 @@ export function TurnActivity({ activityWindow = "all", activities, finalStartedA
   const hasConversationReasoningWork = presentation === "conversation"
     && visibleActivity.some((message) => activityFamily(message) === "reasoning");
   const thinkingFallbackMessage = presentation === "conversation"
-    ? latestReasoningSummaryHeading(presented) || "Thinking"
-    : "Thinking";
+    ? latestReasoningSummaryHeading(presented) || "考えています"
+    : "考えています";
   const { activeGroupId, showThinkingFallback } = activityProgressSurface(units, working);
   const [historyDisclosureState, setHistoryDisclosureState] = useState<DisclosureState>("collapsed");
   const [, setClock] = useState(0);
@@ -210,7 +210,7 @@ export function TurnActivity({ activityWindow = "all", activities, finalStartedA
           className="text-size-chat text-token-text-tertiary select-none"
           role="status"
         >
-          <CadencedShimmerText active>Starting your task</CadencedShimmerText>
+          <CadencedShimmerText active>タスクを開始しています</CadencedShimmerText>
         </div>
       </section>
     );
@@ -392,7 +392,7 @@ function MultiAgentActivityGroup({ entries }: { entries: ActivityEntry[] }) {
   if (!items.length) return null;
   const status = multiAgentGroupStatus(items);
   const count = multiAgentCount(items);
-  const summary = `${multiAgentHeaderAction(items[0].action, status)}${count > 0 ? count === 1 ? " an agent" : ` ${count} agents` : ""}`;
+  const summary = `${count > 0 ? `${count} 体のエージェント：` : ""}${multiAgentHeaderAction(items[0].action, status)}`;
   const rows = multiAgentRows(items);
   return (
     <ActivityDisclosure
@@ -434,7 +434,7 @@ function SubagentActivityGroup({ entries }: { entries: ActivityEntry[] }) {
         </span>
       ))}
       <span className="octopus-subagent-group-status">
-        {hidden > 0 ? `and ${hidden} other ${hidden === 1 ? "subagent" : "subagents"} ` : ""}{status}
+        {hidden > 0 ? `ほか ${hidden} 体のサブエージェントが` : ""}{status}
       </span>
     </div>
   );
@@ -458,42 +458,42 @@ function multiAgentCount(items: MultiAgentActivityItem[]): number {
 function multiAgentHeaderAction(action: MultiAgentAction, status: MultiAgentStatus): string {
   switch (action) {
     case "spawnAgent":
-      return status === "inProgress" ? "Creating" : status === "failed" ? "Failed to create" : "Created";
+      return status === "inProgress" ? "作成中" : status === "failed" ? "作成に失敗" : "作成済み";
     case "sendInput":
-      return status === "inProgress" ? "Messaging" : status === "failed" ? "Failed to message" : "Messaged";
+      return status === "inProgress" ? "メッセージを送信中" : status === "failed" ? "送信に失敗" : "メッセージを送信済み";
     case "resumeAgent":
-      return status === "inProgress" ? "Resuming" : status === "failed" ? "Failed to resume" : "Resumed";
+      return status === "inProgress" ? "再開中" : status === "failed" ? "再開に失敗" : "再開済み";
     case "closeAgent":
-      return status === "inProgress" ? "Closing" : status === "failed" ? "Failed to close" : "Closed";
+      return status === "inProgress" ? "終了中" : status === "failed" ? "終了に失敗" : "終了";
   }
 }
 
 function multiAgentRowAction(action: MultiAgentAction, status: MultiAgentStatus): string {
   switch (action) {
     case "spawnAgent":
-      return status === "inProgress" ? "Creating" : status === "failed" ? "Failed creating" : "Created";
+      return status === "inProgress" ? "作成中" : status === "failed" ? "作成に失敗" : "作成済み";
     case "sendInput":
-      return status === "inProgress" ? "Messaging" : status === "failed" ? "Failed messaging" : "Messaged";
+      return status === "inProgress" ? "メッセージを送信中" : status === "failed" ? "送信に失敗" : "メッセージを送信済み";
     case "resumeAgent":
-      return status === "inProgress" ? "Resuming" : status === "failed" ? "Failed resuming" : "Resumed";
+      return status === "inProgress" ? "再開中" : status === "failed" ? "再開に失敗" : "再開済み";
     case "closeAgent":
-      return status === "inProgress" ? "Closing" : status === "failed" ? "Failed closing" : "Closed";
+      return status === "inProgress" ? "終了中" : status === "failed" ? "終了に失敗" : "終了";
   }
 }
 
 function multiAgentSendInputAction(status: MultiAgentStatus): string {
-  return status === "inProgress" ? "Messaging" : status === "failed" ? "Failed to message" : "Messaged";
+  return status === "inProgress" ? "メッセージを送信中" : status === "failed" ? "送信に失敗" : "メッセージを送信済み";
 }
 
 function multiAgentStateLabel(status: MultiAgentStateStatus): string {
   switch (status) {
-    case "pendingInit": return "pending init";
-    case "running": return "running";
-    case "interrupted": return "interrupted";
-    case "shutdown": return "shutdown";
-    case "completed": return "completed";
-    case "errored": return "errored";
-    case "notFound": return "not found";
+    case "pendingInit": return "初期化待ち";
+    case "running": return "実行中";
+    case "interrupted": return "中断";
+    case "shutdown": return "終了";
+    case "completed": return "完了";
+    case "errored": return "エラー";
+    case "notFound": return "見つかりません";
   }
 }
 
@@ -512,7 +512,7 @@ function multiAgentDisplayName(agentId: string): string {
 }
 
 function multiAgentLabel(agentId: string, model: string): ReactNode {
-  return <span className="octopus-multi-agent-name" title={model ? `Uses ${model}` : undefined}>{multiAgentDisplayName(agentId)}</span>;
+  return <span className="octopus-multi-agent-name" title={model ? `使用 ${model}` : undefined}>{multiAgentDisplayName(agentId)}</span>;
 }
 
 function multiAgentPrompt(prompt: string): ReactNode {
@@ -531,7 +531,7 @@ function multiAgentRows(items: MultiAgentActivityItem[]): Array<{ key: string; n
       for (const agentId of ids) {
         const agent = multiAgentLabel(agentId, item.model);
         const node = spawnWithInstructions ? (
-          <span className="octopus-multi-agent-row-nowrap">Created {agent} with the instructions: {multiAgentPrompt(item.prompt)}</span>
+          <span className="octopus-multi-agent-row-nowrap">作成済み {agent} 指示： {multiAgentPrompt(item.prompt)}</span>
         ) : sendWithPrompt ? (
           <span className="octopus-multi-agent-row-nowrap">{multiAgentSendInputAction(item.status)} {agent}: {multiAgentPrompt(item.prompt)}</span>
         ) : (
@@ -543,7 +543,7 @@ function multiAgentRows(items: MultiAgentActivityItem[]): Array<{ key: string; n
     if (!spawnWithInstructions && !sendWithPrompt && item.prompt) {
       rows.push({
         key: `meta-prompt-${item.id}`,
-        node: <span className="octopus-multi-agent-input">Input: {item.prompt}</span>,
+        node: <span className="octopus-multi-agent-input">入力： {item.prompt}</span>,
       });
     }
   }
@@ -556,9 +556,9 @@ function subagentActivityItem(entry: ActivityEntry): SubagentActivityItem | null
 
 function subagentGroupStatus(items: SubagentActivityItem[]): string {
   const statuses = items.map((item) => item.displayStatus);
-  if (statuses.includes("interrupted")) return "interrupted";
-  if (statuses.includes("updated")) return "updated";
-  return "started working";
+  if (statuses.includes("interrupted")) return "中断しました";
+  if (statuses.includes("updated")) return "更新しました";
+  return "作業を開始しました";
 }
 
 function activityEntryRenderable(entry: ActivityEntry, toolPresentations: ChatToolPresentationIndex): boolean {
@@ -624,7 +624,7 @@ function ReasoningSummaryActivity({ entry, message }: {
   if (!message?.text.trim()) return null;
   const detail = reasoningDetail(message.text, entry.active);
   const lifecycle = entry.active ? "active" : "complete";
-  const summary = entry.active ? "Thinking" : elapsed ? `Thought for ${formatElapsed(elapsed)}` : "Thought";
+  const summary = entry.active ? "考えています" : elapsed ? `思考時間： ${formatElapsed(elapsed)}` : "思考";
   return (
     <ActivityDisclosure
       active={entry.active}
@@ -913,7 +913,7 @@ function DeferredActivitySummary({ active, summary, summaryKey, transition }: {
   );
 }
 
-function ThinkingFallback({ active = true, label = "Thinking" }: { active?: boolean; label?: string }) {
+function ThinkingFallback({ active = true, label = "考えています" }: { active?: boolean; label?: string }) {
   return (
     <div className="octopus-thinking-fallback text-size-chat text-token-conversation-body">
       <span aria-hidden="true" className="h-4 w-0 shrink-0" />
@@ -951,8 +951,8 @@ function RetryableErrorActivity({ message }: { message: ChatRenderMessage }) {
     || disconnected.http_status_code === 429;
   const progress = attempt && maximum ? `${attempt}/${maximum}` : "";
   const label = overloaded
-    ? `Server is busy, reconnecting${progress ? ` ${progress}` : ""}`
-    : progress ? `Reconnecting ${progress}` : message.text || "Reconnecting";
+    ? `サーバーが混み合っています。再接続しています${progress ? ` ${progress}` : ""}`
+    : progress ? `再接続中 ${progress}` : message.text || "Reconnecting";
   const details = text(data.additional_details ?? data.additionalDetails);
   return (
     <ActivityDisclosure
@@ -979,7 +979,7 @@ function WorkedForToggle({ elapsed, expanded, onToggle }: {
       onClick={onToggle}
       type="button"
     >
-      <span className="text-token-conversation-body">Worked for {formatElapsed(elapsed)}</span>
+      <span className="text-token-conversation-body">作業時間 {formatElapsed(elapsed)}</span>
       <Glyph className={`octopus-worked-for-chevron icon-2xs${expanded ? " is-expanded" : ""}`} name="chevronDown" size={12} />
     </button>
   );
@@ -991,12 +991,12 @@ function WorkedForBoundary({ elapsed, reducedMotion, status }: {
   status: "working" | "worked" | "stopped" | "interrupted";
 }) {
   const label = status === "working"
-    ? elapsed >= 1_000 ? `Working for ${formatElapsed(elapsed)}` : "Working"
+    ? elapsed >= 1_000 ? `作業時間： ${formatElapsed(elapsed)}` : "Working"
     : status === "stopped"
-      ? `You stopped after ${formatElapsed(elapsed)}`
+      ? `停止までの作業時間： ${formatElapsed(elapsed)}`
       : status === "interrupted"
-        ? `Interrupted after ${formatElapsed(elapsed)}`
-        : `Worked for ${formatElapsed(elapsed)}`;
+        ? `中断までの作業時間： ${formatElapsed(elapsed)}`
+        : `作業時間 ${formatElapsed(elapsed)}`;
   return (
     <motion.div
       animate={{ height: "auto", opacity: 1 }}
@@ -1587,27 +1587,27 @@ function completedGroupSummary(entries: ActivityEntry[], toolPresentations: Chat
     const names = new Intl.ListFormat(undefined, { style: "long", type: "conjunction" }).format(integrationNames);
     segments.push({
       icon: "plugins",
-      leading: `Used ${names} ${integrationNames.length === 1 ? "integration" : "integrations"}`,
+      leading: `使用： ${names} ${integrationNames.length === 1 ? "integration" : "integrations"}`,
       following: `used ${names} ${integrationNames.length === 1 ? "integration" : "integrations"}`,
     });
   }
-  pushPluralSegment(segments, unnamedMcpCalls, "Called a tool", "Called tools", "plugins");
+  pushPluralSegment(segments, unnamedMcpCalls, "ツールを呼び出しました", "ツールを呼び出しました", "plugins");
   const fileChangeCount = changedPaths.size + anonymousFileChanges;
-  pushPluralSegment(segments, fileChangeCount, "Edited a file", "Edited files", "edit");
+  pushPluralSegment(segments, fileChangeCount, "ファイルを編集しました", "ファイルを編集しました", "edit");
   if (exploration || searches || listings) {
     segments.push({
       icon: explorationGroupIcon(entries, toolPresentations),
-      leading: "Read files",
+      leading: "ファイルを読み取りました",
       following: "read files",
     });
   }
   for (const kind of ["read", "list", "search"] as const) {
     if (!artifactExploration.some((presentation) => presentation.kind === kind)) continue;
-    const label = kind === "read" ? "Read artifacts" : kind === "list" ? "Listed artifacts" : "Searched artifacts";
+    const label = kind === "read" ? "成果物を読み取りました" : kind === "list" ? "成果物の一覧を取得しました" : "成果物を検索しました";
     segments.push({ icon: kind === "list" ? "folder" : kind === "search" ? "search" : "read", leading: label, following: label[0].toLowerCase() + label.slice(1) });
   }
-  pushPluralSegment(segments, commands, "Ran a command", "Ran commands", "terminal");
-  if (web.length || dynamicFamilies.includes("web")) segments.push({ icon: "search", leading: "Searched the web", following: "searched the web" });
+  pushPluralSegment(segments, commands, "コマンドを実行しました", "コマンドを実行しました", "terminal");
+  if (web.length || dynamicFamilies.includes("web")) segments.push({ icon: "search", leading: "ウェブを検索しました", following: "searched the web" });
   const genericDynamicLabels = new Map(genericDynamicTools.map((entry) => {
     const presentation = dynamicToolPresentation(activityDetailMessages(entry)[0], toolPresentations);
     return [dynamicToolSummary(presentation), dynamicToolGlyph(presentation)] as const;
@@ -1615,11 +1615,11 @@ function completedGroupSummary(entries: ActivityEntry[], toolPresentations: Chat
   for (const [label, icon] of genericDynamicLabels) {
     segments.push({
       icon,
-      leading: label || "Used a tool",
+      leading: label || "ツールを使用しました",
       following: label ? label[0].toLocaleLowerCase() + label.slice(1) : "used a tool",
     });
   }
-  if (!segments.length) return { icon: null, label: "Worked" };
+  if (!segments.length) return { icon: null, label: "作業完了" };
   return {
     icon: segments[0].icon,
     label: new Intl.ListFormat(undefined, { style: "long", type: "unit" }).format(
@@ -1642,11 +1642,11 @@ function pushPluralSegment(
 
 function activeActivityLabel(entry: ActivityEntry, toolPresentations: ChatToolPresentationIndex): string {
   const message = entry.messages.at(-1);
-  if (!message) return "Thinking";
+  if (!message) return "考えています";
   const data = record(message.eventData);
-  if (entry.family === "commentary") return "Explaining progress";
-  if (entry.family === "reasoning") return "Thinking";
-  if (entry.family === "plan") return "Updating plan";
+  if (entry.family === "commentary") return "進捗を報告しています";
+  if (entry.family === "reasoning") return "考えています";
+  if (entry.family === "plan") return "計画を更新しています";
   if (entry.family === "exec") {
     const category = execCategory(entry);
     const parsed = record(data.parsed_cmd ?? data.parsedCmd);
@@ -1654,17 +1654,17 @@ function activeActivityLabel(entry: ActivityEntry, toolPresentations: ChatToolPr
     const query = text(parsed.query) || text(parsed.pattern);
     const targetLabel = activityPathBasename(target);
     if (category === "read") {
-      return targetLabel ? `Reading ${targetLabel}` : "Reading files";
+      return targetLabel ? `読み込み中 ${targetLabel}` : "ファイルを読み込んでいます";
     }
     if (category === "search") {
-      if (targetLabel) return `Searching files in ${targetLabel} folder`;
-      return query ? `Searching for ${query}` : "Searching files";
+      if (targetLabel) return `ファイルを検索中： ${targetLabel} 内のフォルダー`;
+      return query ? `検索中： ${query}` : "ファイルを検索しています";
     }
-    if (category === "list") return targetLabel ? `Listing files in ${targetLabel} folder` : "Listing files";
+    if (category === "list") return targetLabel ? `ファイル一覧を取得中： ${targetLabel} 内のフォルダー` : "ファイル一覧を取得しています";
     const command = commandText(entry).trim();
-    return command ? `Running ${command}` : "Running command";
+    return command ? `実行中 ${command}` : "コマンドを実行しています";
   }
-  if (entry.family === "files") return "Editing files";
+  if (entry.family === "files") return "ファイルを編集中";
   if (entry.family === "web") {
     return webSearchActivityLabel(webSearchActivityDetail(message), true);
   }
@@ -1674,27 +1674,27 @@ function activeActivityLabel(entry: ActivityEntry, toolPresentations: ChatToolPr
     if (presentation.family === "read") {
       if (presentation.targetKind === "artifact") return dynamicToolReadLabel(presentation, true);
       if (presentation.kind === "read") {
-        return presentation.pathLabel ? `Reading ${presentation.pathLabel}` : "Reading files";
+        return presentation.pathLabel ? `読み込み中 ${presentation.pathLabel}` : "ファイルを読み込んでいます";
       }
       if (presentation.kind === "search") {
-        if (presentation.pathLabel) return `Searching files in ${presentation.pathLabel} folder`;
-        return presentation.query ? `Searching for ${presentation.query}` : "Searching files";
+        if (presentation.pathLabel) return `ファイルを検索中： ${presentation.pathLabel} 内のフォルダー`;
+        return presentation.query ? `検索中： ${presentation.query}` : "ファイルを検索しています";
       }
-      return presentation.pathLabel ? `Listing files in ${presentation.pathLabel} folder` : "Listing files";
+      return presentation.pathLabel ? `ファイル一覧を取得中： ${presentation.pathLabel} 内のフォルダー` : "ファイル一覧を取得しています";
     }
-    if (presentation.family === "files") return presentation.target ? `Editing ${presentation.target}` : "Editing files";
-    if (presentation.family === "exec") return presentation.target ? `Running ${presentation.target}` : "Running command";
+    if (presentation.family === "files") return presentation.target ? `編集中 ${presentation.target}` : "ファイルを編集中";
+    if (presentation.family === "exec") return presentation.target ? `実行中 ${presentation.target}` : "コマンドを実行しています";
     const target = dynamicToolActivityLabel(entry, toolPresentations);
-    return target || "Using a tool";
+    return target || "ツールを使用しています";
   }
   if (entry.family === "mcp" || entry.family === "hooks") {
     const target = [text(data.server), text(data.tool) || text(data.name)].filter(Boolean).join(" · ");
-    return target ? `Calling ${target}` : "Calling tool";
+    return target ? `呼び出し中 ${target}` : "ツールを呼び出しています";
   }
-  if (entry.family === "collaboration") return "Coordinating agents";
-  if (entry.family === "images") return message.eventKind === "image_generation" ? "Generating image" : "Viewing image";
-  if (entry.family === "review") return "Reviewing changes";
-  if (entry.family === "sleep") return "Waiting";
+  if (entry.family === "collaboration") return "エージェントの作業を調整しています";
+  if (entry.family === "images") return message.eventKind === "image_generation" ? "画像を生成しています" : "画像を確認しています";
+  if (entry.family === "review") return "変更をレビューしています";
+  if (entry.family === "sleep") return "待機中";
   return activityLabel(entry);
 }
 
@@ -1741,29 +1741,29 @@ function explorationActivityEntry(
 
 function activityLabel(entry: ActivityEntry): string {
   const message = entry.messages.at(-1);
-  if (!message) return "Activity";
+  if (!message) return "アクティビティ";
   const data = record(message.eventData);
-  if (entry.family === "compaction") return describeNotice(message) || "Context automatically compacted";
+  if (entry.family === "compaction") return describeNotice(message) || "コンテキストを自動で整理しました";
   if (entry.family === "model") {
     const from = text(data.fromModel) || text(data.from_model);
     const to = text(data.toModel) || text(data.to_model);
     return message.eventKind === "model_rerouted" && (from || to)
-      ? `Model rerouted · ${[from, to].filter(Boolean).join(" → ")}`
-      : message.eventKind === "model_rerouted" ? "Model rerouted" : "Model route verified";
+      ? `モデルの接続先を変更しました · ${[from, to].filter(Boolean).join(" → ")}`
+      : message.eventKind === "model_rerouted" ? "モデルの接続先を変更しました" : "モデルの接続経路を確認しました";
   }
   if (entry.family === "warning") return text(data.message) || message.text || "Warning";
-  if (entry.family === "rate_limits") return "Rate limits updated";
-  if (entry.family === "goal") return `Goal · ${text(data.status) || "updated"}`;
+  if (entry.family === "rate_limits") return "使用上限を更新しました";
+  if (entry.family === "goal") return `目標 · ${text(data.status) || "updated"}`;
   if (entry.family === "operator") {
-    if (message.eventKind === "approval") return "Approval requested";
-    if (message.eventKind === "operator_request_resolved") return "Operator request resolved";
-    return "Operator input requested";
+    if (message.eventKind === "approval") return "承認が求められています";
+    if (message.eventKind === "operator_request_resolved") return "ユーザーへのリクエストが解決しました";
+    return "ユーザーへの入力要求";
   }
   if (entry.family === "turn_control") {
     const action = text(data.action) || "control";
     const status = text(data.status) || "projected";
-    if (action === "steer") return status === "acknowledged" ? "Steered turn" : "Steer failed";
-    if (action === "stop" || action === "interrupt") return status === "acknowledged" ? "Stopped turn" : "Stop failed";
+    if (action === "steer") return status === "acknowledged" ? "指示を追加しました" : "指示を追加できませんでした";
+    if (action === "stop" || action === "interrupt") return status === "acknowledged" ? "やり取りを停止しました" : "停止できませんでした";
     return `${action} · ${status}`;
   }
   return message.label || message.text || "Activity";
@@ -2007,13 +2007,13 @@ function latestActivityTime(messages: ChatRenderMessage[]): number | null {
 
 function formatElapsed(value: number): string {
   const seconds = Math.max(0, Math.floor(value / 1_000));
-  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 60) return `${seconds} 秒`;
   const minutes = Math.floor(seconds / 60);
   const remainder = seconds % 60;
-  if (minutes < 60) return remainder ? `${minutes}m ${remainder}s` : `${minutes}m`;
+  if (minutes < 60) return remainder ? `${minutes} 分 ${remainder} 秒` : `${minutes} 分`;
   const hours = Math.floor(minutes / 60);
   const minuteRemainder = minutes % 60;
-  return minuteRemainder ? `${hours}h ${minuteRemainder}m` : `${hours}h`;
+  return minuteRemainder ? `${hours} 時間 ${minuteRemainder} 分` : `${hours} 時間`;
 }
 
 function describeNotice(message: ChatRenderMessage): string {
@@ -2021,12 +2021,12 @@ function describeNotice(message: ChatRenderMessage): string {
   const descriptor = [message.label, text(data.type), text(data.event), text(data.action), text(data.status)].join(" ").toLocaleLowerCase();
   if (descriptor.includes("compact")) {
     const source = `${text(data.source)} ${text(data.mode)}`.toLocaleLowerCase();
-    return source.includes("manual") ? "Context compacted" : "Context automatically compacted";
+    return source.includes("manual") ? "コンテキストを整理しました" : "コンテキストを自動で整理しました";
   }
   if (data.will_retry === true || descriptor.includes("retry")) return activityIsActive(message) ? "Retrying" : "Retried";
   if (descriptor.includes("delivery") || descriptor.includes("refused") || data.verdict !== undefined) {
     const verdict = text(data.verdict) || text(data.status);
-    return verdict ? `Artifact delivery · ${verdict}` : "Artifact delivery updated";
+    return verdict ? `成果物の配信 · ${verdict}` : "成果物の配信状況を更新しました";
   }
   return message.text;
 }

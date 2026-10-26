@@ -130,7 +130,7 @@ export function VoiceCallPuck({
   return (
     <motion.div
       {...homeSurfaceFade(reducedMotion)}
-      aria-label={`Home call: ${state.title}`}
+      aria-label={`ホームの通話： ${state.title}`}
       className={`voice-call-puck${dragging ? " is-dragging" : ""}${muted ? " is-muted" : ""}`}
       onClick={openFromPanel}
       onPointerCancel={endDrag}
@@ -148,15 +148,15 @@ export function VoiceCallPuck({
         muted={muted}
         session={session}
       />
-      <ShellTooltip label="Open Home">
-        <button aria-label="Open Home call" className="voice-call-puck-copy" onClick={onOpenHome} type="button">
+      <ShellTooltip label="ホームを開く">
+        <button aria-label="ホームの通話を開く" className="voice-call-puck-copy" onClick={onOpenHome} type="button">
           <span className="voice-call-puck-timer">{session.startedAtMs > 0 ? formatCallDuration(elapsedMs) : "–:––"}</span>
           <span className="voice-call-puck-status" role="status">{state.title}</span>
         </button>
       </ShellTooltip>
-      <ShellTooltip disabled={!state.canMute} label={muted ? "Unmute" : "Mute"}>
+      <ShellTooltip disabled={!state.canMute} label={muted ? "ミュートを解除" : "ミュート"}>
         <button
-          aria-label={muted ? "Unmute" : "Mute"}
+          aria-label={muted ? "ミュートを解除" : "ミュート"}
           aria-pressed={muted}
           className="voice-call-puck-action"
           disabled={!state.canMute}
@@ -166,9 +166,9 @@ export function VoiceCallPuck({
           <Glyph name={muted ? "microphoneOff" : "microphone"} size={18} />
         </button>
       </ShellTooltip>
-      <ShellTooltip disabled={!state.canEnd} label="End call; tasks keep running">
+      <ShellTooltip disabled={!state.canEnd} label="通話を終了（タスクは続行）">
         <button
-          aria-label="End call"
+          aria-label="通話を終了"
           className="voice-call-puck-action is-end"
           disabled={!state.canEnd}
           onClick={() => { void session.end(); }}

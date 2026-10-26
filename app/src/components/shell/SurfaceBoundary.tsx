@@ -32,8 +32,8 @@ export class SurfaceRenderBoundary extends Component<{
     if (!this.state.failed) return this.props.children;
     return (
       <div className="surface-render-error" role="alert">
-        <strong>Tab content couldn’t render</strong>
-        <OcButton onClick={() => this.setState({ failed: false })} size="sm" variant="secondary">Try again</OcButton>
+        <strong>タブの内容を表示できませんでした</strong>
+        <OcButton onClick={() => this.setState({ failed: false })} size="sm" variant="secondary">再試行</OcButton>
       </div>
     );
   }

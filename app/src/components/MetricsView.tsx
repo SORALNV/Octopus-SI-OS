@@ -114,7 +114,7 @@ export function MetricsView({ query }: { query: string }) {
         }
         return [source.id, payload, ""] as const;
       } catch (error) {
-        return [source.id, undefined, formatProjectionError(error) || "Projection read failed"] as const;
+        return [source.id, undefined, formatProjectionError(error) || "表示用データを読み込めませんでした"] as const;
       }
     }));
     const payloads: Record<string, unknown> = { ...(lastGood?.payloads ?? {}) };
@@ -163,10 +163,10 @@ export function MetricsView({ query }: { query: string }) {
     && parseDateInput(customRange.start, false) <= parseDateInput(customRange.end, true);
 
   if (!projectionAvailable) {
-    return <RuntimeEmpty title="Projection bridge unavailable" detail="Metrics reads ledger projections through Electron" />;
+    return <RuntimeEmpty title="表示用データの接続を利用できません" detail="メトリクスは Electron を通じて台帳の表示用データを読み取ります" />;
   }
   if (metrics.phase === "initial-loading" && !metrics.error) {
-    return <ProjectionResourceLoading label="Loading metrics" />;
+    return <ProjectionResourceLoading label="メトリクスを読み込んでいます" />;
   }
   if (metrics.data === null) {
     return (
@@ -174,7 +174,7 @@ export function MetricsView({ query }: { query: string }) {
         detail={metrics.error}
         onRetry={metrics.retry}
         retrying={metrics.phase === "initial-loading" || metrics.phase === "refreshing"}
-        title="Unable to load metrics"
+        title="メトリクスを読み込めません"
       />
     );
   }
@@ -189,12 +189,12 @@ export function MetricsView({ query }: { query: string }) {
             onRetry={metrics.retry}
             retrying={refreshing}
             title={Object.keys(state.errors).length > 0 && Object.keys(state.errors).length < SOURCES.length
-              ? "Some metrics use the last successful projection"
-              : "Metrics could not be refreshed"}
+              ? "一部のメトリクスは、前回取得できたデータを表示しています"
+              : "メトリクスを更新できませんでした"}
           />
         ) : null}
-        <div className="observability-commandbar" aria-label="Metrics time range">
-          {refreshing ? <span className="mr-auto text-[10px] text-token-text-secondary" role="status">Refreshing metrics…</span> : null}
+        <div className="observability-commandbar" aria-label="メトリクスの対象期間">
+          {refreshing ? <span className="mr-auto text-[10px] text-token-text-secondary" role="status">メトリクスを更新しています…</span> : null}
           <div className="observability-periods">
             {(Object.keys(PERIODS) as Array<Exclude<MetricPeriod, "custom">>).map((value) => (
               <button
@@ -216,15 +216,15 @@ export function MetricsView({ query }: { query: string }) {
                 onClick={() => setCustomOpen((open) => !open)}
                 type="button"
               >
-                Custom
+                カスタム
               </button>
-              <OcDropdown anchorRef={customAnchorRef} align="end" className="observability-custom-popover" role="dialog" aria-label="Custom metrics range" onOpenChange={setCustomOpen} open={customOpen} style={{ position: "fixed", width: 260, minWidth: 0 }} sideOffset={6}>
+              <OcDropdown anchorRef={customAnchorRef} align="end" className="observability-custom-popover" role="dialog" aria-label="メトリクスの期間を指定" onOpenChange={setCustomOpen} open={customOpen} style={{ position: "fixed", width: 260, minWidth: 0 }} sideOffset={6}>
                   <label>
-                    <span>From</span>
+                    <span>開始</span>
                     <input type="date" value={customRange.start} onChange={(event) => setCustomRange((current) => ({ ...current, start: event.target.value }))} />
                   </label>
                   <label>
-                    <span>To</span>
+                    <span>終了</span>
                     <input type="date" value={customRange.end} onChange={(event) => setCustomRange((current) => ({ ...current, end: event.target.value }))} />
                   </label>
                   <button
@@ -237,7 +237,7 @@ export function MetricsView({ query }: { query: string }) {
                     }}
                     type="button"
                   >
-                    Apply range
+                    期間を適用
                   </button>
               </OcDropdown>
             </div>
@@ -245,27 +245,27 @@ export function MetricsView({ query }: { query: string }) {
         </div>
 
         <div className="observability-signal-strip">
-          <MetricSignal detail={model.runTrend.label} glyph="pulse" label="Runs" loading={state.loading} series={model.runSeries} trend={model.runTrend} value={sourceCount(state, "runs", model.windowRuns.length)} />
-          <MetricSignal detail={model.activity.ledgerWindowAtLimit ? "Indexed page limit; refine range" : model.movementTrend.label} glyph="worktree" label="Movements" loading={state.loading} series={model.movementSeries} trend={model.movementTrend} value={sourceCount(state, "movements", model.activity.movements)} />
-          <MetricSignal detail={model.activity.ledgerWindowAtLimit ? "Indexed page limit; refine range" : model.transferTrend.label} glyph="sites" label="Transferred" loading={state.loading} series={model.transferSeries} trend={model.transferTrend} value={sourceValue(state, "movements", formatMetricBytes(model.activity.bytesMoved))} />
-          <MetricSignal detail={`${model.workerEnvironments.length} projected`} glyph="dashboard" label="Environments" loading={state.loading} series={model.environmentSeries} value={sourceCount(state, "workerEnvironments", model.workerEnvironments.length)} />
-          <MetricSignal detail={`${model.interfaceActivity.reduce((sum, row) => sum + row.count, 0)} endpoints`} glyph="interfaces" label="Interfaces" loading={state.loading} series={model.interfaceSeries} value={sourceCount(state, "interfaces", model.interfaces.length)} />
-          <MetricSignal detail={model.markTrend.label} glyph="registry" label="Marks" loading={state.loading} series={model.markSeries} trend={model.markTrend} value={sourceCount(state, "movements", model.windowMarks.length)} />
+          <MetricSignal detail={model.runTrend.label} glyph="pulse" label="実行" loading={state.loading} series={model.runSeries} trend={model.runTrend} value={sourceCount(state, "runs", model.windowRuns.length)} />
+          <MetricSignal detail={model.activity.ledgerWindowAtLimit ? "索引の取得上限です。期間を絞り込んでください" : model.movementTrend.label} glyph="worktree" label="移動" loading={state.loading} series={model.movementSeries} trend={model.movementTrend} value={sourceCount(state, "movements", model.activity.movements)} />
+          <MetricSignal detail={model.activity.ledgerWindowAtLimit ? "索引の取得上限です。期間を絞り込んでください" : model.transferTrend.label} glyph="sites" label="転送済み" loading={state.loading} series={model.transferSeries} trend={model.transferTrend} value={sourceValue(state, "movements", formatMetricBytes(model.activity.bytesMoved))} />
+          <MetricSignal detail={`${model.workerEnvironments.length} projected`} glyph="dashboard" label="環境" loading={state.loading} series={model.environmentSeries} value={sourceCount(state, "workerEnvironments", model.workerEnvironments.length)} />
+          <MetricSignal detail={`${model.interfaceActivity.reduce((sum, row) => sum + row.count, 0)} endpoints`} glyph="interfaces" label="インターフェース" loading={state.loading} series={model.interfaceSeries} value={sourceCount(state, "interfaces", model.interfaces.length)} />
+          <MetricSignal detail={model.markTrend.label} glyph="registry" label="検証記録" loading={state.loading} series={model.markSeries} trend={model.markTrend} value={sourceCount(state, "movements", model.windowMarks.length)} />
         </div>
       </div>
 
       <div className="observability-primary-grid">
-        <Panel className="observability-throughput-panel" detail={metricWindow.bucketLabel} title="Movement throughput">
+        <Panel className="observability-throughput-panel" detail={metricWindow.bucketLabel} title="移動の処理量">
           <ActivityChart activity={model.activity} loading={state.loading} unavailable={sourceUnavailable(state, "movements")} />
         </Panel>
-        <Panel className="observability-status-panel" title="Execution status">
-          {sourceUnavailable(state, "runs") ? <div className="observability-empty">Run projection unavailable</div> : (
+        <Panel className="observability-status-panel" title="実行状況">
+          {sourceUnavailable(state, "runs") ? <div className="observability-empty">実行情報を利用できません</div> : (
             <>
               <RunStateChart rows={model.runStatus} total={model.windowRuns.length} />
               <span className="observability-status-footnote">
                 {model.windowRuns.length
-                  ? `${model.windowRuns.length} runs in ${metricWindow.label}`
-                  : state.loading ? "Refreshing run projection…" : "No runs in selected range"}
+                  ? `${model.windowRuns.length} 実行先 ${metricWindow.label}`
+                  : state.loading ? "実行情報を更新しています…" : "選択した期間に実行はありません"}
               </span>
             </>
           )}
@@ -273,18 +273,18 @@ export function MetricsView({ query }: { query: string }) {
       </div>
 
       <div className="observability-detail-grid">
-        <Panel title="Top worker environments">
+        <Panel title="主な作業環境">
           <EnvironmentTable loading={state.loading} rows={environmentRows} total={model.workerEnvironments.length} unavailable={sourceUnavailable(state, "workerEnvironments")} />
         </Panel>
-        <Panel className="observability-artifact-panel" title="Artifact types">
+        <Panel className="observability-artifact-panel" title="成果物の種類">
           <ArtifactTypes loading={state.loading} rows={artifactRows} total={model.artifacts.length} unavailable={sourceUnavailable(state, "artifacts")} />
         </Panel>
-        <Panel title="Interfaces activity">
+        <Panel title="インターフェースの動作状況">
           <InterfaceActivity loading={state.loading} rows={interfaceRows} unavailable={sourceUnavailable(state, "movements")} />
         </Panel>
       </div>
 
-      <Panel className="observability-events-panel" title="Recent events">
+      <Panel className="observability-events-panel" title="最近のイベント">
         <EventTable events={filteredEvents} filtered={Boolean(query.trim())} loading={state.loading} unavailable={sourceUnavailable(state, "movements")} />
       </Panel>
     </section>
@@ -624,10 +624,10 @@ function ActivityChart({ activity, loading, unavailable }: { activity: ActivityM
   const area = points.length ? `${line} L ${points.at(-1)?.x ?? inset.left} ${base} L ${points[0].x} ${base} Z` : "";
   const labelIndexes = Array.from(new Set([0, .2, .4, .6, .8, 1].map((ratio) => Math.round((points.length - 1) * ratio))));
   if (unavailable) {
-    return <div className="observability-throughput-chart"><span className="observability-chart-empty">Movement projection unavailable</span></div>;
+    return <div className="observability-throughput-chart"><span className="observability-chart-empty">移動情報を利用できません</span></div>;
   }
   return (
-    <div className={`observability-throughput-chart${loading ? " is-loading" : ""}`} aria-label="Movement throughput" ref={chartRef} role="img">
+    <div className={`observability-throughput-chart${loading ? " is-loading" : ""}`} aria-label="移動の処理量" ref={chartRef} role="img">
       <svg viewBox={`0 0 ${width} ${height}`}>
         <defs>
           <pattern height="7" id="observability-throughput-dots" patternUnits="userSpaceOnUse" width="7">
@@ -647,7 +647,7 @@ function ActivityChart({ activity, loading, unavailable }: { activity: ActivityM
         {line ? <path className="observability-chart-line" d={line} /> : null}
         {points.filter((point) => point.count > 0).map((point) => (
           <circle className="observability-chart-point" cx={point.x} cy={point.y} key={point.timestamp} r="6">
-            <title>{`${point.label}: ${point.count} movements · ${formatMetricBytes(point.bytes)}`}</title>
+            <title>{`${point.label}: ${point.count} 件の移動 · ${formatMetricBytes(point.bytes)}`}</title>
           </circle>
         ))}
         {labelIndexes.map((index, position) => {
@@ -656,7 +656,7 @@ function ActivityChart({ activity, loading, unavailable }: { activity: ActivityM
           return <text className="observability-chart-date" key={point.timestamp} textAnchor={position === 0 ? "start" : position === labelIndexes.length - 1 ? "end" : "middle"} x={point.x} y={height - 4}>{point.shortLabel}</text>;
         })}
       </svg>
-      {activity.movements === 0 && !loading ? <span className="observability-chart-empty">No movements in this range</span> : null}
+      {activity.movements === 0 && !loading ? <span className="observability-chart-empty">この期間の移動はありません</span> : null}
     </div>
   );
 }
@@ -680,7 +680,7 @@ function RunStateChart({ rows, total }: { rows: Array<{ key: string; count: numb
   });
   return (
     <div className="observability-run-state">
-      <svg aria-label={`${total} projected runs`} role="img" viewBox="0 0 112 112">
+      <svg aria-label={`${total} 件の実行情報`} role="img" viewBox="0 0 112 112">
         <circle className="observability-orbit-track" cx="56" cy="56" r={radius} transform="rotate(-90 56 56)" />
         {segments.filter((segment) => segment.count > 0).map((segment) => (
           <circle
@@ -719,10 +719,10 @@ function metricStatusTone(status: string, index: number): "green" | "blue" | "am
 }
 
 function EnvironmentTable({ loading, rows, total, unavailable }: { loading: boolean; rows: Array<{ key: string; count: number }>; total: number; unavailable: boolean }) {
-  if (!rows.length) return <div className="observability-empty">{loading ? "Refreshing worker environments…" : unavailable ? "Worker environment projection unavailable" : "No worker environments"}</div>;
+  if (!rows.length) return <div className="observability-empty">{loading ? "作業環境を更新しています…" : unavailable ? "作業環境の情報を取得できません" : "作業環境がありません"}</div>;
   return (
     <div className="observability-table observability-environment-table">
-      <div className="observability-table-head"><span>Environment</span><span>Instances</span><span>Share</span></div>
+      <div className="observability-table-head"><span>環境</span><span>インスタンス</span><span>共有</span></div>
       {rows.slice(0, 8).map((row) => {
         const share = total > 0 ? (row.count / total) * 100 : 0;
         return (
@@ -742,12 +742,12 @@ function ArtifactTypes({ loading, rows, total, unavailable }: { loading: boolean
     <div className="observability-artifact-layout">
       {rows.length ? (
         <div className="observability-table observability-artifact-table">
-          <div className="observability-table-head"><span>Type</span><span>Count</span></div>
+          <div className="observability-table-head"><span>種類</span><span>件数</span></div>
           {rows.slice(0, 8).map((row) => (
             <div className="observability-table-row" key={row.key}><strong title={row.key}>{formatCell(row.key)}</strong><span>{row.count}</span></div>
           ))}
         </div>
-      ) : <div className="observability-empty">{loading ? "Refreshing artifacts…" : unavailable ? "Artifact projection unavailable" : "No artifact rows"}</div>}
+      ) : <div className="observability-empty">{loading ? "成果物を更新しています…" : unavailable ? "成果物の情報を取得できません" : "成果物がありません"}</div>}
       {!unavailable && (!loading || rows.length > 0) ? <SimpleDonut rows={rows} total={total} /> : null}
     </div>
   );
@@ -783,10 +783,10 @@ function SimpleDonut({ rows, total }: { rows: Array<{ key: string; count: number
 }
 
 function InterfaceActivity({ loading, rows, unavailable }: { loading: boolean; rows: InterfaceMetric[]; unavailable: boolean }) {
-  if (!rows.length) return <div className="observability-empty">{loading ? "Refreshing interface activity…" : unavailable ? "Movement projection unavailable" : "No interface movements"}</div>;
+  if (!rows.length) return <div className="observability-empty">{loading ? "インターフェースの動作状況を更新しています…" : unavailable ? "移動情報を利用できません" : "インターフェースの移動がありません"}</div>;
   return (
     <div className="observability-table observability-interface-table">
-      <div className="observability-table-head"><span>Interface</span><span>Endpoints</span><span>Trend</span></div>
+      <div className="observability-table-head"><span>インターフェース</span><span>エンドポイント</span><span>推移</span></div>
       {rows.map((row) => (
         <div className="observability-table-row" key={row.name}>
           <strong title={row.name}>{row.name}</strong>
@@ -799,10 +799,10 @@ function InterfaceActivity({ loading, rows, unavailable }: { loading: boolean; r
 }
 
 function EventTable({ events, filtered, loading, unavailable }: { events: MetricEvent[]; filtered: boolean; loading: boolean; unavailable: boolean }) {
-  if (!events.length) return <div className="observability-empty">{loading ? "Refreshing events…" : unavailable ? "Movement projection unavailable" : filtered ? "No events match search" : "No events in selected range"}</div>;
+  if (!events.length) return <div className="observability-empty">{loading ? "イベントを更新しています…" : unavailable ? "移動情報を利用できません" : filtered ? "検索に一致するイベントがありません" : "選択した期間にイベントはありません"}</div>;
   return (
     <div className="observability-table observability-event-table">
-      <div className="observability-table-head"><span>Time</span><span>Event</span><span>Source</span><span>Environment</span></div>
+      <div className="observability-table-head"><span>時刻</span><span>イベント</span><span>ソース</span><span>環境</span></div>
       {events.slice(0, 200).map((event) => (
         <div className="observability-table-row" key={event.key}>
           <time><i className={`is-${event.tone}`} />{event.time}</time>
