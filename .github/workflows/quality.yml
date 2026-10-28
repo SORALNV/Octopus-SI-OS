@@ -200,6 +200,11 @@ jobs:
       - name: Runtime and product dependency boundaries
         run: cargo test --locked -p octopus-app --test architecture_dependency_guard production_roots_keep_registry_implementation_boundaries -- --exact
 
+      - name: Coder and workspace command ownership and continuity
+        run: |
+          cargo test --locked -p octopus-system-coder-env --lib keep_kind_owned_command_routing
+          cargo test --locked -p octopus-system-workspace-env --test persistent_process_keeper a_room_command_outlives_its_tool_process_and_the_next_one_receives_its_exact_outcome -- --exact
+
       - name: Registry and context artifact freshness
         run: cargo nextest run --locked -p octopus-app-server --lib -E 'test(context_artifact_cache::) | test(registry_fingerprint_tracks_same_size_) | test(registry_observation_)'
 

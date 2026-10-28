@@ -121,6 +121,21 @@ closed. Input retirement pins this file with the primary request and removes it
 only after the outcome is retained. Package updates replace both protocol peers;
 accepted output recovery retains its existing invocation and result evidence.
 
+## Persistent commands and recovery
+
+A persistent command belongs to its formed worker environment. Its keeper and
+retained call results are reached through that environment's durable state,
+independently of the process serving a tool call. Tools behind the same door can
+use different process authority or recovery declarations while continuing,
+listing, signalling, or releasing the same commands. Their executable and
+handler operation must still belong to the declared worker-environment kind.
+
+`process.interrupted_effect_recovery` controls whether an invocation whose
+outcome is unknown may be executed again. `reinvoke_exact_artifact` requires the
+tool to recover that exact call safely. An omitted value is `indeterminate`:
+the door reports the uncertain outcome instead of repeating the effect. A
+retained completed output is replayed without executing the tool again.
+
 ## What ships
 
 The registry carries about 190 tool descriptors over kind-owned executables:
