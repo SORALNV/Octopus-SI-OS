@@ -29,13 +29,18 @@ function load(relative, mocks = {}) {
 }
 const workspaces = load("src/shell/clientWorkspaces.ts");
 const navigation = load("src/shell/navigation.ts", { "./clientWorkspaces": workspaces });
-const windows = load("src/shell/clientWindowModel.ts", { "../components/files/filesPaneSnapshot": {} });
+const artifactFilesTarget = load("src/components/files/artifactFilesTarget.ts");
+const windows = load("src/shell/clientWindowModel.ts", {
+  "../components/files/filesPaneSnapshot": {},
+  "../components/files/artifactFilesTarget": artifactFilesTarget,
+});
 const state = load("src/components/shell/operatorShellState.ts", {
   "../../clientActions": { clientCommands: [] },
   "../../shell/clientWorkspaces": workspaces,
   "../../shell/navigation": navigation,
   "../../shell/clientWindowModel": windows,
   "../files/filesPaneSnapshot": {},
+  "../files/artifactFilesTarget": artifactFilesTarget,
   "./paneTabs": load("src/components/shell/paneTabs.ts"),
 });
 const surfaces = navigation.clientNavigationDestinations.map(({ surfaceId }) => ({

@@ -124,7 +124,10 @@ const chatRunsModule = typescriptModule("src/chatRuns.ts", { "./projectionClient
   "./components/chat/taskAccess": typescriptModule("src/components/chat/taskAccess.ts") });
 const threadVirtualizer = typescriptModule("src/components/chat/threadVirtualizer.ts");
 const clientWindowModel = typescriptModule("src/shell/clientWindowModel.ts", {
-  "../components/files/filesPaneSnapshot": typescriptModule("src/components/files/filesPaneSnapshot.ts"),
+  "../components/files/artifactFilesTarget": typescriptModule("src/components/files/artifactFilesTarget.ts"),
+  "../components/files/filesPaneSnapshot": typescriptModule("src/components/files/filesPaneSnapshot.ts", {
+    "./artifactFilesTarget": typescriptModule("src/components/files/artifactFilesTarget.ts"),
+  }),
 });
 const {
   assertOperatorChatArtifactBatch,
@@ -784,7 +787,7 @@ async function verifyTranscriptLayout() {
   const previousNavigator = Object.getOwnPropertyDescriptor(global, "navigator");
   Object.defineProperty(global, "navigator", { configurable: true, value: dom.window.navigator });
   Object.assign(global, { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true });
-  const frames = new Map(), completions = [], artifactReads = [], artifactErrors = [];
+  const frames = new Map(), completions = [], artifactReads = [], artifactErrors = [], filesOpened = [];
   let reducedMotion = true;
   let artifactResponse;
   let frameId = 0;
@@ -802,7 +805,7 @@ async function verifyTranscriptLayout() {
     MessageTooltip: ({ children, label, onActivate }) => React.createElement("span", { "data-tooltip-target": label?.props?.children, "data-activates-file": Boolean(onActivate), onClick: onActivate }, children),
     readProjection: async (method, params) => { assert.equal(method, "projection.artifact.bytes.read"); artifactReads.push(params); return artifactResponse; },
     appToast: { warning: (error) => artifactErrors.push(error) },
-    TraceArtifactWorkbench: ({ reference }) => React.createElement("div", { "data-artifact-preview": reference.artifactId }, reference.inlinePayload),
+    useOpenArtifactFiles: () => (reference) => filesOpened.push(reference),
     motion: { div: ({ animate, initial, transition, onAnimationComplete, ...props }) => {
       React.useEffect(() => { if (onAnimationComplete) completions.push(onAnimationComplete); }, [animate?.height]);
       return React.createElement("div", { ...props, style: { ...props.style, ...animate } });
@@ -1043,7 +1046,9 @@ async function verifyTranscriptLayout() {
     assert.equal(query("[data-tooltip-target]").getAttribute("data-activates-file"), "true");
     await click(query("[data-tooltip-target]"));
     assert.deepEqual(artifactReads, [{ call_id: "artifact", run_id: "run-test" }]);
-    assert.equal(query("[data-artifact-preview]").textContent, "Historical content");
+    assert.equal(filesOpened.at(-1).inlinePayload, "Historical content");
+    assert.equal(filesOpened.at(-1).artifactId, artifactMessage.artifactId);
+    assert.equal(query('[role="dialog"]'), null, "an admitted artifact opens through Files without a modal");
     assert.deepEqual(artifactErrors, []);
     const artifactPresentation = toolPresentation.dynamicToolPresentation(artifactMessage, {});
     assert.throws(() => events.traceReadArtifactReference(artifactMessage, artifactPresentation, { ...artifactResponse, run_id: "another-run" }), /coordinates/);

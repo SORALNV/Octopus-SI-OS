@@ -159,6 +159,11 @@ creating a task does not itself promise branch isolation.
 
 Web links in messages open in a browser tab inside the client. The toolbar retains an explicit **Open in default browser** action. These manually opened pages belong to the client window; opening one does not start a task or grant a model access to it.
 
+Artifacts opened from the tool trace, Sources, and Outputs use the right **Files**
+pane. A recorded read shows the content read at that point, including its recorded
+excerpt when the read was partial. It remains read-only; opening it beside an
+edited file retains the normal Save, Discard, or Cancel choice for that draft.
+
 Task environment panels can expose files, a terminal, changes, a browser,
 desktop, or connection details. The available panels come from the task's
 actual environment. **Triggers** and **Archived** are views within Tasks.

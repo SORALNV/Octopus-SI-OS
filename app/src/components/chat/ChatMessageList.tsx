@@ -26,6 +26,7 @@ import { commandActivityModel, commandOutcomeLabel, commandResultBody } from "./
 import { readProjection } from "../../projectionClient";
 import { appToast } from "../../toasts";
 import type { ArtifactReference } from "../artifacts/types";
+import { useOpenArtifactFiles } from "../files/FilesPaneNavigation";
 import { AssistantDirectiveSurfaces } from "./AssistantDirectiveSurfaces";
 import { projectAssistantDirectives, type AssistantVisualizationTarget } from "./assistantDirectives";
 import {
@@ -37,7 +38,6 @@ import {
 } from "./threadVirtualizer";
 
 const WorkingPatchDiff = lazy(() => import("./WorkingPatchDiff"));
-const TraceArtifactWorkbench = lazy(() => import("../artifacts/ArtifactWorkbench").then((module) => ({ default: module.ArtifactWorkbench })));
 
 type Props = {
   activityPresentation?: "conversation" | "ledger";
@@ -2324,11 +2324,10 @@ function TraceReadTarget({ message, presentation, onOpenFile }: {
   presentation: DynamicToolPresentation;
   onOpenFile: Props["onOpenFile"];
 }) {
-  const [reference, setReference] = useState<ArtifactReference | null>(null);
+  const openArtifactFiles = useOpenArtifactFiles();
   const [pending, setPending] = useState(false);
   const attempt = useRef(0);
   useEffect(() => {
-    setReference(null);
     setPending(false);
     return () => { attempt.current += 1; };
   }, [message.eventData?.call_id, message.runId, presentation.target]);
@@ -2345,7 +2344,7 @@ function TraceReadTarget({ message, presentation, onOpenFile }: {
         run_id: message.runId,
       });
       if (request !== attempt.current) return;
-      setReference(traceReadArtifactReference(message, presentation, response));
+      openArtifactFiles(traceReadArtifactReference(message, presentation, response));
     } catch (error) {
       if (request === attempt.current) appToast.warning(error instanceof Error ? error.message : String(error));
     } finally {
@@ -2359,7 +2358,6 @@ function TraceReadTarget({ message, presentation, onOpenFile }: {
       : presentation.path ? () => onOpenFile(presentation.path, presentation.exactToolId) : undefined} variant="activity-target">
       <span aria-busy={pending || undefined} className="octopus-activity-detail octopus-activity-file-target">{presentation.pathLabel}</span>
     </MessageTooltip>
-    {reference ? <Suspense fallback={null}><TraceArtifactWorkbench reference={reference} presentation="overlay" onClose={() => setReference(null)} /></Suspense> : null}
   </>;
 }
 

@@ -1,3 +1,4 @@
+import { normalizeArtifactFilesTarget } from "../files/artifactFilesTarget";
 import { clientCommands, type ClientCommandId } from "../../clientActions";
 import type { SelectionRef } from "../../data/topology";
 import type { OctopusClientAccessProfile } from "../../electron";
@@ -306,24 +307,7 @@ function normalizeFilesOpenTarget(value: unknown): FilesOpenTarget | null {
       ...(path != null ? { path, rootId } : {}),
     };
   }
-  if (row.kind === "artifact") {
-    const artifactId = boundedPaneText(row.artifactId, 1024);
-    const interfaceId = boundedPaneText(row.interfaceId, 512);
-    const label = boundedPaneText(row.label, 1024);
-    const runId = boundedPaneText(row.runId, 512);
-    const createdAtMs = typeof row.createdAtMs === "number" && Number.isFinite(row.createdAtMs) && row.createdAtMs >= 0
-      ? row.createdAtMs
-      : undefined;
-    if (!artifactId || !interfaceId || !label || !runId || (row.createdAtMs !== undefined && createdAtMs === undefined)) return null;
-    return {
-      kind: "artifact",
-      artifactId,
-      interfaceId,
-      label,
-      runId,
-      ...(createdAtMs !== undefined ? { createdAtMs } : {}),
-    };
-  }
+  if (row.kind === "artifact") return normalizeArtifactFilesTarget(row);
   return null;
 }
 

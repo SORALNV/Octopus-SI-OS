@@ -2390,7 +2390,7 @@ export function OperatorShell({ accessProfile, clientWindow, onLogOut, runtimeHo
       />
       <Suspense fallback={<SurfaceLoadingState label={`Loading ${activeSecondaryPanePresentation?.title || "tab"}…`} />}>
       {activeSecondaryTab?.target.kind === "client_browser" || activeSecondaryTab?.target.kind === "terminal" || activeSecondaryTab?.target.kind === "files" || activeSecondaryTab?.target.kind === "worker_environment" ? null : activeSecondaryTab?.target.kind === "task_sources" ? (
-        <TaskSourcesPaneTab sources={activeTaskSources} />
+        <TaskSourcesPaneTab onOpenFiles={(target) => openFilesTab(target, secondaryWorkspaceKey)} sources={activeTaskSources} />
       ) : !secondarySurface ? null : secondarySurface.rendererKind === "builtin.chat" && !secondaryRunIdentityReady ? (
         <SurfaceLoadingState label="Opening task…" />
       ) : (

@@ -1,3 +1,4 @@
+import { normalizeArtifactFilesTarget } from "../components/files/artifactFilesTarget";
 import type { FilesOpenTarget } from "../components/files/types";
 import { normalizeFilesPaneSnapshot, type FilesPaneSnapshot } from "../components/files/filesPaneSnapshot";
 import type { TaskSourcesPaneTarget } from "../components/chat/taskSourcesPane";
@@ -380,24 +381,7 @@ function normalizeClientWindowFilesTarget(value: unknown): FilesOpenTarget | nul
       ...(path != null ? { path, rootId } : {}),
     };
   }
-  if (row.kind === "artifact") {
-    const artifactId = boundedClientWindowText(row.artifactId, 1024);
-    const interfaceId = boundedClientWindowText(row.interfaceId, 512);
-    const label = boundedClientWindowText(row.label, 1024);
-    const runId = boundedClientWindowText(row.runId, 512);
-    const createdAtMs = typeof row.createdAtMs === "number" && Number.isFinite(row.createdAtMs) && row.createdAtMs >= 0
-      ? row.createdAtMs
-      : undefined;
-    if (!artifactId || !interfaceId || !label || !runId || (row.createdAtMs !== undefined && createdAtMs === undefined)) return null;
-    return {
-      kind: "artifact",
-      artifactId,
-      interfaceId,
-      label,
-      runId,
-      ...(createdAtMs !== undefined ? { createdAtMs } : {}),
-    };
-  }
+  if (row.kind === "artifact") return normalizeArtifactFilesTarget(row);
   return null;
 }
 

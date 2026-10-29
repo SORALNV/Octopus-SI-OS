@@ -617,6 +617,13 @@ admitted deliveries come from run records and the ledger. An active binding is
 not evidence that an external event has arrived. Event sources expose no cron
 edit, pause or delete controls; their configuration belongs to their package.
 
+Operator-opened artifacts from the tool trace, Sources and Outputs use the
+existing right Files pane in their originating client workspace. A proven read
+retains its exact admitted content or excerpt and its run/artifact coordinates
+as a bounded, read-only client preview. The Files pane preserves its ordinary
+draft ownership and Save/Discard/Cancel path. Opening this preview creates no
+run, publication or model authority.
+
 Home uses compact widgets as its ordinary visual presentation, including during
 voice calls. Longer results may span several focused widgets; long text belongs
 in a saved document. The correlated `open_file` client control reads a text file
