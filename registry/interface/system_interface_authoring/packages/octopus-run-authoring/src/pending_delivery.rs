@@ -353,6 +353,19 @@ impl ProviderOutputHandoff {
         Ok(scope.complete)
     }
 
+    pub(super) fn pending_output_has_submission(
+        &self, pending: &PendingHandoff, item: &PendingHandoffItem,
+    ) -> Result<bool, String> {
+        let identity = self.pending_delivery_identity(pending, item);
+        if identity.exists(&self.ctx)? { return Ok(true); }
+        let (_, reference) = load_pending_artifact(&self.var_dir, item)?;
+        let key = artifact_ref_key(&reference);
+        let mut index = self.session.index()?;
+        index.retained_delivery.refresh()?;
+        Ok(index.retained_delivery.unattributed.contains(&key)
+            || index.retained_delivery.submitted.iter().any(|(artifact, _)| artifact == &key))
+    }
+
     fn prepare_pending_delivery(
         &self,
         pending: &PendingHandoff,

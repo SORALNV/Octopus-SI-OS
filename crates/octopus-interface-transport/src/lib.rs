@@ -300,7 +300,11 @@ impl InterfaceActivationReconciler {
             }
         }
         self.resolved_lives.remove(interface);
-        let resolved = interface_life::resolve_spawn_life_config(&self.registry_root, interface)?;
+        let resolved = interface_life::resolve_spawn_life_config_with_verification(
+            &self.registry_root,
+            interface,
+            verification,
+        )?;
         let Some(resolved) = resolved else {
             return Ok(None);
         };
@@ -321,6 +325,10 @@ impl InterfaceActivationReconciler {
     }
 
     async fn reconcile_interface_lives(&mut self) -> Result<(), String> {
+        if self.root_cancel.is_cancelled() {
+            self.stop_all_lives().await;
+            return Err("interface lifecycle reconciliation cancelled".to_string());
+        }
         let Some(durable_root) = self.durable_root.clone() else {
             self.stop_all_lives().await;
             return Ok(());
@@ -368,6 +376,11 @@ impl InterfaceActivationReconciler {
         }
         let mut verification = std::mem::take(&mut self.imported_executables);
         for interface in mentioned {
+            tokio::task::yield_now().await;
+            if self.root_cancel.is_cancelled() {
+                self.stop_all_lives().await;
+                return Err("interface lifecycle reconciliation cancelled".to_string());
+            }
             if let Some(error) = activation_scan.errors.get(&interface) {
                 self.stop_life(&interface).await;
                 tracing::warn!(

@@ -1343,6 +1343,7 @@ mod tests {
     #[test]
     fn ee_projection_folds_into_goal_status_item() {
         let ee = octopus_ee::EeInstance {
+            name: None,
             ee_id: octopus_descriptors::EeId::new("ee_ship"),
             template: octopus_descriptors::EeTemplateId::new("operator_interaction"),
             parent_ee: Some(octopus_descriptors::EeId::new("ee_existence")),

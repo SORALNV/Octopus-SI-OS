@@ -197,6 +197,7 @@ pub async fn build_test_spine(
     let (_name, template) = descriptor_bootstrap_template(&templates);
     std::fs::create_dir_all(&config.ee_instances_root)?;
     let instance = EeInstance {
+        name: None,
         ee_id: descriptor_bootstrap_ee_id(template),
         template: template.id.clone(),
         parent_ee: None,
@@ -216,6 +217,7 @@ pub async fn build_test_spine(
         .map(|(_, candidate)| candidate)
         .ok_or("operator_interaction test EE template is missing")?;
     let operator = EeInstance {
+        name: None,
         ee_id: EeId::new("ee_operator_interaction"),
         template: operator_template.id.clone(),
         parent_ee: Some(instance.ee_id.clone()),
@@ -242,6 +244,7 @@ pub fn descriptor_bootstrap_tree(
     let (bootstrap_name, bootstrap_template) = descriptor_bootstrap_template(templates);
     let ee = descriptor_bootstrap_ee_id(bootstrap_template);
     tree.insert_instance(EeInstance {
+        name: None,
         ee_id: ee.clone(),
         template: bootstrap_template.id.clone(),
         parent_ee: None,
@@ -274,6 +277,7 @@ pub fn descriptor_bootstrap_tree_with_all_template_hashes(
     let (_bootstrap_name, bootstrap_template) = descriptor_bootstrap_template(templates);
     let ee = descriptor_bootstrap_ee_id(bootstrap_template);
     tree.insert_instance(EeInstance {
+        name: None,
         ee_id: ee.clone(),
         template: bootstrap_template.id.clone(),
         parent_ee: None,

@@ -90,7 +90,12 @@ const {
 const { createCodexUsageReader } = require("./codexUsage.cjs");
 const { createTerminalHost } = require("./terminalHost.cjs");
 const { createRuntimeHost } = require("./runtimeHost.cjs");
-const { transcribeClientDictation } = require("./clientDictation.cjs");
+const { transcribeClientDictation, dictationFailure } = require("./clientDictation.cjs");
+const { createClientDictationStream } = require("./clientDictationStream.cjs");
+const { createClientDictationRecordings } = require("./clientDictationRecordings.cjs");
+const clientDictationRecordings = createClientDictationRecordings(path.join(app.getPath("userData"), "dictation-recordings"));
+const clientDictationRequests = new Map();
+const clientDictationStreams = new Map();
 const {
   operatorChatSubmitDiagnostic,
   operatorChatSubmitFailure,
@@ -4650,20 +4655,115 @@ ipcMain.handle("octopus:update-chat-pins", async (_event, token, request) => {
 });
 
 ipcMain.handle("octopus:transcribe-dictation", async (_event, token, request) => {
-  getClientAccessController().requireSession(token, ["live"]);
-  return transcribeClientDictation({
-    bytes: bufferFromIpcBytes(request?.bytes),
-    durationMs: request?.durationMs,
-    mediaType: request?.mediaType,
-    provider: request?.provider,
-    sampleRateHz: request?.sampleRateHz,
-    timeoutMs: request?.timeoutMs,
-  }, {
-    clientVersion: app.getVersion(),
-    cwd: app.getPath("home"),
-    fetch: electronNet.fetch,
-  });
+  const attemptId = request?.attemptId;
+  const key = `${token}:${attemptId}`;
+  let controller;
+  try {
+    getClientAccessController().requireSession(token, ["live"]);
+    if (typeof attemptId !== "string" || !/^[a-f0-9-]{36}$/.test(attemptId) || clientDictationRequests.has(key)) {
+      throw new Error("Invalid transcription attempt.");
+    }
+    controller = new AbortController();
+    clientDictationRequests.set(key, controller);
+    const value = await transcribeClientDictation({
+      bytes: bufferFromIpcBytes(request?.bytes),
+      durationMs: request?.durationMs,
+      mediaType: request?.mediaType,
+      provider: request?.provider,
+      sampleRateHz: request?.sampleRateHz,
+      timeoutMs: request?.timeoutMs,
+    }, {
+      clientVersion: app.getVersion(),
+      cwd: app.getPath("home"),
+      fetch: electronNet.fetch,
+      signal: controller.signal,
+    });
+    return { ok: true, value };
+  } catch (error) {
+    return { ok: false, error: dictationFailure(error) };
+  } finally {
+    if (controller) clientDictationRequests.delete(key);
+  }
 });
+
+ipcMain.handle("octopus:dictation-stream-start", async (event, token, request) => {
+  const key = `${token}:${request?.attemptId}`;
+  let stream;
+  const release = () => {
+    stream?.close();
+    if (clientDictationStreams.get(key)?.stream === stream) clientDictationStreams.delete(key);
+    event.sender.removeListener("destroyed", release);
+  };
+  try {
+    getClientAccessController().requireSession(token, ["live"]);
+    if (!/^[a-f0-9-]{36}$/.test(request?.attemptId ?? "") || [...clientDictationStreams.values()].some((entry) => entry.owner === event.sender.id)) throw new Error("Dictation is already active.");
+    stream = createClientDictationStream(request, {
+      clientVersion: app.getVersion(), cwd: app.getPath("home"),
+      onEvent(payload) {
+        try {
+          getClientAccessController().requireSession(token, ["live"]);
+          if (!event.sender.isDestroyed()) event.sender.send("octopus:dictation-stream-event", { attemptId: request.attemptId, ...payload });
+        } catch { release(); }
+      },
+    });
+    clientDictationStreams.set(key, { stream, owner: event.sender.id, release });
+    event.sender.once("destroyed", release);
+    await stream.ready;
+    return { ok: true, value: null };
+  } catch (error) {
+    release();
+    return { ok: false, error: dictationFailure(error) };
+  }
+});
+
+ipcMain.on("octopus:dictation-stream-audio", (event, token, attemptId, bytes) => {
+  const entry = clientDictationStreams.get(`${token}:${attemptId}`);
+  if (!entry || entry.owner !== event.sender.id) return;
+  try {
+    getClientAccessController().requireSession(token, ["live"]);
+    entry.stream.append(bufferFromIpcBytes(bytes));
+  } catch { entry.release(); }
+});
+
+ipcMain.handle("octopus:dictation-stream-finish", async (event, token, attemptId) => {
+  const entry = clientDictationStreams.get(`${token}:${attemptId}`);
+  try {
+    getClientAccessController().requireSession(token, ["live"]);
+    if (!entry || entry.owner !== event.sender.id) throw new Error("Dictation is no longer active.");
+    return { ok: true, value: await entry.stream.finish() };
+  } catch (error) {
+    return { ok: false, error: dictationFailure(error) };
+  } finally { if (entry?.owner === event.sender.id) entry.release(); }
+});
+
+ipcMain.handle("octopus:cancel-dictation", (event, token, attemptId) => {
+  getClientAccessController().requireSession(token, ["live", "lab"]);
+  clientDictationRequests.get(`${token}:${attemptId}`)?.abort();
+  const stream = clientDictationStreams.get(`${token}:${attemptId}`);
+  if (stream?.owner === event.sender.id) stream.release();
+});
+
+for (const [channel, operation] of [
+  ["octopus:dictation-recordings-read", (profile) => clientDictationRecordings.state(profile)],
+  ["octopus:dictation-recordings-configure", (profile, enabled) => clientDictationRecordings.configure(profile, enabled)],
+  ["octopus:dictation-recording-save", (profile, request) => clientDictationRecordings.save(profile, { ...request, bytes: bufferFromIpcBytes(request?.bytes) })],
+  ["octopus:dictation-recording-read", (profile, id) => clientDictationRecordings.read(profile, id)],
+  ["octopus:dictation-recording-update", (profile, request) => clientDictationRecordings.update(profile, request)],
+  ["octopus:dictation-recording-delete", async (profile, id) => {
+    if (id === null) await clientDictationRecordings.clear(profile);
+    else await clientDictationRecordings.remove(profile, id);
+    return null;
+  }],
+]) {
+  ipcMain.handle(channel, async (_event, token, request) => {
+    try {
+      const { profile } = getClientAccessController().requireSession(token, ["live", "lab"]);
+      return { ok: true, value: await operation(profile, request) };
+    } catch {
+      return { ok: false, error: { code: "recording-storage", message: "Couldn't access dictation recordings. Try again and check available disk space." } };
+    }
+  });
+}
 
 ipcMain.handle("octopus:submit-interface-artifact", async (_event, token, request) => {
   const { profile } = getClientAccessController().requireSession(token, ["live", "lab"]);

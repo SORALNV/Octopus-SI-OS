@@ -17,6 +17,8 @@ fn opencodex_configuration_selects_the_bridge_at_the_toml_root() {
     let encoded = std::fs::read_to_string(home.join("config.toml")).unwrap();
     let config: toml::Value = toml::from_str(&encoded).unwrap();
     assert_eq!(config["model_provider"].as_str(), Some("octopus_opencodex"));
+    assert!(config.get("model_context_window").is_none());
+    assert!(config.get("model_auto_compact_token_limit").is_none());
     assert!(
         !config["agents"]
             .as_table()
@@ -40,7 +42,8 @@ fn opencodex_configuration_selects_the_bridge_at_the_toml_root() {
         .iter()
         .find(|model| model.slug == "anthropic/claude-sonnet-5")
         .unwrap();
-    assert_eq!(sonnet.context_window, Some(1000000));
+    assert_eq!(sonnet.context_window, Some(400000));
+    assert_eq!(sonnet.max_context_window, Some(1000000));
     assert!(!sonnet.used_fallback_model_metadata);
 }
 

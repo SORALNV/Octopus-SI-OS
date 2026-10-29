@@ -1198,7 +1198,7 @@ fn validate_output_limits(tool_id: &str, config: &CoderHandlerConfig) -> Result<
 fn validate_yield_limits(tool_id: &str, config: &CoderHandlerConfig) -> Result<(), String> {
     let default_yield = config.default_yield_time_ms.unwrap_or(u64::MAX);
     let max_yield = config.max_yield_time_ms.unwrap_or(0);
-    if default_yield > max_yield || max_yield > 60_000 {
+    if default_yield > max_yield {
         return Err(format!("tool '{tool_id}' command yield limits are invalid"));
     }
     Ok(())

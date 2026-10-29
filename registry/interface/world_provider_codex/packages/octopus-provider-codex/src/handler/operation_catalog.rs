@@ -210,6 +210,7 @@ pub(crate) fn apply_model_tool_names(
         let DynamicToolSpec::Function(function) = spec else {
             return Err(InterfaceDriverError::Protocol("model names must be formed before namespaces".into()));
         };
+        tool_schema::make_literal_types_explicit(&mut function.input_schema);
         let exact = decode_tool_name(&function.name)?;
         if let Some(name) = aliases.get(&exact) {
             function.name = name.clone();

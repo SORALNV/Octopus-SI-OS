@@ -14,12 +14,13 @@ const seal = { type: "seal", seq: 2, recorded_at_unix_ms: 13, source_movement_se
   terminal_label: "turn.completed", terminal_artifact_payload_blake3: "a".repeat(64) };
 const expected = { providerInterfaceId: header.provider_interface, runId: header.run, complete: true };
 const encode = (rows) => Buffer.from(rows.map((row) => JSON.stringify(row)).join("\n") + "\n");
-function history(bytes) {
+async function history(bytes) {
   const row = { artifact: { id: "turn.stream:sealed" }, from: { Interface: header.provider_interface }, source_line: "1" };
   const payloads = new Map([[row, { __raw: bytes.toString("utf8") }]]);
-  const rows = sealed.operatorChatExpandedStreamRows([row], payloads, header.run, (checked) => assert.deepEqual(checked, header));
+  const rows = await sealed.operatorChatExpandedStreamRows([row], payloads, header.run, (checked) => assert.deepEqual(checked, header));
   return rows.map((row) => ({ row, payload: payloads.get(row) }));
 }
+async function main() {
 for (const source of ["item/started", "item/completed", "thread/resume"]) {
   const input = { ...receipt, source_event: source };
   if (source === "thread/resume") { delete input.native_event_at_ms; input.item_id = "item-7"; }
@@ -29,7 +30,7 @@ for (const source of ["item/started", "item/completed", "thread/resume"]) {
   assert.equal(first.events.length, 1);
   const event = live.operatorChatStreamArtifact({ config: {}, event: first.events[0], interfaceId: "operator-chat",
     providerInterfaceId: header.provider_interface, providerRole: "provider", runId: header.run });
-  const historical = history(bytes)[0];
+  const historical = (await history(bytes))[0];
   assert.equal(event.event_kind, "input_recorded"); assert.equal(event.label, "turn.stream");
   assert.equal(event.text, ""); assert.equal(event.terminal, false);
   assert.deepEqual(Object.fromEntries(Object.entries(event.event_data).filter(([key]) => key !== "_stream")), historical.payload);
@@ -50,12 +51,14 @@ const mutations = [
 for (const patch of mutations) {
   const bytes = encode([header, { ...receipt, ...patch }, seal]);
   assert.throws(() => live.parseOperatorTurnStream(bytes, expected), JSON.stringify(patch));
-  assert.throws(() => history(bytes), JSON.stringify(patch));
+  await assert.rejects(history(bytes), JSON.stringify(patch));
 }
 for (const rows of [[header, receipt], [header, seal, { ...receipt, seq: 3 }], [header, receipt, { ...seal, seq: 1 }]]) {
-  assert.throws(() => live.parseOperatorTurnStream(encode(rows), expected)); assert.throws(() => history(encode(rows)));
+  assert.throws(() => live.parseOperatorTurnStream(encode(rows), expected)); await assert.rejects(history(encode(rows)));
 }
 const partial = Buffer.concat([encode([header, receipt]), Buffer.from('{"type":')]);
 assert.equal(live.parseOperatorTurnStream(partial, { ...expected, complete: false }).rows.length, 1);
-assert.throws(() => live.parseOperatorTurnStream(partial, expected)); assert.throws(() => history(partial));
+assert.throws(() => live.parseOperatorTurnStream(partial, expected)); await assert.rejects(history(partial));
 console.log("PASS steering receipt: actual live/sealed parsers, all observation sources, strict identities, cursor and incomplete-tail boundaries");
+}
+main().catch(error => { console.error(error); process.exitCode = 1; });

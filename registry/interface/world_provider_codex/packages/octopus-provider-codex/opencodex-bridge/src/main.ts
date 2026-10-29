@@ -2,12 +2,12 @@ import { spawn } from "node:child_process";
 import { createAnthropicAdapter } from "../node_modules/@bitkyc08/opencodex/src/adapters/anthropic.ts";
 import { createAzureAdapter } from "../node_modules/@bitkyc08/opencodex/src/adapters/azure.ts";
 import type { ProviderAdapter } from "../node_modules/@bitkyc08/opencodex/src/adapters/base.ts";
-import { createClaudeCliAdapter } from "../node_modules/@bitkyc08/opencodex/src/adapters/claude-cli/adapter.ts";
+import { createClaudeCliAdapter } from "./claude-cli.ts";
 import { runCodeBuddyMcpServer } from "../node_modules/@bitkyc08/opencodex/src/adapters/codebuddy/mcp-server.ts";
 import { createGoogleAdapter } from "../node_modules/@bitkyc08/opencodex/src/adapters/google.ts";
 import { createOpenAIChatAdapter } from "../node_modules/@bitkyc08/opencodex/src/adapters/openai-chat.ts";
 import { createResponsesPassthroughAdapter } from "../node_modules/@bitkyc08/opencodex/src/adapters/openai-responses.ts";
-import { createAdapterEventQueue } from "../node_modules/@bitkyc08/opencodex/src/adapters/run-turn-queue.ts";
+import { COALESCE_MAX_CHUNK_LENGTH, createAdapterEventQueue } from "../node_modules/@bitkyc08/opencodex/src/adapters/run-turn-queue.ts";
 import {
   bridgeToResponsesSSE,
   buildResponseJSON,
@@ -632,15 +632,42 @@ function turnEvents(
   timeoutMs: number,
 ): AsyncIterable<AdapterEvent> {
   const queue = createAdapterEventQueue({ onBacklogExceeded: () => abort.abort("adapter event backlog exceeded") });
+  let pendingArguments = "";
+  let flushScheduled = false;
+  const flushArguments = () => {
+    if (pendingArguments.length === 0) return;
+    const argumentsText = pendingArguments;
+    pendingArguments = "";
+    queue.push({ type: "tool_call_delta", arguments: argumentsText });
+  };
+  const emit = (event: AdapterEvent) => {
+    if (event.type !== "tool_call_delta") {
+      flushArguments();
+      queue.push(event);
+      return;
+    }
+    if (pendingArguments.length + event.arguments.length > COALESCE_MAX_CHUNK_LENGTH) flushArguments();
+    if (event.arguments.length >= COALESCE_MAX_CHUNK_LENGTH) {
+      queue.push(event);
+      return;
+    }
+    pendingArguments += event.arguments;
+    if (!flushScheduled && pendingArguments.length > 0) {
+      flushScheduled = true;
+      queueMicrotask(() => {
+        flushScheduled = false;
+        flushArguments();
+      });
+    }
+  };
   const timer = setTimeout(() => abort.abort("request timeout"), timeoutMs);
-  adapter.runTurn!(parsed, { headers: new Headers(), translatorBudget: budget, abortSignal: abort.signal }, (event) => {
-    queue.push(event);
-  })
+  adapter.runTurn!(parsed, { headers: new Headers(), translatorBudget: budget, abortSignal: abort.signal }, emit)
     .catch((error) => {
-      queue.push({ type: "error", message: error instanceof Error ? error.message : "provider turn failed", retryable: false });
+      emit({ type: "error", message: error instanceof Error ? error.message : "provider turn failed", retryable: false });
     })
     .finally(() => {
       clearTimeout(timer);
+      flushArguments();
       queue.close();
     });
   return queue.stream();

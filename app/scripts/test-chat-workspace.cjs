@@ -309,6 +309,23 @@ test("editing the latest message keeps the task and provider without selecting a
   await pending;
 });
 
+test("editing the latest message of an Agent task sends through the task's Agent template", { timeout: 15_000 }, async () => {
+  const host = fakeHost();
+  Object.assign(host.run("run-1"), { worker_interface_id: "worker.concrete", worker_choice_interface_id: "worker.test" });
+  host.messages["run-1"][0].content_hash = "b".repeat(64);
+  const view = await openTask(host, "live");
+  const message = view.current.renderedMessages.find(message => message.role === "user");
+  const pending = view.current.editUserMessage(message, "Corrected");
+  await until(() => host.turns.length === 1, "the edit of an Agent task was refused before submission");
+  assert.equal(host.turns[0].runId, "run-1");
+  assert.equal(host.turns[0].workerInterfaceId, "worker.test");
+  assert.deepEqual(host.turns[0].replacesMessage, { id: message.artifactId, content: "b".repeat(64) });
+  host.append("run-1", "assistant", "Revised answer");
+  Object.assign(host.run("run-1"), { turn_open: false, turn_state: "completed" });
+  host.changed("ledger");
+  await pending;
+});
+
 test("a new task adopts the one Agent matching the Home defaults, starts as submitting and moves to the run the host creates", { timeout: 15_000 }, async () => {
   const host = fakeHost();
   host.sourceFolders = ["/workspace/primary", "/workspace/secondary"];
@@ -317,6 +334,13 @@ test("a new task adopts the one Agent matching the Home defaults, starts as subm
   host.runs.push(runRow("home", { client_surface_role: "home", title: "Home", os_root_ee_id: "ee.root" }));
   let admit;
   host.holdTurn = new Promise((resolve) => { admit = resolve; });
+  let releaseList;
+  const listReady = new Promise((resolve) => { releaseList = resolve; });
+  const read = host.transport.projectionRead;
+  host.transport.projectionRead = async (request) => {
+    if (request.method === "projection.operator.chats.list" && host.turns.length) await listReady;
+    return read(request);
+  };
   const view = await mount(host, "lab");
   await type(view, "Draft the plan");
   await until(() => view.current.canSubmit, () => `never ready: ${view.current.submitBlockReason}`);
@@ -326,7 +350,13 @@ test("a new task adopts the one Agent matching the Home defaults, starts as subm
   assert.equal(working(view)[0].eventData.work_status, "submitting");
   assert.equal(view.current.activeRunId, "");
   admit();
+  await until(() => host.turns.length === 1 && view.current.loadingRuns, "new task projection did not start");
+  assert.equal(view.current.activeRunId, "");
+  assert.equal(view.current.activeProvider.id, provider.id);
+  assert.equal(view.current.providerModel, "model-a");
+  releaseList();
   await until(() => host.turns.length === 1 && view.current.activeRunId === "run-new", () => `the new run was not adopted: ${view.current.activeRunId}`);
+  assert.ok(view.current.activeProvider);
   assert.deepEqual([host.turns[0].runId, host.turns[0].eeId, host.turns[0].workerInterfaceId, host.turns[0].providerModel, host.turns[0].text],
     [undefined, "ee.root", "worker.test", "model-a", "Draft the plan"]);
   assert.deepEqual(host.turns[0].clientContext.map(entry => entry.name), ["client_observation", "project_source_folders"]);

@@ -142,6 +142,7 @@ type Props = {
 export type GlyphDef = {
   viewBox?: string;
   node: ReactNode;
+  sizes?: Readonly<Record<number, { viewBox: string; node: ReactNode }>>;
 };
 
 const glyphs = new Map<GlyphName, GlyphDef>();
@@ -313,16 +314,17 @@ function ResolvedGlyph(props: Props) {
 }
 
 function GlyphFrame({ name, className = "", size = 16, glyph }: Props & { glyph?: GlyphDef }) {
+  const shape = glyph?.sizes?.[size] ?? glyph;
   return (
     <svg
       className={("glyph glyph-" + name + " " + className).trim()}
       width={size}
       height={size}
-      viewBox={glyph?.viewBox ?? "0 0 24 24"}
+      viewBox={shape?.viewBox ?? "0 0 24 24"}
       aria-hidden="true"
       focusable="false"
     >
-      {glyph?.node}
+      {shape?.node}
     </svg>
   );
 }

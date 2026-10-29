@@ -30,12 +30,17 @@ Screenshots show a development installation, including its incomplete setups.
 | **Applications** | Install and configure providers, connectors, plugins, and context packages; choose where they are available. |
 | **Drivers** | Install and configure the environments in which tools act: files, worktrees, browsers, desktops, containers, and remote execution. |
 
-The avatar menu offers **Settings** and **Log out**. Log out locks local client
-access and returns to the [password screen](getting-started.md#first-setup);
-it does not sign out of the model provider. Unlock with your password, or
+The avatar menu offers **Settings** and **Lock Octopus**. For a connected ChatGPT
+account, **Usage** shows remaining limits and reset times when available.
+**Lock Octopus** locks local access and returns to the
+[password screen](getting-started.md#first-setup). The model provider stays signed
+in. Unlock with your password, or
 Touch ID if you enabled it. **Surfaces** controls additional views;
 the primary navigation destinations stay available. Workspace views support
 split panes, so a conversation and its evidence can remain visible together.
+Each conversation retains its right-pane tabs, selected tab, open state and
+pane layout when you leave it and return. This presentation state is local to
+the selected Home, access profile and client window.
 
 ### Home: conversation, Activity, and voice
 
@@ -59,19 +64,28 @@ requires the appropriate bindings and granted tools.
 
 There are two distinct audio features:
 
-- **Dictation** transcribes speech into the active composer. It prepares text
-  locally in the client flow; transcription may call the configured provider.
-  It does not submit an Octopus message until you send the text.
-  Each recording supports up to ten minutes and stops at that limit, returning
-  the transcription to the composer. If transcription fails, Retry dictation
-  reuses the recording while that composer remains open; audio is not saved
-  to disk.
+- **Dictation** streams recognized speech into the active message field. A
+  compact waveform appears inside the Stop button while the normal composer
+  controls remain in place. Intermediate words are a preview; they are committed
+  to the draft only when finalized. **Stop dictation** keeps the final text in
+  the message field; **Send** finalizes it and sends the current draft. Escape
+  removes the speech preview and preserves text you typed yourself. Each
+  recording supports up to ten minutes. The last 20 recordings, including cancelled captures and failed
+  transcriptions, are saved on this device by default. **Settings → Voice →
+  Dictation → Recent recordings** shows transcript and time, with Copy and a
+  menu for Download recording and Delete recording. Audio without text offers
+  Retry. **View recording** after a failure opens that exact recording in these
+  settings, with Download audio and Show all recordings. Retry in the composer
+  can reuse retained audio while that composer remains open. Escape cancels
+  capture or a pending transcription without submitting a message. A failed
+  stream offers explicit retry of the saved audio; it never silently switches
+  to another recognition path.
 - **A voice call** connects the Home run through its declared voice interface.
   The controls include microphone mute, speaker output, device selection,
   transcript, and ending the call. Calls require a configured voice provider
   and microphone permission; text-provider sign-in alone is not enough.
 
-**Settings → Voice & Audio** contains device choices, dictation settings and
+**Settings → Voice** contains device choices, dictation settings and
 dictionary, and the floating call controls used outside Home. A selectable
 synthesized voice is offered only when the speech interface declares one.
 
@@ -92,8 +106,8 @@ nearest edge and dissolve, while the waves gather into the call orb exactly as
 they do without octopuses. When the call ends and the orb returns to the waves,
 the octopuses swim back in from open edges one after another.
 
-Audio remains part of the artifact contract: microphone or speech interfaces
-produce audio or transcript artifacts; receiving interfaces decide how to
+Audio exchanged through runtime interfaces remains part of the artifact contract:
+microphone or speech interfaces produce audio or transcript artifacts; receiving interfaces decide how to
 play or interpret them. An audio artifact can reference binary media without
 turning its contents into JSON. The kernel does not decode audio.
 
@@ -109,6 +123,11 @@ Filesystem tools require a working folder from the selected project, Agent or
 host configuration. When none is configured, the composer explains the missing
 folder before submission; changing access settings remains available.
 
+The bundled providers default to a 400,000-token context window. Claude Code
+and Anthropic default to 700,000 tokens. Models with a smaller declared capacity
+keep that limit. The context indicator uses the provider's reported usable
+capacity, which can reserve space within that window.
+
 If a manual message cannot be sent, its text returns to the composer and the
 usual error notification explains the failure. Delivery with a lost confirmation
 is checked against task history; retrying explicitly uses the same message
@@ -119,6 +138,13 @@ A **Project** supplies the goal and permission boundary. An **Agent** is a
 reusable worker template in that project: its pin, capability ceiling, and
 defaults for authoring a task. Creating an Agent does not start work. A **task**
 is a run created from that template; subsequent messages continue that run.
+Creating a Project creates its EE and writes the chosen name into the EE record.
+Renaming the Project updates that same record. Topology reads the EE's name
+directly and keeps its goal and policy template available in the details.
+
+The task list normally follows the last recorded update. Opening or reading a
+task does not promote it. **Sort by → Manual** keeps your chosen order; pinned
+tasks and project groups retain their own placement.
 
 For example, to work on a repository:
 
@@ -402,6 +428,11 @@ runs, ledger, and interface data. The client keeps its preferences and
 Extensions in that Home's `client/` directory. The launch selection and
 provider authentication live elsewhere, such as Codex credentials under
 `~/.codex`, so changing `OCTOPUS_HOME` alone does not isolate provider accounts.
+
+Task history reads use bounded concurrency. Indexed movements, file verification
+and sealed response streams are processed in batches that yield to the client's
+event loop. Cold history reconstruction retains the same ordering, identity and
+integrity checks while allowing the client to handle input between batches.
 
 Use **Help → Report a Problem…** to describe a failure, preview diagnostics,
 save or copy a report, and open a GitHub issue draft. The report has its own

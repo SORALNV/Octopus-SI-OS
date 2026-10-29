@@ -36,6 +36,7 @@ export function SettingsPage({
   onClose,
   onSectionChange,
   sectionId,
+  recordingId = "",
   sidebarWidth,
   surfaceErrors,
   surfaces,
@@ -48,6 +49,7 @@ export function SettingsPage({
   onClose: () => void;
   onSectionChange: (sectionId: string) => void;
   sectionId: string;
+  recordingId?: string;
   sidebarWidth: number;
   surfaceErrors: string[];
   surfaces: ClientSurfaceDescriptor[];
@@ -60,6 +62,11 @@ export function SettingsPage({
   const setClientPreferences = useSetClientPreferences();
   const [highlightedSearchIndex, setHighlightedSearchIndex] = useState(-1);
   const [pendingDestinationId, setPendingDestinationId] = useState("");
+  const [selectedRecordingId, setSelectedRecordingId] = useState(recordingId);
+  useEffect(() => {
+    setSelectedRecordingId(recordingId);
+    if (recordingId) setPendingDestinationId("voice.recordings");
+  }, [recordingId]);
   const storedSection = normalizeSettingsSection(sectionId) as SettingsSectionId;
   const query = preferences.settingsSearch.trim();
   const visibleSections = useMemo(() => availableSettingsSections(accessProfile), [accessProfile]);
@@ -290,6 +297,8 @@ export function SettingsPage({
                   documents={documents}
                   extensions={extensions}
                   sectionId={activeSection}
+                  dictationRecordingId={selectedRecordingId}
+                  onShowAllRecordings={() => setSelectedRecordingId("")}
                   surfaceErrors={surfaceErrors}
                   surfaces={surfaces}
                 />

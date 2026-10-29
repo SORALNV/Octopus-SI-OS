@@ -264,8 +264,15 @@ function validateCronRunTemplate(template, interfaceId, authoring) {
   }
 }
 
-function cronScheduleFingerprint(interfaceId, config) {
-  return crypto.createHash("sha256").update(stableJson({
+function cronScheduleFingerprint(interfaceId, config, descriptor, privateStateRoot) {
+  const newRun = config.target.mode === "new_run";
+  const planner = newRun ? descriptor?.interface_driver_config?.private_config?.task_planner_executable : null;
+  if (newRun && (typeof planner !== "string" || !planner || path.isAbsolute(planner)
+    || planner.split("/").some((segment) => ["", ".", ".."].includes(segment)))) {
+    throw new Error("new_run target requires an installation-relative task_planner_executable");
+  }
+  const target = newRun ? { ...config.target, interface_private_state_root: privateStateRoot } : { mode: "existing_run" };
+  const serialized = stableJson({
     interface: interfaceId,
     interval_seconds: config.schedule.interval_seconds ?? null,
     cron: config.schedule.cron ?? null,
@@ -274,6 +281,8 @@ function cronScheduleFingerprint(interfaceId, config) {
     reminder_env: config.schedule.reminder_env,
     reminder_default: config.schedule.reminder_default,
     carry_forward: config.carry_forward ?? null,
-    target: config.target,
-  })).digest("hex");
+    target,
+    task_planner_executable: planner,
+  }).replace(/[\u007f-\uffff]/g, (character) => `\\u${character.charCodeAt(0).toString(16).padStart(4, "0")}`);
+  return crypto.createHash("sha256").update(serialized).digest("hex");
 }

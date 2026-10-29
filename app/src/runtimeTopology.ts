@@ -626,7 +626,7 @@ function projectEnvironment(args: ProjectEnvironmentArgs): EnvironmentNode {
 
   return {
     id: eeId,
-    name: `${templateName}.ee`,
+    name: stringValue(ee?.name) || eeId,
     status,
     statusLabel: statusLabel(status),
     accent,
@@ -642,6 +642,7 @@ function projectEnvironment(args: ProjectEnvironmentArgs): EnvironmentNode {
     description: `EE scope ${templateName} contains runs, interface bindings, artifact movement, worker environments, and policy data for this goal boundary.`,
     stats: [
       { label: "Status", value: statusLabel(status), tone: statusTone(status) },
+      { label: "Policy template", value: templateName },
       { label: "Child EEs", value: String(projectionIndex.childCounts.get(eeId)?.length ?? 0) },
       { label: "Active Runs", value: `${activeRuns} / ${eeRuns.length}` },
       { label: "Worker Refs", value: compactList(workers) || "none" },

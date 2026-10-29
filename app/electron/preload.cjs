@@ -631,6 +631,41 @@ contextBridge.exposeInMainWorld("octopusTransport", {
   transcribeDictation(request) {
     return invokeAccess("octopus:transcribe-dictation", request);
   },
+  startDictationStream(request) {
+    return invokeAccess("octopus:dictation-stream-start", request);
+  },
+  appendDictationAudio(attemptId, bytes) {
+    ipcRenderer.send("octopus:dictation-stream-audio", accessToken, attemptId, bytes);
+  },
+  finishDictationStream(attemptId) {
+    return invokeAccess("octopus:dictation-stream-finish", attemptId);
+  },
+  onDictationStreamEvent(listener) {
+    const wrapped = (_event, payload) => listener(payload);
+    ipcRenderer.on("octopus:dictation-stream-event", wrapped);
+    return () => ipcRenderer.removeListener("octopus:dictation-stream-event", wrapped);
+  },
+  cancelDictation(attemptId) {
+    return invokeAccess("octopus:cancel-dictation", attemptId);
+  },
+  readDictationRecordings() {
+    return invokeAccess("octopus:dictation-recordings-read");
+  },
+  configureDictationRecordings(enabled) {
+    return invokeAccess("octopus:dictation-recordings-configure", enabled);
+  },
+  saveDictationRecording(request) {
+    return invokeAccess("octopus:dictation-recording-save", request);
+  },
+  readDictationRecording(id) {
+    return invokeAccess("octopus:dictation-recording-read", id);
+  },
+  updateDictationRecording(request) {
+    return invokeAccess("octopus:dictation-recording-update", request);
+  },
+  deleteDictationRecording(id) {
+    return invokeAccess("octopus:dictation-recording-delete", id);
+  },
   submitInterfaceArtifact(request) {
     return invokeAccess("octopus:submit-interface-artifact", request);
   },

@@ -466,6 +466,7 @@ async function readEeInstanceRecords(eeInstancesRoot, warnings = []) {
       || !stringValue(record.ee_id)
       || !stringValue(record.template_name)
       || !stringValue(record.goal)
+      || (record.name != null && (typeof record.name !== "string" || !record.name.trim()))
       || (
         Object.prototype.hasOwnProperty.call(record, "config")
         && (!record.config || typeof record.config !== "object" || Array.isArray(record.config))
@@ -477,7 +478,7 @@ async function readEeInstanceRecords(eeInstancesRoot, warnings = []) {
     try {
       exactObjectKeys(
         record,
-        ["ee_id", "template_name", "parent_ee_id", "goal", "config", "policy_narrowing"],
+        ["ee_id", "name", "template_name", "parent_ee_id", "goal", "config", "policy_narrowing"],
         ["ee_id", "template_name", "parent_ee_id", "goal"],
         `EE instance ${file}`,
       );
@@ -775,7 +776,7 @@ function operatorOsProjectRows(scope, environments) {
     const presentation = objectOrEmpty(presentations.get(stringValue(environment.ee_id)));
     return {
       ee_id: stringValue(environment.ee_id),
-      name: stringValue(presentation.name) || stringValue(environment.goal),
+      name: stringValue(environment.name) || stringValue(environment.ee_id),
       icon: stringValue(presentation.icon),
       color: stringValue(presentation.color),
       goal: stringValue(environment.goal),
@@ -969,6 +970,7 @@ function eeInstanceRows(projection, includeLedger = true) {
     const template = templates.get(templateName);
     byEe.set(eeId, {
       ee_id: eeId,
+      name: stringValue(record.name),
       template_name: templateName,
       status: "projected",
       goal_id: "",

@@ -82,8 +82,9 @@ pub(crate) async fn start_command(
         bounded_optional_u64_argument(tool_id, &call.arguments, "timeout_ms", 1, timeout_max)?
             .unwrap_or(timeout_default);
     let yield_time_ms =
-        bounded_optional_u64_argument(tool_id, &call.arguments, "yield_time_ms", 0, yield_max)?
-            .unwrap_or(yield_default);
+        bounded_optional_u64_argument(tool_id, &call.arguments, "yield_time_ms", 0, u64::MAX)?
+            .unwrap_or(yield_default)
+            .min(yield_max);
     let max_output_bytes = bounded_optional_usize_argument(
         tool_id,
         &call.arguments,
@@ -190,8 +191,9 @@ pub(crate) async fn write_stdin(
     )?;
     let output_max = required_handler_usize(tool_id, config.max_output_bytes, "max_output_bytes")?;
     let yield_time_ms =
-        bounded_optional_u64_argument(tool_id, &call.arguments, "yield_time_ms", 0, yield_max)?
-            .unwrap_or(yield_default);
+        bounded_optional_u64_argument(tool_id, &call.arguments, "yield_time_ms", 0, u64::MAX)?
+            .unwrap_or(yield_default)
+            .min(yield_max);
     let max_output_bytes = bounded_optional_usize_argument(
         tool_id,
         &call.arguments,
@@ -335,8 +337,9 @@ fn poll_limits(
     )?;
     let output_max = required_handler_usize(tool_id, config.max_output_bytes, "max_output_bytes")?;
     let yield_time_ms =
-        bounded_optional_u64_argument(tool_id, arguments, "yield_time_ms", 0, yield_max)?
-            .unwrap_or(yield_default);
+        bounded_optional_u64_argument(tool_id, arguments, "yield_time_ms", 0, u64::MAX)?
+            .unwrap_or(yield_default)
+            .min(yield_max);
     let max_output_bytes =
         bounded_optional_usize_argument(tool_id, arguments, "max_output_bytes", 1, output_max)?
             .unwrap_or(output_default);

@@ -130,6 +130,14 @@ use different process authority or recovery declarations while continuing,
 listing, signalling, or releasing the same commands. Their executable and
 handler operation must still belong to the declared worker-environment kind.
 
+Workspace command tools declare their output wait limits in
+`handler_config.max_yield_time_ms`. A longer requested wait is capped to the
+configured window instead of rejecting the command: 30,000 ms for
+`workspace.exec` and 300,000 ms for `workspace.write_stdin`. Both return early
+when the command exits. The process deadline is separate; subsequent reads
+continue the same process. Descriptor changes take effect without restarting
+the runtime or replaying commands.
+
 `process.interrupted_effect_recovery` controls whether an invocation whose
 outcome is unknown may be executed again. `reinvoke_exact_artifact` requires the
 tool to recover that exact call safely. An omitted value is `indeterminate`:

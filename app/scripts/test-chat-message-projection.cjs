@@ -1,4 +1,6 @@
 const assert = require('node:assert/strict');
+const { spawnSync } = require('node:child_process');
+const { scheduledInterfacesProjection } = require('../electron/projection/scheduledInterfaces.cjs');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -81,6 +83,77 @@ test('trigger history groups delivery edges and uses the same task title as All 
   assert.equal((await read([edges[0]])).deliveries[0].chat_interface_id, '');
   assert.equal(require('../electron/projection/registryRows.cjs').projectionTruthChange('state/change-journals/task/journal.json'), 'runs');
 });
+const cronOwner = path.resolve(__dirname, "../../registry/interface/world_cron");
+const cronDueMs = 1_800_000_000_000;
+const prepareCronState = `
+import importlib.util, json, os, pathlib, sys
+root, cronOwner, due = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2]), int(sys.argv[3])
+os.environ.update(
+    OCTOPUS_INTERFACE_ID="world_cron", OCTOPUS_INTERFACE_DIR=str(root / "registry/interface/world_cron"),
+    OCTOPUS_VAR_DIR=str(root / "interfaces/world_cron"),
+    OCTOPUS_INTERFACE_DESCRIPTOR_JSON=(root / "registry/interface/world_cron/interface.json").read_text(),
+    OCTOPUS_INTERFACE_HOST_IO_LIMITS=json.dumps({key: 1048576 for key in
+        ("max_control_frame_bytes", "max_manifest_bytes", "max_payload_bytes", "max_stderr_bytes")}),
+)
+spec = importlib.util.spec_from_file_location("cron_projection_test", cronOwner / "cron_life.py")
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+schedule = module.load_schedule()
+module.commit_interval_state(schedule, "waiting", due * 1_000_000)
+print(schedule["fingerprint"])
+`;
+
+for (const mode of ["existing_run", "new_run"]) {
+  test(`Triggers projects owner-written interval state for ${mode}`, async (t) => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "oct-cron-projection-"));
+    t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+    const directory = path.join(root, "registry/interface/world_cron");
+    fs.mkdirSync(directory, { recursive: true });
+    const descriptor = JSON.parse(fs.readFileSync(path.join(cronOwner, "interface.json")));
+    const activation = JSON.parse(fs.readFileSync(path.join(cronOwner, "activation.json")));
+    activation.activations[0].enabled = true;
+    const config = activation.activations[0].config;
+    config.schedule = { interval_seconds: 7200, fire_on_start: false, timezone: "UTC",
+      reminder_env: "", reminder_default: "Review café / проверка 🐙\u007f" };
+    if (mode === "new_run") config.target = { mode, ee_id: "ee_existence", worker_interface_id: "worker",
+      provider_interface_id: "provider", reasoning_effort: "high", client_surface_role: "task",
+      id_prefix: "review", door_host_slots: {} };
+    const activationPath = path.join(directory, "activation.json");
+    fs.writeFileSync(activationPath, JSON.stringify(activation));
+    fs.writeFileSync(path.join(directory, "interface.json"), JSON.stringify(descriptor));
+    const result = spawnSync("python3", ["-B", "-c", prepareCronState, root, cronOwner, String(cronDueMs)], { encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr);
+    const store = scheduledInterfacesProjection({
+      indexedArtifactLabelRows: async () => [], operatorOsScope: () => ({ client_runs: [] }),
+    });
+    const projection = { octopusHome: root, structureMemo: new Map(), descriptors: { interface: [
+      { ...descriptor, activation_sidecars: [{ ...activation, descriptor_path: activationPath }] },
+    ] }, runRecords: [config.run_template] };
+    const read = async () => { projection.structureMemo.clear(); return (await store.scheduledInterfaceRows(projection))[0]; };
+    const current = await read();
+    assert.equal(current.valid, true, current.error);
+    assert.equal(current.next_run_at_ms, cronDueMs);
+    assert.equal(current.next_run_source, "driver_state");
+    config.schedule.cron = null;
+    const explicitNull = await read();
+    assert.equal(explicitNull.next_run_at_ms, cronDueMs, "omitted cron and null are the same owner configuration");
+    if (mode === "new_run") {
+      config.target.interface_private_state_root = fs.realpathSync(path.join(root, "interfaces"));
+      assert.equal((await read()).next_run_at_ms, cronDueMs, "omitted private root resolves to this Home");
+      const planner = descriptor.interface_driver_config.private_config.task_planner_executable;
+      descriptor.interface_driver_config.private_config.task_planner_executable = "bin/changed-planner";
+      assert.equal((await read()).next_run_at_ms, null, "different planner must not validate old state");
+      descriptor.interface_driver_config.private_config.task_planner_executable = planner;
+    } else {
+      delete descriptor.interface_driver_config;
+      delete projection.descriptors.interface[0].interface_driver_config;
+      assert.equal((await read()).next_run_at_ms, cronDueMs, "existing-run triggers do not use a planner");
+    }
+    config.schedule.reminder_default = "Changed assignment";
+    assert.equal((await read()).next_run_at_ms, null, "different assignment must not validate old state");
+  });
+}
+
 function movement(seq, label, payload, { from = 'provider', to = 'chat', kind = 'InterfaceOutbound' } = {}) {
   const hex = seq.toString(16).padStart(64, '0');
   return { seq, recorded_at_unix_ms: seq * 100, kind, from: { Interface: from }, to: { Interface: to },

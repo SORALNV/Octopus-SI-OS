@@ -46,6 +46,10 @@ impl ProviderOutputHandoff {
                                 .is_some_and(|previous| previous.as_ref() != Some(&pending)) {
                                 return Err("failed context source has conflicting terminal handoffs".into());
                             }
+                        } else if pending.terminal
+                            && !candidates.contains_key(&pending.source_movement_seq)
+                            && self.unsubmitted_source_failure_before(&pending, self.source_movement_seq)? {
+                            candidates.insert(pending.source_movement_seq, Some(pending));
                         }
                     }
                 }
@@ -105,19 +109,36 @@ impl ProviderOutputHandoff {
                         superseded_at = Some(transition.call.seq.0);
                     }
                 }
-                let terminal = terminal.ok_or("failed context source has no checked terminal failure write")?;
+                if terminal.is_none() {
+                    if let Some(expected) = expected_pending.as_ref().filter(|pending| !pending.source_without_context) {
+                        for (position, transition) in chain.iter().enumerate() {
+                            let record = RunRecord::from_bytes(&transition.after).map_err(|error| error.to_string())?;
+                            let next = persisted_pending_handoff(&record, &config.provider_interface)?;
+                            if !transition.placement && transition.writer.owner == config.provider_interface
+                                && next.as_ref() == Some(expected) {
+                                terminal.get_or_insert(position);
+                                pending = next;
+                            } else if terminal.is_some() && superseded_at.is_none() {
+                                superseded_at = Some(transition.call.seq.0);
+                            }
+                        }
+                    }
+                }
+                let terminal = terminal.ok_or("failed context source has no checked terminal boundary")?;
                 let pending = pending.ok_or("failed context source lost its checked terminal failure")?;
                 if expected_pending.as_ref().is_some_and(|expected| expected != &pending) {
                     return Err("observed failed handoff differs from its checked terminal failure".into());
                 }
-                let outcomes = self.admitted_replay_handoff(&pending)?;
-                if outcomes.is_empty() || outcomes.iter().any(|outcome| match outcome {
+                let unsubmitted_failure = !pending.source_without_context
+                    && self.unsubmitted_source_failure_before(&pending, superseded_at.unwrap_or(self.source_movement_seq))?;
+                let outcomes = if unsubmitted_failure { Vec::new() } else { self.admitted_replay_handoff(&pending)? };
+                if !unsubmitted_failure && (outcomes.is_empty() || outcomes.iter().any(|outcome| match outcome {
                     ProviderHandoffOutcome::Admitted { seq, .. } => {
                         *seq <= chain[terminal].call.seq.0
                             || superseded_at.is_some_and(|superseded| *seq >= superseded)
                     }
                     _ => true,
-                }) {
+                })) {
                     return Err("failed context terminal admission has invalid causality".into());
                 }
                 let evidence = CheckedRunEvidence {
@@ -146,10 +167,8 @@ impl ProviderOutputHandoff {
         let mut next = state.clone();
         for (sequence, context) in recovered {
             let merged = merge_failed_source_context(&next.session_context.artifacts, &context.artifacts, sequence, Some(self.source_movement_seq))?;
-            if session_artifacts_fingerprint(&merged)? != session_artifacts_fingerprint(&next.session_context.artifacts)? {
-                next.session_snapshot_head = None;
-            }
             next.session_context.artifacts = merged;
+            reconcile_resolved_session_snapshot_head(&next.session_context, &mut next.session_snapshot_head)?;
         }
         validate_session_context_evidence(&mut next.session_context, SessionContextEvidenceScope {
             blobs_dir: &self.ctx.blobs_dir, limits: self.ctx.required_host_io_limits()?,
@@ -466,7 +485,7 @@ impl ProviderOutputHandoff {
                 ));
             }
             head.covered_fingerprint =
-                session_artifacts_fingerprint(&context.artifacts[..head.covered_artifact_count])?;
+                session_snapshot_prefix_fingerprint(&context.artifacts[..head.covered_artifact_count])?;
         }
         state.context_artifacts = self.published_context_artifacts(record, &self.config)?;
         if self.source_carries_context {

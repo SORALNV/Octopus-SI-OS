@@ -63,7 +63,7 @@ function scheduledInterfacesProjection(store) {
         }
         const evidence = template
           ? { lastRunAtMs: null, lastMovementSeq: null, nextRunAtMs: null, nextRunSource: "", inactivityState: null, deliveries: [] }
-          : await scheduledInterfaceEvidence(projection, interfaceId, parsed.config, evidenceRows);
+          : await scheduledInterfaceEvidence(projection, interfaceId, parsed.config, evidenceRows, descriptor);
         rows.push({
           interface_id: interfaceId,
           display_name: scheduledInterfaceDisplayName(interfaceId, runTemplate.id),
@@ -150,7 +150,7 @@ function scheduledInterfacesProjection(store) {
     ));
   }
 
-  async function scheduledInterfaceEvidence(projection, interfaceId, config, evidenceRows) {
+  async function scheduledInterfaceEvidence(projection, interfaceId, config, evidenceRows, descriptor) {
     let lastRunAtMs = 0;
     let lastMovementSeq = 0;
     const firings = new Map();
@@ -204,9 +204,17 @@ function scheduledInterfacesProjection(store) {
       nextRunSource = "schedule";
     }
     if (schedule.interval_seconds != null) {
-      const fingerprint = cronScheduleFingerprint(interfaceId, config);
       const statePath = path.join(projection.octopusHome, "interfaces", interfaceId, "cron-interval-state.json");
       const state = await readJsonFile(statePath);
+      let fingerprint = null;
+      if (state) {
+        const privateRoot = config.target.mode === "new_run" ? path.dirname(await fs.realpath(path.dirname(statePath))) : null;
+        if (privateRoot && config.target.interface_private_state_root !== undefined
+          && await fs.realpath(config.target.interface_private_state_root) !== privateRoot) {
+          throw new Error("cron target.interface_private_state_root must name this Home's interface state root");
+        }
+        fingerprint = cronScheduleFingerprint(interfaceId, config, descriptor, privateRoot);
+      }
       if (
         state
         && state.schema_version === 1

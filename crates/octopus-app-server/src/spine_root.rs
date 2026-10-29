@@ -2067,6 +2067,7 @@ mod required_artifact_verification_tests {
         std::fs::write(
             ee_instances_root.join("ee_existence.json"),
             serde_json::to_vec_pretty(&EeInstance {
+                name: None,
                 ee_id: EeId::new("ee_existence"),
                 template: octopus_descriptors::EeTemplateId::new("existence"),
                 parent_ee: None,

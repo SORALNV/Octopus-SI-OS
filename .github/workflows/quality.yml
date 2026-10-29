@@ -78,6 +78,8 @@ jobs:
           node scripts/test-client-launch.cjs
           node scripts/test-home-view.cjs
           node scripts/test-composer-dictation.cjs
+          node --test scripts/test-client-dictation-stream.cjs scripts/test-composer-dictation-editor.cjs
+          node --test scripts/test-client-dictation.cjs
           node scripts/test-application-repair.cjs
           node scripts/test-chat-provider-catalog.cjs
           node scripts/test-composer-agent-controls.cjs
@@ -90,6 +92,7 @@ jobs:
           node scripts/test-resume-glyph-parity.cjs
           node scripts/test-client-catalog-cycle.cjs
           node scripts/test-shell-pane-chrome.cjs
+          node --test scripts/test-workspace-pane-state.cjs
           node scripts/test-command-activity.cjs
 
       - name: Client package and lifecycle contracts
@@ -127,6 +130,8 @@ jobs:
           node registry/interface/world_operator_chat/test_maintenance_client.cjs
           python3 registry/verifier/tool_result_correspondence/tests/test_verify.py
           python3 registry/interface/world_slack/tests/test_slack_contract.py
+          python3 -m unittest discover -s registry/interface/world_cron/tests -p 'test_*.py'
+          python3 -m unittest discover -s registry/interface/world_github_issues/tests -p 'test_*.py'
           node registry/worker_environment_kind/desktop_session/packages/octopus-system-gui-env/native/configure-transport.test.cjs
           node registry/worker_environment_kind/browser_session/packages/octopus-browser-session-env/native/setup-host.test.cjs
           node registry/worker_environment_kind/browser_session/packages/octopus-browser-session-env/native/tests/engine-mode.test.cjs
@@ -134,6 +139,22 @@ jobs:
 
       - name: Public source boundary
         run: node app/scripts/check-public-source.cjs
+
+  provider-bridge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: registry/interface/world_provider_codex/packages/octopus-provider-codex/opencodex-bridge
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: registry/interface/world_provider_codex/packages/octopus-provider-codex/opencodex-bridge/package-lock.json
+      - run: npm ci
+      - run: npm test
 
   workspace-check:
     runs-on: ubuntu-latest

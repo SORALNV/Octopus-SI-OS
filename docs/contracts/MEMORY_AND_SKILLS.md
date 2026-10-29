@@ -4,14 +4,25 @@ Memory, skills, and persona are artifacts bound to runs. Updating one is an
 ordinary run under policy.
 
 The shared worker-role artifact identifies the installed system with the agent:
-its goals, runs, interfaces, triggers, worker environments and their
-connections are Octopus, and a run is one part of its work. It invites runs to
-organize their work through those primitives and to reshape the environment
-when a change is likely to improve current or later work. Home and Task role
-artifacts specialize that
-role; provider choice does not change the identity. This guidance is bound
-context, not additional authority or evidence of work elsewhere. The realtime
-provider's session instructions present the same identity through voice.
+its goals, runs, interfaces, triggers, worker environments and their connections
+are Octopus, and a run is one part of its work. Maintaining and improving that
+system is part of the role. Home and Task role artifacts specialize it; provider
+choice does not change the identity. This guidance is bound context, not
+additional authority or evidence of work elsewhere. The realtime provider's
+session instructions present the same identity through voice.
+
+The system library's `self-improvement` skill carries the detailed guidance.
+Its catalogue applicability covers substantial or long-running work, continuing
+intentions, dependencies, recurring work and observed friction. The model reads
+the entry through the ordinary context collection tools when relevant. It builds
+and maintains a bounded picture of current goals, runs, connections, capabilities
+and results; questions the organization of the work; and maintains, repairs or
+extends the system within its grant. Improvements include adding missing
+capabilities and connecting them to their consumers. The shared role keeps a
+short responsibility statement and pointer instead of repeating this procedure.
+Skill selection remains a model decision; no task classifier or execution loop
+is added. Working state summaries remain observations over owning records and
+recorded effects, carried through declared artifact routes when needed.
 
 ## Memory is an artifact
 
@@ -48,12 +59,11 @@ Memory is written in two ways:
 The resulting entries become visible only to runs whose bindings and formed
 policy admit them.
 
-Knowledge entries describe what was observed and the conditions under which it
-applies. A prepared plan, an installed configuration and a successful execution
-support different claims. Material uncertainty belongs in the description as
-well as the content, so discovery does not present an untested procedure as
-proven. Capturing or consolidating experience preserves these limits. A useful
-failure may be saved without recasting it as a solution.
+Knowledge entries retain their sources and distinguish observations, proposals
+and inference. Descriptions include conditions or unresolved dependencies that
+affect whether the knowledge is usable. Useful failures and partial results can
+also be retained. Capture and consolidation preserve these distinctions and the
+entry's audience.
 
 The projection's byte limit covers the complete artifact, including its model
 text and any original input attached after source verification. When it is too

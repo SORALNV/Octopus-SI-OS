@@ -11,8 +11,6 @@ import {
 } from "../agentPresets";
 import {
   clientProjectScopeIds,
-  clientTaskAttentionRank,
-  clientTaskAttentionState,
   clientTaskTitle,
   clientTaskUnread,
   ensureClientTaskReadBaseline,
@@ -22,7 +20,6 @@ import {
   setClientTaskSortMode,
   useClientTaskOrganization,
   type ClientChatProject,
-  type ClientTaskOrganization,
   type ClientTaskSortMode,
 } from "../shell/clientWorkspaces";
 import type { ClientSurfaceDescriptor } from "../shell/surfaceTypes";
@@ -347,7 +344,7 @@ function TaskNavigation({
       && (!selectedScopeRunIds || selectedScopeRunIds.has(chat.runId))
     )),
     chatOrderIds,
-    organization,
+    organization.sortMode,
   );
   const archivedChats = allTaskChats.filter((chat) => (
     chat.archived && (!selectedScopeRunIds || selectedScopeRunIds.has(chat.runId))
@@ -979,14 +976,6 @@ function TaskSortMenu({
     >
       <div className="px-2 py-1 text-sm text-token-description-foreground">Sort by</div>
       <OcMenuItem
-        aria-checked={sortMode === "attention"}
-        description="Needs input and unread tasks first"
-        label="Priority"
-        onClick={() => onSelect("attention")}
-        role="menuitemradio"
-        selected={sortMode === "attention"}
-      />
-      <OcMenuItem
         aria-checked={sortMode === "recent"}
         label="Last updated"
         onClick={() => onSelect("recent")}
@@ -1346,21 +1335,14 @@ function moveBefore(values: string[], item: string, before: string | null): stri
 function orderChats(
   chats: ChatRun[],
   orderIds: string[],
-  organization: ClientTaskOrganization,
+  sortMode: ClientTaskSortMode,
 ): ChatRun[] {
-  if (organization.sortMode === "manual") {
+  if (sortMode === "manual") {
     const manualRank = new Map(orderIds.map((runId, index) => [runId, index]));
     const rankOf = (chat: ChatRun) => manualRank.get(chat.runId) ?? Number.MAX_SAFE_INTEGER;
     return [...chats].sort((left, right) => rankOf(left) - rankOf(right));
   }
-  if (organization.sortMode === "recent") {
-    return [...chats].sort((left, right) => right.updatedAtMs - left.updatedAtMs);
-  }
-  return [...chats].sort((left, right) => (
-    clientTaskAttentionRank(clientTaskAttentionState(left, organization))
-      - clientTaskAttentionRank(clientTaskAttentionState(right, organization))
-    || right.updatedAtMs - left.updatedAtMs
-  ));
+  return [...chats].sort((left, right) => right.updatedAtMs - left.updatedAtMs);
 }
 
 function orderProjects(projects: ClientChatProject[], orderIds: string[]): ClientChatProject[] {

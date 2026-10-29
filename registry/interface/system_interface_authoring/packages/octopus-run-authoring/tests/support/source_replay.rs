@@ -528,6 +528,48 @@ struct CompletedInputReplayFixture {
 }
 
 #[test]
+fn failed_capture_closes_only_a_fenced_unsubmitted_final_with_its_exact_admitted_failure() {
+    let mut fixture = CompletedInputReplayFixture::new();
+    let before = std::fs::read(&fixture.handoff.run_path).unwrap();
+    let file = InterfaceArtifactFile::write(fixture.handoff.var_dir.join("final"), "answer", br#"{"text":"final answer"}"#).unwrap();
+    let identity = artifact_identity(&file, &fixture.handoff.var_dir).unwrap();
+    let authored = fixture.handoff.author_run_with_bindings(&before, &[fixture.input.id.clone()], &[PreparedHandoff {
+        identity, output_checkpoint: fixture.handoff.config.checkpoint_for_role(RunAuthoringCheckpointRole::ProviderArtifactOutput).unwrap().clone(),
+        verified_inputs: Vec::new(),
+    }], true, None, false, true, &[]).unwrap();
+    fixture.install(&authored);
+    let record = RunRecord::from_bytes(authored.content.as_bytes()).unwrap();
+    let pending = &authored.pending_handoff;
+    assert!(fixture.handoff.pending_source_unsubmitted(&record, pending).unwrap());
+    assert!(!fixture.handoff.unsubmitted_source_failure_before(pending, fixture.rows.len() as u64).unwrap());
+    let error = InterfaceArtifactFile::write(fixture.handoff.var_dir.join("failure"), "turn.error",
+        &serde_json::to_vec(&serde_json::json!({"label":"turn.error","will_retry":false,
+            "additional_details":{"source_movement_seq":pending.source_movement_seq}})).unwrap()).unwrap();
+    let failure_seq = fixture.rows.len() as u64;
+    fixture.edge(authored.content.as_bytes(), &pending.items[0].checkpoint.id, &error, "worker".into(), MovementKind::InterfaceArrival);
+    assert!(!fixture.handoff.unsubmitted_source_failure_before(pending, failure_seq).unwrap());
+    assert!(fixture.handoff.unsubmitted_source_failure_before(pending, failure_seq + 1).unwrap());
+    let mut changed = pending.clone(); changed.source_movement_seq += 1;
+    assert!(!fixture.handoff.unsubmitted_source_failure_before(&changed, failure_seq + 1).unwrap());
+    let mut legacy = pending.clone(); legacy.dispatch_fenced = false;
+    assert!(!fixture.handoff.pending_source_unsubmitted(&record, &legacy).unwrap());
+    let marker = source_withdrawal::dispatch_path(&fixture.handoff.ctx, &record, &pending.items[0]);
+    std::fs::create_dir_all(marker.parent().unwrap()).unwrap();
+    std::fs::write(&marker, b"{}").unwrap();
+    assert!(!fixture.handoff.pending_source_unsubmitted(&record, pending).unwrap());
+    assert!(!fixture.handoff.unsubmitted_source_failure_before(pending, failure_seq + 1).unwrap());
+    std::fs::remove_file(marker).unwrap();
+    fixture.edge(authored.content.as_bytes(), &pending.items[0].checkpoint.id, &file, "worker".into(), MovementKind::InterfaceArrival);
+    assert!(!fixture.handoff.pending_source_unsubmitted(&record, pending).unwrap());
+    assert!(!fixture.handoff.unsubmitted_source_failure_before(pending, fixture.rows.len() as u64).unwrap());
+
+    let mut effect = CompletedInputReplayFixture::new();
+    let call = effect.output(true, false, false);
+    let record = RunRecord::from_bytes(call.content.as_bytes()).unwrap();
+    assert!(!effect.handoff.pending_source_unsubmitted(&record, &call.pending_handoff).unwrap());
+}
+
+#[test]
 fn historical_role_binding_is_static_only_with_its_admitted_grant() {
     let mut fixture = CompletedInputReplayFixture::new();
     let role_file = InterfaceArtifactFile::write(fixture.handoff.var_dir.join("role"), "context.role",
@@ -596,6 +638,49 @@ fn selected_home_source_context_preserves_admitted_roles_and_input() {
         eprintln!("source {source}: admitted roles remain static; exact input and ledger provenance recovered");
     }
     assert_eq!(std::fs::read(path).unwrap(), current);
+}
+
+#[tokio::test]
+#[ignore = "requires an explicitly selected Home; reads live evidence without delivering or writing run state"]
+async fn selected_home_failed_capture_recovers_original_inputs_without_delivering() {
+    let home = PathBuf::from(std::env::var("OCTOPUS_REPLAY_HOME").unwrap());
+    let provider = InterfaceId::new(std::env::var("OCTOPUS_REPLAY_PROVIDER").unwrap());
+    let run = RunId::new(std::env::var("OCTOPUS_REPLAY_RUN").unwrap());
+    let sequence: u64 = std::env::var("OCTOPUS_REPLAY_SOURCE").unwrap().parse().unwrap();
+    let failed: u64 = std::env::var("OCTOPUS_REPLAY_FAILED_SOURCE").unwrap().parse().unwrap();
+    let directory = home.join("registry/interface").join(provider.as_str());
+    let descriptor: InterfaceDescriptor = serde_json::from_slice(&std::fs::read(directory.join("interface.json")).unwrap()).unwrap();
+    let scratch = tempfile::tempdir().unwrap();
+    let (sender, receiver) = tokio::sync::mpsc::channel(1); drop(receiver);
+    let ctx = InterfaceLiftContext::unprivileged(provider.clone(), directory, Some(descriptor.clone()),
+        home.join("interfaces").join(provider.as_str()), home.join("ledger/movements.jsonl"), home.join("ledger/blobs"),
+        scratch.path().join("index.sqlite"), BTreeMap::from([
+            ("run_records_root".into(), home.join("state/runs")),
+            ("interface_hand_in_root".into(), home.join("interface-hand-in")),
+        ]), sender, Default::default()).with_host_io_limits(InterfaceHostIoLimits {
+            max_control_frame_bytes:1_048_576, max_stderr_bytes:262_144,
+            max_manifest_bytes:1_048_576, max_payload_bytes:268_435_456,
+        }).unwrap();
+    let path = home.join("state/runs").join(format!("{run}.json"));
+    let before = std::fs::read(&path).unwrap();
+    let mut replay = octopus_world_pyecho_life_runtime::LedgerReplayReader::open(&ctx).unwrap();
+    let mut input = None;
+    while let Some(batch) = replay.read_batch(256).unwrap() {
+        for entry in batch { if entry.movement.seq.0 == sequence { input = Some(replay.envelope(&entry).unwrap()); } }
+        if input.is_some() { break; }
+    }
+    let input = input.expect("selected source is not an outbound of this provider");
+    let session = ProviderHandoffSession::new(&ctx).unwrap();
+    let pinned = ctx.pinned_run_record_bytes(&input).unwrap();
+    let handoff = session.from_invocation_state(&ctx, &descriptor, &run, &input, sequence, &pinned).unwrap();
+    let contexts = handoff.checked_failed_source_contexts(&before, &[], None).unwrap();
+    assert!(contexts.contains_key(&failed), "lost the source whose final capture failed");
+    let recovered = &contexts[&failed].artifacts;
+    assert_eq!(recovered.iter().filter(|entry| entry.source_movement_seq == Some(failed)).count(), 1);
+    let (_, source) = session.index().unwrap().exact_provider_source_outbound(&run, &handoff.config.worker, &provider, failed).unwrap();
+    assert!(recovered.iter().any(|entry| entry.source_artifact == source.artifact));
+    assert_eq!(std::fs::read(path).unwrap(), before);
+    eprintln!("recovered exact source {failed} and {} admitted history artifacts; no outputs delivered", recovered.len());
 }
 
 impl CompletedInputReplayFixture {

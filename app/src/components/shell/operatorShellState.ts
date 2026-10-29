@@ -24,11 +24,20 @@ import { restorePaneTabs } from "./paneTabs";
 
 export type SecondaryPaneTabState = WorkspacePaneTabState;
 
+export type WorkspacePaneLayout = {
+  activePane: "primary" | "secondary";
+  focused: boolean;
+  sidebarOpen: boolean;
+  sidebarWidth: number;
+  widthPercent: number;
+};
+
 export type StoredSecondaryPaneState = {
   version: 3;
   open: boolean;
   activeTabId: string;
   tabs: SecondaryPaneTabState[];
+  layout?: WorkspacePaneLayout;
 };
 
 const SECONDARY_PANE_STATE_STORAGE_KEY = "octopus.home.secondary-pane.v1";
@@ -115,10 +124,10 @@ export function resolveSelection(
   return firstEnvironment ? { kind: "environment", id: firstEnvironment.id } : null;
 }
 
-export function secondaryPaneStorageKey(profile: OctopusClientAccessProfile, homeRunId: string, windowScope = "main"): string {
+export function secondaryPaneStorageKey(profile: OctopusClientAccessProfile, homeRunId: string, windowScope = "main", paneScope = ""): string {
   return clientWindowStateKey(
     windowScope,
-    profileStorageKey(`${SECONDARY_PANE_STATE_STORAGE_KEY}.${homeRunId.trim()}`, profile),
+    profileStorageKey(`${SECONDARY_PANE_STATE_STORAGE_KEY}.${homeRunId.trim()}${paneScope ? `.${paneScope}` : ""}`, profile),
   );
 }
 
@@ -126,16 +135,22 @@ export function readSecondaryPaneState(
   profile: OctopusClientAccessProfile,
   homeRunId: string,
   windowScope = "main",
+  paneScope = "",
 ): StoredSecondaryPaneState {
+  return readSecondaryPaneStateAtKey(windowScope, secondaryPaneStorageKey(profile, homeRunId, windowScope, paneScope));
+}
+
+export function readSecondaryPaneStateAtKey(windowScope: string, key: string): StoredSecondaryPaneState {
   const fallback: StoredSecondaryPaneState = { version: 3, open: false, activeTabId: "", tabs: [] };
-  if (!homeRunId.trim()) return fallback;
   try {
-    const raw = clientWindowStateStorage(windowScope).getItem(secondaryPaneStorageKey(profile, homeRunId, windowScope));
+    const raw = clientWindowStateStorage(windowScope).getItem(key);
     if (!raw) return fallback;
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return fallback;
     const record = parsed as Record<string, unknown>;
     if (![1, 2, 3].includes(Number(record.version)) || !Array.isArray(record.tabs)) return fallback;
+    const layout = record.layout === undefined ? undefined : normalizeWorkspacePaneLayout(record.layout);
+    if (layout === null) return fallback;
     const restored = restorePaneTabs({
       activeTabId: typeof record.activeTabId === "string" ? record.activeTabId : "",
       storedTabs: record.tabs,
@@ -149,6 +164,7 @@ export function readSecondaryPaneState(
       open: record.open === true,
       activeTabId: restored.activeTabId,
       tabs: restored.tabs,
+      ...(layout ? { layout } : {}),
     };
   } catch {
     return fallback;
@@ -159,23 +175,44 @@ export function writeSecondaryPaneState(
   profile: OctopusClientAccessProfile,
   homeRunId: string,
   windowScope: string,
-  state: Pick<StoredSecondaryPaneState, "activeTabId" | "open" | "tabs">,
+  state: Pick<StoredSecondaryPaneState, "activeTabId" | "open" | "tabs" | "layout">,
+  paneScope = "",
 ): void {
   if (!homeRunId.trim()) return;
-  const tabs = state.tabs.filter((tab) => tab.target.kind !== "terminal" && tab.target.kind !== "task_sources");
+  writeSecondaryPaneStateAtKey(windowScope, secondaryPaneStorageKey(profile, homeRunId, windowScope, paneScope), state);
+}
+
+export function writeSecondaryPaneStateAtKey(
+  windowScope: string,
+  key: string,
+  state: Pick<StoredSecondaryPaneState, "activeTabId" | "open" | "tabs" | "layout">,
+): void {
+  if (state.layout && !normalizeWorkspacePaneLayout(state.layout)) throw new Error("Invalid workspace pane layout");
+  const tabs = state.tabs.filter((tab) => tab.target.kind !== "terminal" && tab.target.kind !== "task_sources" && tab.target.kind !== "client_browser");
   const activeTabId = tabs.some((tab) => tab.id === state.activeTabId)
     ? state.activeTabId
     : tabs[0]?.id ?? "";
   const value: StoredSecondaryPaneState = {
     version: 3,
     activeTabId,
-    open: state.open && tabs.length > 0,
+    open: state.open && (state.tabs.length === 0 || tabs.length > 0),
     tabs,
+    ...(state.layout ? { layout: state.layout } : {}),
   };
   clientWindowStateStorage(windowScope).setItem(
-    secondaryPaneStorageKey(profile, homeRunId, windowScope),
+    key,
     JSON.stringify(value),
   );
+}
+
+function normalizeWorkspacePaneLayout(value: unknown): WorkspacePaneLayout | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const row = value as Record<string, unknown>;
+  if (row.activePane !== "primary" && row.activePane !== "secondary") return null;
+  if (typeof row.focused !== "boolean" || typeof row.sidebarOpen !== "boolean") return null;
+  if (typeof row.sidebarWidth !== "number" || !Number.isFinite(row.sidebarWidth) || row.sidebarWidth <= 0) return null;
+  if (typeof row.widthPercent !== "number" || !Number.isFinite(row.widthPercent) || row.widthPercent <= 0 || row.widthPercent > 100) return null;
+  return { activePane: row.activePane, focused: row.focused, sidebarOpen: row.sidebarOpen, sidebarWidth: row.sidebarWidth, widthPercent: row.widthPercent };
 }
 
 function normalizeSecondaryPaneTab(value: unknown): SecondaryPaneTabState | null {

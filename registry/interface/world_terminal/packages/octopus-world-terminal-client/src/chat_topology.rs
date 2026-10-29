@@ -3892,6 +3892,7 @@ fn plan_private_run(
         }
         None => (
             EeInstance {
+                name: None,
                 ee_id: EeId::new(format!("{}{}", prefixes.ee, opaque_id)),
                 template: catalog.ee_template.id.clone(),
                 parent_ee: Some(EeId::new(&descriptor.private_run.parent_ee)),
@@ -6216,6 +6217,7 @@ mod tests {
         std::fs::create_dir_all(&ee_instances_root).unwrap();
         std::fs::create_dir_all(&registry_interface_root).unwrap();
         let root_ee = EeInstance {
+            name: None,
             ee_id: EeId::new("ee_existence"),
             template: catalog.ee_template.id.clone(),
             parent_ee: None,

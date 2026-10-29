@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+import time
 import unittest
 from unittest.mock import patch
 
@@ -216,6 +217,40 @@ class InactivityContract(unittest.TestCase):
         saved = json.loads(Path(module.task_plan_path(manifest_hash)).read_text())
         self.assertIsNone(saved['authoring_attempt'])
         self.assertEqual(len(saved['controller_frontier_hashes']), 1)
+
+    def test_authoring_wait_rereads_a_file_whose_install_settles_during_the_read(self):
+        module, schedule = self.module, self.schedule()
+        manifest_hash, label = 'c' * 64, 'cron.current_time.' + 'd' * 24
+        state = {'schema_version': 1, 'schedule_fingerprint': schedule['fingerprint'],
+                 'manifest_hash': manifest_hash, 'plan': {},
+                 'plan_hash': module.octopus_content_hash(module.canonical_json({})),
+                 'controller_frontier_hashes': [], 'authoring_attempt': None}
+        writes = [{'path': str(self.root / f'authored-{index}.json'), 'content': str(index),
+                   'expected_before_hash': None} for index in range(3)]
+        settling, calls, real_read = {}, [], os.read
+        def publish(current_schedule, manifest_path):
+            manifest = json.loads(Path(manifest_path).read_text())
+            for write in json.loads(Path(manifest['payload_path']).read_text())['arguments']['writes']:
+                target = Path(write['path'])
+                stage, link = target.with_suffix('.stage'), target.with_suffix('.link')
+                stage.write_text(write['content'])
+                os.link(stage, link)
+                os.replace(link, target)
+                settling[target.stat().st_ino] = stage
+            artifact_id = manifest['label'] + ':' + module.octopus_content_hash(Path(manifest_path).read_bytes())
+            calls.append(artifact_id)
+            return {'admitted': {'seq': self.movement(schedule['run'], artifact_id, 'InterfaceArrival', schedule['authoring']['source_interface'])}}
+        def read(descriptor, size):
+            stage = settling.pop(os.fstat(descriptor).st_ino, None)
+            if stage is not None:
+                time.sleep(0.01)
+                stage.unlink()
+            return real_read(descriptor, size)
+        with patch.object(module, 'load_or_prepare_task_plan', lambda *_: state), patch.object(module, 'task_plan_writes', lambda *_: writes), patch.object(module, 'validate_task_plan_output'), patch.object(module, 'send_authoring_manifest', publish), patch.object(module.os, 'read', read):
+            module.ensure_new_run_target(schedule, manifest_hash, label)
+        self.assertEqual((len(calls), settling), (1, {}))
+        self.assertTrue(module.task_writes_complete(writes))
+        self.assertIsNone(json.loads(Path(module.task_plan_path(manifest_hash)).read_text())['authoring_attempt'])
 
     def test_a_new_task_firing_names_itself_and_its_task_input_admits_only_that_name(self):
         self.config["target"] = json.loads((test_one_shot.OWNER.parent / "world_system_review" / "activation.json").read_text())["activations"][0]["config"]["target"]

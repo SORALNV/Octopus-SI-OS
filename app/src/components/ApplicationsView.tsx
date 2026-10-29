@@ -33,6 +33,8 @@ import {
 import { useProjectionStructureGeneration } from "../projectionLive";
 import {
   OcButton,
+  OcDialogFooter,
+  OcDialogHeader,
   OcEmptyState,
   OcIconButton,
   OcInlineProgress,
@@ -242,8 +244,8 @@ export function ApplicationsView({
   const [applicationPacks, setApplicationPacks] = useState<ApplicationPackRecord[]>([]);
   const [projects, setProjects] = useState<ApplicationProject[]>([]);
   const [rootEeId, setRootEeId] = useState("");
-  const [loaded, setLoaded] = useState(false);
-  const [packsLoaded, setPacksLoaded] = useState(false);
+  const [loadedProfile, setLoadedProfile] = useState<OctopusClientAccessProfile | null>(null);
+  const [packsLoadedProfile, setPacksLoadedProfile] = useState<OctopusClientAccessProfile | null>(null);
   const [error, setError] = useState("");
   const [packError, setPackError] = useState("");
   const [clientSetup, setClientSetup] = useState<OctopusClientSetupState | null>(null);
@@ -267,15 +269,16 @@ export function ApplicationsView({
   const [installReview, setInstallReview] = useState<ApplicationRecord | null>(null);
   const [lifecycleOperations, setLifecycleOperations] = useState<Record<string, ApplicationLifecycleOperation>>({});
   const [packLifecycleOperations, setPackLifecycleOperations] = useState<Record<string, ApplicationPackLifecycleOperation>>({});
+  const loaded = loadedProfile === accessProfile;
+  const packsLoaded = packsLoadedProfile === accessProfile;
   useAppErrorToast(error || packError || clientSetupError);
 
   useEffect(() => {
     if (!hasProjectionBridge()) {
-      setLoaded(true);
+      setLoadedProfile(accessProfile);
       return;
     }
     let cancelled = false;
-    setLoaded(false);
     readProjection<ApplicationsProjection>("projection.operator.os.applications")
       .then((response) => {
         if (cancelled) return;
@@ -283,12 +286,17 @@ export function ApplicationsView({
         setProjects(arrayRecords(response.projects));
         setRootEeId(typeof response.root_ee_id === "string" ? response.root_ee_id : "");
         setError(arrayStrings(response.errors).join("\n"));
-        setLoaded(true);
+        setLoadedProfile(accessProfile);
       })
       .catch((failure) => {
         if (cancelled) return;
+        if (loadedProfile !== accessProfile) {
+          setApplications([]);
+          setProjects([]);
+          setRootEeId("");
+        }
         setError(formatProjectionError(failure));
-        setLoaded(true);
+        setLoadedProfile(accessProfile);
       });
     return () => { cancelled = true; };
   }, [accessProfile, generation, reloadTick]);
@@ -316,23 +324,22 @@ export function ApplicationsView({
 
   useEffect(() => {
     if (!hasProjectionBridge()) {
-      setPacksLoaded(true);
+      setPacksLoadedProfile(accessProfile);
       return;
     }
     let cancelled = false;
-    setPacksLoaded(false);
     readProjection<LocalPackagesProjection>("projection.operator.os.local_packages")
       .then((response) => {
         if (cancelled) return;
         setApplicationPacks(arrayRecords(response.packs));
         setPackError(arrayStrings(response.errors).length ? "One or more local Application Packs could not be verified." : "");
-        setPacksLoaded(true);
+        setPacksLoadedProfile(accessProfile);
       })
       .catch(() => {
         if (cancelled) return;
-        setApplicationPacks([]);
+        if (packsLoadedProfile !== accessProfile) setApplicationPacks([]);
         setPackError("Application Packs could not be loaded.");
-        setPacksLoaded(true);
+        setPacksLoadedProfile(accessProfile);
       });
     return () => { cancelled = true; };
   }, [accessProfile, generation, reloadTick]);
@@ -953,10 +960,17 @@ export function ApplicationsView({
       />
       <ApplicationRemovalDialog application={removeApplication} lifecycle={removeApplication ? lifecycleOperations[removeApplication.id] : undefined} onCancel={() => setRemoveId("")} onConfirm={() => removeApplication && void removeInstalledApplication(removeApplication)} />
       <SetupDialogShell ariaLabel="Review required packages" busy={false} open={Boolean(installReview)} onClose={() => setInstallReview(null)}>
-        <h2 className="text-lg font-semibold">Install {installReview?.name}</h2>
-        <p className="mt-2 text-sm text-text-secondary">This application requires these packages. Installing them does not connect them to tasks.</p>
-        <ul className="my-4 space-y-2 text-sm">{installReview?.install_packages.map((entry) => <li key={entry.id}>{entry.name}{entry.installed ? " · Installed" : ""}</li>)}</ul>
-        <div className="flex justify-end gap-2"><OcButton onClick={() => setInstallReview(null)}>Cancel</OcButton><OcButton onClick={() => { const application = installReview; setInstallReview(null); if (application) void installApplication(application); }}>Install</OcButton></div>
+        <OcDialogHeader title={`Install ${installReview?.name ?? "application"}`} description="The following packages are required. After installation, choose where the application is available." />
+        <ul className="min-h-0 space-y-2 overflow-y-auto px-6 pb-6 text-sm">
+          {installReview?.install_packages.map((entry) => <li className="flex items-center justify-between gap-4" key={entry.id}>
+            <span>{entry.name}</span>
+            {entry.installed ? <span className="text-token-text-secondary">Installed</span> : null}
+          </li>)}
+        </ul>
+        <OcDialogFooter>
+          <OcButton variant="ghost" onClick={() => setInstallReview(null)}>Cancel</OcButton>
+          <OcButton variant="primary" onClick={() => { const application = installReview; setInstallReview(null); if (application) void installApplication(application); }}>Install</OcButton>
+        </OcDialogFooter>
       </SetupDialogShell>
     </>
   );

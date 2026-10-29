@@ -999,6 +999,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let instance = |ee: &str, template: &str, parent: Option<&str>| {
             let row = octopus_ee::EeInstance {
+                name: None,
                 ee_id: EeId::new(ee),
                 template: EeTemplateId::new(template),
                 parent_ee: parent.map(EeId::new),

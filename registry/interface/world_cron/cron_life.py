@@ -112,6 +112,10 @@ def load_json_object(path, label, maximum_bytes, private=False):
     return value
 
 
+class FileChangedDuringRead(RuntimeError):
+    pass
+
+
 def read_regular_file_bounded(path, maximum_bytes, label, private=False):
     linked_before = os.lstat(path)
     if stat.S_ISLNK(linked_before.st_mode) or not stat.S_ISREG(linked_before.st_mode):
@@ -139,7 +143,7 @@ def read_regular_file_bounded(path, maximum_bytes, label, private=False):
             or (linked_open.st_dev, linked_open.st_ino)
             != (before.st_dev, before.st_ino)
         ):
-            raise RuntimeError(f"{label} changed while it was opened")
+            raise FileChangedDuringRead(f"{label} changed while it was opened")
         chunks = []
         observed = 0
         while observed <= maximum_bytes:
@@ -173,7 +177,7 @@ def read_regular_file_bounded(path, maximum_bytes, label, private=False):
             or (linked_after.st_dev, linked_after.st_ino)
             != (after.st_dev, after.st_ino)
         ):
-            raise RuntimeError(f"{label} changed while it was read")
+            raise FileChangedDuringRead(f"{label} changed while it was read")
         return b"".join(chunks)
     finally:
         os.close(descriptor)
@@ -2581,6 +2585,22 @@ def prepare_new_run_authoring_attempt(schedule, task_state, writes):
     commit_task_plan_state(schedule, task_state)
 
 
+def observe_new_run_authoring(run_path, attempt, writes):
+    try:
+        controller = read_regular_file_bounded(
+            run_path,
+            MAX_RUN_RECORD_BYTES,
+            "scheduled controller run record",
+        )
+    except FileNotFoundError:
+        controller = None
+    controller_hash = (
+        octopus_content_hash(controller) if controller is not None else None
+    )
+    settled = controller_hash == attempt["after_hash"] and task_writes_complete(writes)
+    return controller_hash, settled
+
+
 def finish_new_run_authoring_attempt(schedule, task_state, writes):
     validate_task_plan(schedule, task_state["manifest_hash"], task_state)
     attempt = task_state["authoring_attempt"]
@@ -2595,29 +2615,24 @@ def finish_new_run_authoring_attempt(schedule, task_state, writes):
     deadline = time.monotonic() + schedule["authoring"]["result_timeout_ms"] / 1000.0
     while True:
         try:
-            controller = read_regular_file_bounded(
-                run_path,
-                MAX_RUN_RECORD_BYTES,
-                "scheduled controller run record",
-            )
-        except FileNotFoundError:
-            controller = None
-        controller_hash = (
-            octopus_content_hash(controller) if controller is not None else None
-        )
-        if controller_hash == attempt["after_hash"] and task_writes_complete(writes):
-            task_state["controller_frontier_hashes"] = [attempt["after_hash"]]
-            task_state["authoring_attempt"] = None
-            commit_task_plan_state(schedule, task_state)
-            return
-        if controller_hash not in (
-            None,
-            attempt["before_hash"],
-            attempt["after_hash"],
-        ):
-            raise RuntimeError(
-                "scheduled controller run changed concurrently during new-run authoring"
-            )
+            observed = observe_new_run_authoring(run_path, attempt, writes)
+        except FileChangedDuringRead:
+            observed = None
+        if observed is not None:
+            controller_hash, settled = observed
+            if settled:
+                task_state["controller_frontier_hashes"] = [attempt["after_hash"]]
+                task_state["authoring_attempt"] = None
+                commit_task_plan_state(schedule, task_state)
+                return
+            if controller_hash not in (
+                None,
+                attempt["before_hash"],
+                attempt["after_hash"],
+            ):
+                raise RuntimeError(
+                    "scheduled controller run changed concurrently during new-run authoring"
+                )
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise RuntimeError(

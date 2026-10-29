@@ -1647,7 +1647,7 @@
         );
 
         let mut changed_prefix = restored.clone();
-        changed_prefix.artifacts[0].source_movement_seq = Some(99);
+        changed_prefix.artifacts[0].payload = serde_json::json!({"text": "changed payload"});
         let rejected_output = InterfaceArtifactFile::write(
             dir.path().join("rejected"),
             "interface.artifact.output",
@@ -1668,7 +1668,7 @@
             artifact.source_movement_seq = Some(index as u64 + 1);
         }
         reconcile_resolved_session_snapshot_head(&normalized, &mut normalized_head).unwrap();
-        assert!(normalized_head.is_none());
+        assert!(normalized_head.is_some());
         let rebased_output = InterfaceArtifactFile::write(
             dir.path().join("rebased"),
             "interface.artifact.output",
@@ -1680,13 +1680,16 @@
                 .unwrap();
         let rebased_payload = rebased_snapshot.read_payload_bytes().unwrap();
         let rebased_value: serde_json::Value = serde_json::from_slice(&rebased_payload).unwrap();
-        assert!(rebased_value[SESSION_CONTEXT_FIELD]["parent"].is_null());
+        assert_eq!(
+            serde_json::from_value::<ArtifactRef>(rebased_value[SESSION_CONTEXT_FIELD]["parent"].clone()).unwrap(),
+            snapshot_ref
+        );
         assert_eq!(
             rebased_value[SESSION_CONTEXT_FIELD]["artifacts"]
                 .as_array()
                 .unwrap()
                 .len(),
-            normalized.artifacts.len()
+            normalized.artifacts.len() - normalized_head.as_ref().unwrap().covered_artifact_count
         );
 
         restored.artifacts.push(session_entry(

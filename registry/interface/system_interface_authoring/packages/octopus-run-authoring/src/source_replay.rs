@@ -90,7 +90,8 @@ impl ProviderOutputHandoff {
                     context_publication::is_publication_completion(prior, &next)
                         && prior.source_without_context == next.source_without_context);
                 if let Some(prior) = previous.as_ref().filter(|prior| !source_withdrawal::follows(prior, &next) && !rejected_final::follows(prior, &next)) {
-                    if prior.publication_unfinished() && !publication {
+                    if prior.publication_unfinished() && !publication
+                        && !self.unsubmitted_source_failure_before(prior, transition.call.seq.0)? {
                         return Err("completed input handoff was superseded before context publication".into());
                     }
                     self.admitted_replay_handoff_before(prior, transition.call.seq.0)?;
@@ -222,7 +223,8 @@ impl ProviderOutputHandoff {
                 .ok_or("checked source replay lost its pending handoff")?;
             if let Some(previous) = previous.as_ref() {
                 if previous.items != next.items && !source_withdrawal::follows(previous, &next) && !rejected_final::follows(previous, &next) {
-                    if previous.publication_unfinished() {
+                    if previous.publication_unfinished()
+                        && !self.unsubmitted_source_failure_before(previous, transition.call.seq.0)? {
                         return Err("provider handoff was superseded before its context was published".into());
                     }
                     self.admitted_replay_handoff_before(previous, transition.call.seq.0)?;
@@ -248,7 +250,9 @@ impl ProviderOutputHandoff {
         }
         for earlier in earlier_sources.values() {
             self.validate_completed_handoff_source(earlier, &original)?;
-            self.admitted_replay_handoff(earlier)?;
+            if !self.unsubmitted_source_failure_before(earlier, self.source_movement_seq)? {
+                self.admitted_replay_handoff(earlier)?;
+            }
         }
         self.admitted_replay_handoff(pending)?;
         let (recovery, outcomes) = match recovered {
@@ -299,6 +303,7 @@ impl ProviderOutputHandoff {
     }
 
     pub(super) fn admitted_replay_handoff_before(&self, pending: &PendingHandoff, before_seq: u64) -> Result<(), String> {
+        if self.unsubmitted_source_failure_before(pending, before_seq)? { return Ok(()); }
         for (item, outcome) in pending.items.iter().zip(self.admitted_replay_handoff(pending)?) {
             let ProviderHandoffOutcome::Admitted { artifact, .. } = outcome else {
                 return Err("completed input handoff has a refused output".into());

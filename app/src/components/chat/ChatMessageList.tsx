@@ -1836,7 +1836,7 @@ function UserMessage({ find, message, onEditUserMessage, onSteerUserMessage, ste
           <div className="flex flex-col items-end gap-1">
             <div className="chat-user-message-content text-size-chat relative w-full min-w-0">
               <SelectableMessageText message={message} onPinMessageExcerpt={onPinMessageExcerpt} taskActionsEnabled={taskActionsEnabled}>
-                <CollapsibleMessageBody>
+                <CollapsibleMessageBody collapseIndicator="fade" text={message.text}>
                   <div className="text-size-chat whitespace-pre-wrap">
                     {message.text ? <MessageContent find={find} text={message.text} variant="user" /> : null}
                   </div>

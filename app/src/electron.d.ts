@@ -227,6 +227,17 @@ declare global {
       submitChatSteer(request: OctopusChatSteerRequest): Promise<OctopusChatSteerResponse>;
       updateChatPins(request: OctopusChatPinsRequest): Promise<OctopusChatPinsResponse>;
       transcribeDictation(request: OctopusDictationRequest): Promise<OctopusDictationResponse>;
+      startDictationStream(request: { attemptId: string; sampleRateHz: number }): Promise<OctopusDictationLocalResult<null>>;
+      appendDictationAudio(attemptId: string, bytes: ArrayBuffer): void;
+      finishDictationStream(attemptId: string): Promise<OctopusDictationResponse>;
+      onDictationStreamEvent(listener: (event: OctopusDictationStreamEvent) => void): () => void;
+      cancelDictation(attemptId: string): Promise<void>;
+      readDictationRecordings(): Promise<OctopusDictationLocalResult<OctopusDictationRecordingState>>;
+      configureDictationRecordings(enabled: boolean): Promise<OctopusDictationLocalResult<OctopusDictationRecordingState>>;
+      saveDictationRecording(request: OctopusDictationRequest): Promise<OctopusDictationLocalResult<OctopusDictationRecording | null>>;
+      readDictationRecording(id: string): Promise<OctopusDictationLocalResult<{ entry: OctopusDictationRecording; bytes: Uint8Array }>>;
+      updateDictationRecording(request: { id: string; text: string; status: "transcribed" | "failed" }): Promise<OctopusDictationLocalResult<OctopusDictationRecording>>;
+      deleteDictationRecording(id: string | null): Promise<OctopusDictationLocalResult<null>>;
       submitInterfaceArtifact(request: OctopusInterfaceArtifactRequest): Promise<OctopusInterfaceArtifactResponse>;
       beginInterfaceArtifactStream(request: OctopusArtifactStreamBeginRequest): Promise<OctopusArtifactStreamHandle>;
       appendInterfaceArtifactStream(request: OctopusArtifactStreamAppendRequest): Promise<OctopusArtifactStreamProgress>;
@@ -1028,6 +1039,7 @@ export type OctopusInterfaceArtifactRequest = {
 };
 
 export type OctopusDictationRequest = {
+  attemptId: string;
   bytes: ArrayBuffer;
   durationMs: number;
   mediaType: "audio/wav";
@@ -1036,10 +1048,33 @@ export type OctopusDictationRequest = {
   timeoutMs?: number;
 };
 
-export type OctopusDictationResponse = {
+export type OctopusDictationResponse = OctopusDictationLocalResult<{
   provider: "codex";
   text: string;
   model: string;
+}>;
+
+export type OctopusDictationStreamEvent = { attemptId: string } & (
+  { type: "transcript"; text: string } | { type: "stop-requested" } | { type: "error"; error: { code: string; message: string } }
+);
+
+export type OctopusDictationLocalResult<T> = { ok: true; value: T } | { ok: false; error: { code: string; message: string } };
+
+export type OctopusDictationRecording = {
+  version: 1;
+  id: string;
+  createdAtMs: number;
+  durationMs: number;
+  byteLength: number;
+  status: "recorded" | "transcribed" | "failed";
+  text: string;
+};
+
+export type OctopusDictationRecordingState = {
+  version: 1;
+  enabled: boolean;
+  recordings: OctopusDictationRecording[];
+  maxRecordings: number;
 };
 
 export type OctopusInterfaceArtifactResponse = {
@@ -1617,7 +1652,7 @@ export type OctopusOsWorkspaceMutationRequest =
         eeId: string;
         sourceFolders?: string[];
         expectedProjectDigest?: string;
-        name: string;
+        name?: string;
         icon: string;
         color: string;
       }>;

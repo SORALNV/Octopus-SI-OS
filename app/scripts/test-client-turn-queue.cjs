@@ -595,6 +595,7 @@ for (const [hadAttachments, attachments, recoverPreparedMessage] of [
   const commands = load("src/clientActions.ts");
   let sendShortcut = "enter";
   const composer = load("src/components/chat/ChatComposer.tsx", {
+    "./DictationIcon": load("src/components/chat/DictationIcon.tsx"),
     "../IconGlyphs": { Glyph: empty }, "./ProviderModelPicker": { ProviderModelPicker: empty },
     "./ChatAttachmentCard": { ChatAttachmentStrip: empty },
     "../icon-glyphs/geometric-primitives": load("src/components/icon-glyphs/geometric-primitives.tsx"),

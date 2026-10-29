@@ -217,6 +217,12 @@ function fakeProjectionStore(world) {
 
 function overrides(world) {
   return {
+    "./clientDictationStream.cjs": () => ({ createClientDictationStream: (_request, options) => ({
+      ready: Promise.resolve(),
+      append: (bytes) => world.events.push(["dictation-audio", bytes.length]),
+      finish: async () => { options.onEvent({ type: "transcript", text: "Final words" }); return { text: "Final words" }; },
+      close: () => world.events.push(["dictation-close"]),
+    }) }),
     "./runtimeHost.cjs": (real) => ({ ...real, createRuntimeHost: fakeRuntimeHost(world) }),
     "./terminalHost.cjs": () => ({ createTerminalHost: fakeTerminalHost(world) }),
     "./clientDataSource.cjs": (real) => ({ ...real, createClientProjectionStore: fakeProjectionStore(world) }),
@@ -363,6 +369,58 @@ async function launchMain(options = {}) {
 }
 
 const surface = { kind: "surface", runId: "run-1", surfaceId: "chat", workspaceKey: "octopus-os" };
+
+test("streaming dictation binds audio, events and finalization to the unlocked owner window and closes on lock", async () => {
+  const main = await launchMain();
+  const [primary] = main.windows();
+  const request = { attemptId: require("node:crypto").randomUUID(), sampleRateHz: 24_000 };
+  assert.equal((await main.invoke("octopus:dictation-stream-start", primary, null, request)).ok, false);
+  const token = await main.unlock(primary);
+  assert.equal((await main.invoke("octopus:dictation-stream-start", primary, token, request)).ok, true);
+  const other = new main.electron.module.BrowserWindow({});
+  main.sendSync("octopus:dictation-stream-audio", other, token, request.attemptId, Buffer.from([0, 1]));
+  assert.equal(main.eventsOf("dictation-audio").length, 0);
+  assert.equal((await main.invoke("octopus:dictation-stream-finish", other, token, request.attemptId)).ok, false);
+  main.sendSync("octopus:dictation-stream-audio", primary, token, request.attemptId, Buffer.from([0, 1]));
+  assert.equal(main.eventsOf("dictation-audio").length, 1);
+  const final = await main.invoke("octopus:dictation-stream-finish", primary, token, request.attemptId);
+  assert.equal(final.value.text, "Final words");
+  assert.equal(primary.webContents.sentOn("octopus:dictation-stream-event")[0][0].text, "Final words");
+  assert.deepEqual(other.webContents.sentOn("octopus:dictation-stream-event"), []);
+  assert.equal((await main.invoke("octopus:dictation-stream-start", primary, token, request)).ok, true);
+  main.world.expiredTokens.add(token);
+  main.sendSync("octopus:dictation-stream-audio", primary, token, request.attemptId, Buffer.from([0, 1]));
+  assert.equal(main.eventsOf("dictation-audio").length, 1);
+  assert.equal(main.eventsOf("dictation-close").length, 2);
+});
+
+test("dictation recording IPC requires access and returns saved audio or a safe failure", async () => {
+  const main = await launchMain();
+  const [primary] = main.windows();
+  const denied = await main.invoke("octopus:dictation-recordings-read", primary, null);
+  assert.equal(denied.ok, false);
+  assert.equal(denied.error.code, "recording-storage");
+  const token = await main.unlock(primary);
+  const initial = await main.invoke("octopus:dictation-recordings-read", primary, token);
+  assert.equal(initial.ok, true);
+  assert.equal(initial.value.enabled, true);
+  assert.deepEqual(initial.value.recordings, []);
+  const bytes = Buffer.alloc(44 + 24_000 * 0.3 * 2);
+  bytes.write("RIFF"); bytes.write("WAVE", 8);
+  const saved = await main.invoke("octopus:dictation-recording-save", primary, token, {
+    bytes, durationMs: 300, mediaType: "audio/wav", provider: "codex", sampleRateHz: 24_000,
+  });
+  assert.equal(saved.ok, true);
+  const recording = await main.invoke("octopus:dictation-recording-read", primary, token, saved.value.id);
+  assert.equal(recording.ok, true);
+  assert.deepEqual(recording.value.bytes, bytes);
+  const refused = await main.invoke("octopus:dictation-recording-read", primary, token, "../../outside");
+  assert.equal(refused.ok, false);
+  assert.equal(refused.error.code, "recording-storage");
+  const deleted = await main.invoke("octopus:dictation-recording-delete", primary, token, saved.value.id);
+  assert.deepEqual(deleted, { ok: true, value: null });
+  assert.deepEqual((await main.invoke("octopus:dictation-recordings-read", primary, token)).value.recordings, []);
+});
 
 test("Help reports work independently of the main renderer and export the reviewed snapshot", async () => {
   const main = await launchMain();

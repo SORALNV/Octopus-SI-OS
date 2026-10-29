@@ -63,14 +63,15 @@ export function AccountRailButton({ accessProfile, runtimeHost, onLogOut, onOpen
         className={`sidebar-runtime-dot navigation-rail-account-status${connected ? " is-ready" : runtimeHost.phase === "degraded" ? " is-error" : ""}`}
         role="status"
       /></MessageTooltip>
-      <OcDropdown align="start" anchorRef={trigger} aria-label="Account" contentWidth="sidebar" open={open} onOpenChange={setOpen} onCloseAutoFocus={(event) => {
+      <OcDropdown align="end" alignOffset={-4} anchorRef={trigger} aria-label="Account" className="account-menu" contentWidth="sidebar" open={open} onOpenChange={setOpen} onCloseAutoFocus={(event) => {
         if (openingSettings.current) event.preventDefault();
-      }} side="top" sideOffset={6}>
+      }} side="right">
         <div className="account-menu-identity">{avatar}<div><strong>{name}</strong><small>{accountLabel}</small></div></div>
+        <div className="account-menu-separator" role="separator" />
         <OcMenuItem label="Settings" leadingIcon="settings" onClick={() => openSettings()} role="menuitem" trailing={settingsShortcut ? <span className="text-xs text-token-description-foreground">{settingsShortcut}</span> : undefined} />
         {accessProfile === "live" && account?.signedIn ? <OcMenuItem label="Usage" leadingIcon="usage" onClick={() => openSettings("account")} role="menuitem"
           trailing={usageWindow ? <span className="whitespace-nowrap text-token-description-foreground">{accountRemainingLabel(usageWindow.remaining)}</span> : undefined} /> : null}
-        <div className="navigation-account-separator" role="separator" />
+        <div className="account-menu-separator" role="separator" />
         <OcMenuItem label="Lock Octopus" leadingIcon="logOut" onClick={onLogOut} role="menuitem" />
       </OcDropdown>
     </div>

@@ -1545,7 +1545,7 @@ export function useChatWorkspace(
       void beginSubmission({
       messageId, recoverPreparedMessage: false, runId: run.runId, runKey: chatDraftKey(run.runId),
       replacesMessage,
-      text: nextText, attachments: [], eeId: run.eeId, workerInterfaceId: run.workerInterfaceId,
+      text: nextText, attachments: [], eeId: run.eeId, workerInterfaceId: run.workerChoiceInterfaceId || run.workerInterfaceId,
       providerInterfaceId: run.providerInterfaceId, providerModel: run.providerModel,
       reasoningEffort: run.reasoningEffort, serviceTier: run.serviceTier,
       applicationIds: [], driverNames: [], accessMode: "project_access", endpoint,
@@ -2166,7 +2166,9 @@ export function useChatWorkspace(
               runId: submitted.runId,
             },
           }));
-          void refreshRuns();
+          if (!turn.runId) await refreshRuns();
+          else void refreshRuns();
+          if (!queueOwner.active || queueOwner.id !== owner || !deliveryScopeCurrent()) break;
           if (
             accessProfile === "lab"
             && !turn.runId
@@ -2881,7 +2883,7 @@ export function useChatWorkspace(
     try {
       if (!input.queueId) await replaceQueuedTurns((items) => items.some((item) => item.id === queueId) ? items : [...items, {
         id: queueId, messageId, runKey: input.runKey, text: input.text, attachments: input.attachments, clientSurfaceRole: run.clientSurfaceRole,
-        hadAttachments: input.attachments.length > 0, eeId: run.eeId, workerInterfaceId: run.workerInterfaceId,
+        hadAttachments: input.attachments.length > 0, eeId: run.eeId, workerInterfaceId: run.workerChoiceInterfaceId || run.workerInterfaceId,
         providerInterfaceId: run.providerInterfaceId, providerBoundInterfaceId: run.providerBoundInterfaceId,
         providerModel: run.providerModel, reasoningEffort,
         endpoint, createdAtMs: Date.now(), status: "queued", intent: "steer", owner,

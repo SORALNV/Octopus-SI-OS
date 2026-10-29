@@ -272,6 +272,7 @@
     pub(super) fn boot_operator_space_ee_instances(dir: &Path) {
         let instance = |ee: &str, template: &str, parent: Option<&str>| {
             let row = octopus_ee::EeInstance {
+                name: None,
                 ee_id: EeId::new(ee),
                 template: octopus_descriptors::EeTemplateId::new(template),
                 parent_ee: parent.map(EeId::new),
@@ -1369,7 +1370,7 @@
         for (role, id) in [("home", "browser_home_pack"), ("task", "browser_project_pack"), ("task", "browser_nested_project_pack")] {
             if role == "task" {
                 let ee_id = format!("ee_{id}");
-                let ee = octopus_ee::EeInstance { ee_id:EeId::new(&ee_id), template:octopus_descriptors::EeTemplateId::new("project"), parent_ee:Some(EeId::new(&parent)), goal:"Declared Browser/CU profile inheritance".into(), config:Default::default(), policy_narrowing:Default::default() };
+                let ee = octopus_ee::EeInstance { name: None, ee_id:EeId::new(&ee_id), template:octopus_descriptors::EeTemplateId::new("project"), parent_ee:Some(EeId::new(&parent)), goal:"Declared Browser/CU profile inheritance".into(), config:Default::default(), policy_narrowing:Default::default() };
                 std::fs::write(ee_root.join(format!("{ee_id}.json")), serde_json::to_vec_pretty(&ee).unwrap()).unwrap();
                 inherited.ee_id = ee_id.clone();
                 parent = ee_id;
