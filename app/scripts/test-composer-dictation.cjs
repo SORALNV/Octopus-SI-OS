@@ -139,6 +139,12 @@ const press = async (label) => {
   button.click();
   await settle();
 };
+const startDictation = async () => {
+  await press("Dictate");
+  const deadline = performance.now() + 2_000;
+  while (!query('button[aria-label="Stop dictation"] canvas[data-mode="text"]') && performance.now() < deadline) await settle(10);
+  assert.ok(query('button[aria-label="Stop dictation"] canvas[data-mode="text"]'), "dictation capture has rendered its Stop control");
+};
 const cancelDictation = async () => {
   query("textarea").dispatchEvent(new w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
   await settle();
@@ -148,7 +154,7 @@ const latestBars = () => draws.at(-1).splice(0).map(({ x, width, height }) => ({
 test("streaming dictation keeps the composer controls and shows six responsive bars inside Stop", async () => {
   const texts = [];
   await showComposer(texts);
-  await press("Dictate");
+  await startDictation();
   assert.ok(query('button[aria-label="Stop dictation"] canvas[data-mode="text"]'));
   assert.equal(query(".composer-voice-footer"), null);
   assert.ok(query('button[aria-label="Add files and more"]'));
@@ -169,7 +175,7 @@ test("streaming dictation keeps the composer controls and shows six responsive b
 test("cancelling dictation preserves its audio without inserting text while Stop finalizes the text", async () => {
   const texts = [];
   await showComposer(texts);
-  await press("Dictate");
+  await startDictation();
   assert.ok(query(".composer-footer"), "the normal footer remains in place");
   const countBefore = saved.length;
   assert.ok(query('button[aria-label="Add files and more"]'));
@@ -182,7 +188,7 @@ test("cancelling dictation preserves its audio without inserting text while Stop
   await settle(750);
   assert.deepEqual(texts, [], "a cancelled dictation is never transcribed");
   assert.equal(saved.length, countBefore + 1, "cancelled audio remains in Recent recordings");
-  await press("Dictate");
+  await startDictation();
   speak(0.2);
   await settle(280);
   await press("Stop dictation");
@@ -192,7 +198,7 @@ test("cancelling dictation preserves its audio without inserting text while Stop
 
 test("ten-minute dictation stops capture and its full WAV fits the transcription boundary", async () => {
   await showComposer([]);
-  await press("Dictate");
+  await startDictation();
   await settle(260);
   media.processors.at(-1).onaudioprocess({ inputBuffer: { getChannelData: () => new Float32Array(24_000 * 600 + 1) } });
   assert.ok(media.tracks.at(-1).stopped);
@@ -209,7 +215,7 @@ test("a failed dictation opens its exact recording in Voice settings and retries
   const texts = [], submissions = [];
   await showComposer(texts, submissions);
   responses.push({ ok: false, error: { code: "empty-transcript", message: "No speech was recognized. Try again or record a new dictation." } });
-  await press("Dictate");
+  await startDictation();
   speak(0.2);
   await press("Stop dictation");
   assert.deepEqual(texts, []);
@@ -243,7 +249,7 @@ test("cancelling a pending transcription rejects its late result and releases th
   await showComposer(texts);
   let finish;
   responses.push(() => new Promise((resolve) => { finish = resolve; }));
-  await press("Dictate");
+  await startDictation();
   speak(0.2);
   await press("Stop dictation");
   await cancelDictation();
@@ -257,7 +263,7 @@ test("the dictation send arrow transcribes and submits its text while the stop b
   const texts = [], submissions = [];
   await showComposer(texts, submissions);
   assert.equal(query('button[aria-label="Dictation recordings"]'), null);
-  await press("Dictate");
+  await startDictation();
   speak(0.2);
   await press("Send");
   assert.deepEqual(submissions, [[undefined, "A recognized dictation."]]);
