@@ -230,7 +230,7 @@ export function useLocalDictation({ accessProfile, composerId, onTranscriptStart
 
   useEffect(() => {
     mountedRef.current = true;
-    abortDictation();
+    setPhase(phaseRef.current);
     return () => { mountedRef.current = false; abortDictation(); };
   }, [abortDictation, accessProfile, composerId]);
 

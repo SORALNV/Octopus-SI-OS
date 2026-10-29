@@ -96,7 +96,7 @@ const stubbed = {
 };
 const compiled = build({
   stdin: {
-    contents: 'export { ChatComposer } from "./src/components/chat/ChatComposer"; export { ClientPreferencesProvider } from "./src/clientPreferences"; export { DictationRecordings } from "./src/components/chat/DictationRecordings";',
+    contents: 'export { ChatComposer } from "./src/components/chat/ChatComposer"; export { useLocalDictation } from "./src/components/chat/useLocalDictation"; export { ClientPreferencesProvider } from "./src/clientPreferences"; export { DictationRecordings } from "./src/components/chat/DictationRecordings";',
     resolveDir: path.join(__dirname, ".."), loader: "ts",
   },
   bundle: true, platform: "node", format: "cjs", write: false, logLevel: "silent",
@@ -150,6 +150,24 @@ const cancelDictation = async () => {
   await settle();
 };
 const latestBars = () => draws.at(-1).splice(0).map(({ x, width, height }) => ({ x: Math.round(x * 100) / 100, width, height }));
+
+test("initial mount effects preserve dictation started immediately after commit", async () => {
+  const { useLocalDictation, ClientPreferencesProvider } = await compiled;
+  function CaptureOnCommit() {
+    const dictation = useLocalDictation({ accessProfile: "live", composerId: "initial-capture", onTranscriptStart: noop,
+      onTranscriptUpdate: noop, onTranscriptCancel: noop, onTranscriptInsert: noop, onTranscriptSend: noop });
+    React.useLayoutEffect(() => { void dictation.startDictation(); }, [dictation.startDictation]);
+    return React.createElement("span", { "data-capture": dictation.isDictating ? "recording" : dictation.isStarting ? "starting" : "idle" });
+  }
+  root.render(React.createElement(ClientPreferencesProvider, { profile: "live" }, React.createElement(CaptureOnCommit)));
+  const deadline = performance.now() + 2_000;
+  while (!query('[data-capture="recording"]') && performance.now() < deadline) await settle(10);
+  assert.ok(query('[data-capture="recording"]'), "initial passive effects must preserve the microphone startup operation");
+  assert.equal(media.tracks.at(-1).stopped, false);
+  root.render(null);
+  await settle();
+  assert.equal(media.tracks.at(-1).stopped, true, "unmount still releases the microphone");
+});
 
 test("streaming dictation keeps the composer controls and shows six responsive bars inside Stop", async () => {
   const texts = [];
