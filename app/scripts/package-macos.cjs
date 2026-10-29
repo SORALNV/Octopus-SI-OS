@@ -177,7 +177,7 @@ run("codesign", ["--verify", "--deep", "--strict", bundleRoot], appRoot);
 console.log(`Packaged ${bundleRoot}`);
 
 function buildOpenCodexBridge() {
-  run("npm", ["ci", "--ignore-scripts"], openCodexBridgeRoot);
+  run("npm", ["ci"], openCodexBridgeRoot);
   run("npm", ["run", "build"], openCodexBridgeRoot);
 }
 
