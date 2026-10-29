@@ -1258,6 +1258,16 @@ export type OctopusRuntimeStatus = {
   hostError?: string | null;
 };
 
+export type OctopusHomeStorageHealth = {
+  status: "writable" | "blocked" | "unavailable";
+  availableBytes: number | null;
+  minimumBytes: number;
+  code: string | null;
+  message: string | null;
+};
+
+export type OctopusInterfaceFailure = { interfaceId: string; message: string };
+
 export type OctopusRuntimeHostState = {
   phase: string;
   ready: boolean;
@@ -1272,6 +1282,8 @@ export type OctopusRuntimeHostState = {
   launchEnv: Record<string, string>;
   endpoint: string;
   error: string | null;
+  storageHealth: OctopusHomeStorageHealth | null;
+  interfaceFailures: OctopusInterfaceFailure[];
   updatedAtMs: number;
 };
 

@@ -95,6 +95,7 @@ for (const [hadAttachments, attachments, recoverPreparedMessage] of [
   const settledEdits = [];
   editTarget.current = "latest";
   const { submitSteeringMessage: raceEdit } = workspaceActions(["submitSteeringMessage"], {
+    deliveryContextRef: { current: { storageBlockReason: "" } }, interfaceFailureReason: () => "", readDraft: () => undefined,
     activeRun: { runId: "run-a", turnOpen: true, chatInterfaceId: "chat" }, queueOwner: { active: true, id: "owner" },
     queueReady: true, enabled: true, runtimeReady: true, canSteer: true, chatDraftKey: id => id,
     activeRunIdRef: { current: "run-a" }, steeringComposerRef: { current: new Set() }, steerableMessageIdRef: editTarget,
@@ -108,6 +109,7 @@ for (const [hadAttachments, attachments, recoverPreparedMessage] of [
   assert.equal(settledEdits[0][2], "failed");
   const submissions = [];
   const busyDraft = workspaceActions(["submitDraft"], {
+    deliveryContextRef: { current: { storageBlockReason: "" } }, interfaceFailureReason: () => "", resolvedProviderInterfaceId: "provider",
     runtimeReady: true, queueReady: true, editingQueuedTurn: false, replyOpen: true,
     queuedTurnsRef: { current: [] }, activeRunIdRef: { current: "run-a" }, chatDraftKey: (id) => id,
     text: "follow-up", attachments: [{ id: "file", name: "proof.txt" }], draftMessageId: "", draftMessageHadAttachments: false,
@@ -258,6 +260,7 @@ for (const [hadAttachments, attachments, recoverPreparedMessage] of [
   let records, dispatched, restoredDraft;
   const activeRunIdRef = { current: "run-a" };
   const actionBindings = {
+    deliveryContextRef: { current: { storageBlockReason: "" } }, interfaceFailureReason: () => "",
     activeRunIdRef, chatDraftKey: (id) => id || "new", queueOwner: { id: "sender", active: true }, canSendQueued: true,
     deliveryScopeCurrent: () => true, queuedTurnsRef: { get current() { return records; } },
     replaceQueuedTurns: async (update) => { records = update(records); return records; },

@@ -7,9 +7,15 @@ mod support;
 use support::{fixture, write};
 
 #[test]
-fn authored_run_rejects_outputs_missing_from_the_provider_contract_before_publication() {
+fn authored_run_checks_provider_frontiers_without_treating_other_writers_as_providers() {
     let temp = tempfile::tempdir().unwrap();
     let request = fixture(temp.path());
+    let room_path = "registry/interface/system_room/interface.json";
+    let mut room: Value = serde_json::from_slice(&std::fs::read(temp.path().join(room_path)).unwrap()).unwrap();
+    room["interface_driver_config"]["private_config"]["run_authoring_profile"] = json!({
+        "file_write_tool":"file.write", "file_write_label":"tool.call", "file_write_result_label":"file.write.result", "result_timeout_ms":30000
+    });
+    write(temp.path(), room_path, room);
     let plan = plan_run_composition(&request).unwrap();
     let mut authored = AuthoredRunComposition {
         run_id: plan.run_id.clone(), writes: composition_candidate_writes(&plan),

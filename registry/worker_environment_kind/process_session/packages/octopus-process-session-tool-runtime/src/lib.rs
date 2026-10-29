@@ -8708,14 +8708,15 @@ fn decode_tool_door_recovery_movement(
         .filter(|parent| !parent.as_os_str().is_empty())
         .unwrap_or_else(|| Path::new("."))
         .join("metadata");
-    decode_durable_movement_row(row, line, |hash| {
+    decode_durable_movement_row(row, line, |kind, hash| {
         let path = metadata_dir.join(hash.to_hex());
         let bytes =
             octopus_interfaces::read_artifact_carrier_file_bounded(&path, maximum_metadata_bytes)
                 .map_err(|error| LedgerError::MalformedMovementMetadata {
                 line,
                 message: format!(
-                    "content-addressed invocation grant '{}' cannot be read: {error}",
+                    "content-addressed {} '{}' cannot be read: {error}",
+                    kind.describe(),
                     path.display()
                 ),
             })?;
@@ -8728,7 +8729,7 @@ fn decode_tool_door_recovery_movement(
         }
         serde_json::from_slice(&bytes).map_err(|error| LedgerError::MalformedMovementMetadata {
             line,
-            message: format!("content-addressed invocation grant is malformed: {error}"),
+            message: format!("content-addressed {} is malformed: {error}", kind.describe()),
         })
     })
     .map_err(|error| format!("tool-door recovery ledger row {line} is malformed: {error}"))
@@ -9568,7 +9569,7 @@ mod tool_process_private_boundary_tests {
         std::fs::create_dir_all(&metadata).unwrap();
         let mut bytes = Vec::new();
         for (line, movement) in movements.iter().enumerate() {
-            let row = encode_durable_movement_row(movement, line, |grant| {
+            let row = encode_durable_movement_row(movement, line, |_, grant| {
                 let hash = ContentHash::of_bytes(grant);
                 std::fs::write(metadata.join(hash.to_hex()), grant).unwrap();
                 Ok(hash)
@@ -11663,7 +11664,7 @@ pub mod owner_contract_tests {
             let seq = movement.seq.0;
             if seq != self.next_seq { return Err("fixture attempted a non-contiguous movement".into()); }
             let bytes =
-                octopus_ledger::encode_durable_movement_row(&movement, seq as usize, |grant| {
+                octopus_ledger::encode_durable_movement_row(&movement, seq as usize, |_, grant| {
                     let content = ContentHash::of_bytes(grant);
                     std::fs::write(
                         self.context
@@ -11718,7 +11719,7 @@ pub mod owner_contract_tests {
                 ),
             };
             let bytes =
-                octopus_ledger::encode_durable_movement_row(&movement, seq as usize, |grant| {
+                octopus_ledger::encode_durable_movement_row(&movement, seq as usize, |_, grant| {
                     let content = ContentHash::of_bytes(grant);
                     std::fs::write(
                         self.context

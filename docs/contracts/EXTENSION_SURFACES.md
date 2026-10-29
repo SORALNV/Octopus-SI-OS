@@ -109,6 +109,15 @@ in durable client storage until it can be restored or explicitly handled.
 Provider turn boundaries also split the visible history when another run starts
 a new turn, so an earlier answer cannot hide later activity.
 
+The native client checks the selected Home's writable storage before sending.
+Below 16 MiB available, a native ENOSPC/EDQUOT refusal, or an unsuccessful write
+probe blocks new sends with a visible explanation. The composer keeps its
+current draft in memory; failed disk persistence explicitly asks the operator
+to keep the window open. Queued messages do not dispatch while storage or their
+exact provider life is unavailable. Observed life failures are presentation
+state, not fabricated run status or ledger evidence.
+
+
 
 
 The optional desktop client's **Applications** catalog presents these packages

@@ -245,7 +245,7 @@ struct RetirementLedgerCache {
     boundary: Option<RetirementLedgerBoundary>,
     prefix: Vec<u8>,
     hasher: Sha256,
-    grant_lines: BTreeMap<octopus_ledger::ContentHash, usize>,
+    metadata_lines: BTreeMap<octopus_ledger::ContentHash, (octopus_ledger::DurableMetadataContent, usize)>,
 }
 
 fn ledger_boundary(
@@ -296,22 +296,25 @@ fn ledger_boundary(
         .collect::<BTreeSet<_>>();
     let decoder = octopus_ledger_store::DurableMovementDecoder::for_log(&path);
     if reuse {
-        for (grant, line) in &cache.grant_lines {
-            decoder.validate_grant(*grant, *line).map_err(|error| error.to_string())?;
+        for (content, (kind, line)) in &cache.metadata_lines {
+            decoder.validate_metadata_content(*kind, *content, *line).map_err(|error| error.to_string())?;
         }
     }
     let mut sequence = if reuse { prior.unwrap().sequence } else { 0 };
     let mut offset = if reuse { prior_offset } else { 0 };
     for line in bytes[offset..].split_inclusive(|byte| *byte == b'\n') {
-        let (movement, grant) = decoder
+        let (movement, _) = decoder
             .decode_projection(line, sequence as usize)
             .map_err(|error| error.to_string())?;
-        if let Some(grant) = grant {
-            if !cache.grant_lines.contains_key(&grant)
-                && serde_json::from_slice::<Value>(line).map_err(|error| error.to_string())?
-                    .pointer("/invocation_metadata/grant_content").is_some()
-            {
-                cache.grant_lines.insert(grant, sequence as usize);
+        let row: Value = serde_json::from_slice(line).map_err(|error| error.to_string())?;
+        for (field, kind) in [
+            ("grant_content", octopus_ledger::DurableMetadataContent::Grant),
+            ("artifact_binding_refs_content", octopus_ledger::DurableMetadataContent::ArtifactBindingRefs),
+        ] {
+            if let Some(content) = row.get("invocation_metadata").and_then(|metadata| metadata.get(field)) {
+                let hash = content.as_str().and_then(octopus_ledger::ContentHash::from_hex)
+                    .ok_or_else(|| format!("retirement metadata {field} is not a content address"))?;
+                cache.metadata_lines.entry(hash).or_insert((kind, sequence as usize));
             }
         }
         if movement.seq.0 != sequence {

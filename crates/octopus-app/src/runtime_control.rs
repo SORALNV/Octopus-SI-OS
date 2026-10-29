@@ -1,6 +1,6 @@
 use std::io::{BufRead, Write};
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 
@@ -10,6 +10,7 @@ use tokio_util::sync::CancellationToken;
 
 const SOCKET_FILE: &str = "control.sock";
 const MAX_FRAME_BYTES: u64 = 4096;
+const MAX_RESPONSE_BYTES: u64 = 1024 * 1024;
 const CONNECTION_TIMEOUT: Duration = Duration::from_secs(5);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -27,7 +28,19 @@ pub struct RuntimeControlStatus {
     pub phase: String,
     pub started_at_unix_ms: u64,
     pub stopping: Option<RuntimeControlRequest>,
+    pub interface_failures: Vec<RuntimeInterfaceFailure>,
 }
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RuntimeInterfaceFailure {
+    pub interface: String,
+    pub error: String,
+}
+
+type InterfaceFailures = tokio::sync::watch::Receiver<
+    std::collections::BTreeMap<octopus_descriptors::InterfaceId, String>,
+>;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -53,6 +66,7 @@ pub struct RuntimeControl {
     path: PathBuf,
     listener: tokio::net::UnixListener,
     stopping: Arc<std::sync::Mutex<Option<RuntimeControlRequest>>>,
+    interface_failures: Arc<OnceLock<InterfaceFailures>>,
 }
 
 impl RuntimeControl {
@@ -78,11 +92,16 @@ impl RuntimeControl {
             path,
             listener,
             stopping: Arc::new(std::sync::Mutex::new(None)),
+            interface_failures: Arc::new(OnceLock::new()),
         })
     }
 
     pub fn path(&self) -> &Path {
         &self.path
+    }
+
+    pub fn interface_failures(&self) -> Arc<OnceLock<InterfaceFailures>> {
+        self.interface_failures.clone()
     }
 
     pub async fn serve(
@@ -106,10 +125,11 @@ impl RuntimeControl {
             let cancel = cancel.clone();
             let restart = restart.clone();
             let stopping = self.stopping.clone();
+            let interface_failures = self.interface_failures.clone();
             tokio::spawn(async move {
                 if let Err(error) = tokio::time::timeout(
                     CONNECTION_TIMEOUT,
-                    answer(stream, &home, &cancel, &restart, &stopping),
+                    answer(stream, &home, &cancel, &restart, &stopping, &interface_failures),
                 )
                 .await
                 .map_err(|_| "control connection timed out".to_string())
@@ -128,6 +148,7 @@ async fn answer(
     cancel: &CancellationToken,
     restart: &AtomicBool,
     stopping: &std::sync::Mutex<Option<RuntimeControlRequest>>,
+    interface_failures: &OnceLock<InterfaceFailures>,
 ) -> Result<(), String> {
     let peer = stream
         .peer_cred()
@@ -169,7 +190,7 @@ async fn answer(
                 } else if accepted == Some(RuntimeControlRequest::Stop) {
                     eprintln!("octopus: stop requested through the control socket — stopping cleanly");
                 }
-                let status = read_status(octopus_home, current);
+                let status = read_status(octopus_home, current, interface_failures.get());
                 if accepted.is_some() {
                     cancel.cancel();
                 }
@@ -192,6 +213,7 @@ async fn answer(
 fn read_status(
     octopus_home: &Path,
     stopping: Option<RuntimeControlRequest>,
+    interface_failures: Option<&InterfaceFailures>,
 ) -> Result<RuntimeControlStatus, String> {
     let record = crate::runtime_instance::read_current(octopus_home).map_err(|error| error.to_string())?;
     Ok(RuntimeControlStatus {
@@ -200,6 +222,12 @@ fn read_status(
         started_at_unix_ms: u64::try_from(record.started_at_unix_ms)
             .map_err(|_| "runtime start time exceeds the control frame range".to_string())?,
         stopping,
+        interface_failures: interface_failures
+            .map(|failures| failures.borrow().iter().map(|(interface, error)| RuntimeInterfaceFailure {
+                interface: interface.as_str().to_string(),
+                error: error.clone(),
+            }).collect())
+            .unwrap_or_default(),
     })
 }
 
@@ -250,7 +278,7 @@ pub fn request(octopus_home: &Path, request: RuntimeControlRequest) -> Result<An
             .write_all(&frame)
             .map_err(|error| format!("runtime control request cannot be sent: {error}"))?;
         let mut line = String::new();
-        std::io::Read::take(std::io::BufReader::new(&stream), MAX_FRAME_BYTES)
+        std::io::Read::take(std::io::BufReader::new(&stream), MAX_RESPONSE_BYTES)
             .read_line(&mut line)
             .map_err(|error| format!("runtime control response cannot be read: {error}"))?;
         match serde_json::from_str::<ResponseFrame>(&line)
@@ -338,6 +366,8 @@ mod tests {
         let instance = crate::runtime_instance::RuntimeInstance::acquire(&home).unwrap();
         let control = RuntimeControl::bind(&home).unwrap();
         assert_eq!(control.path(), socket_path(&home));
+        let (failures, observed) = tokio::sync::watch::channel(std::collections::BTreeMap::new());
+        control.interface_failures().set(observed).unwrap();
         let cancel = CancellationToken::new();
         let restart = Arc::new(AtomicBool::new(false));
         let server = tokio::spawn(control.serve(home.clone(), cancel.clone(), restart.clone()));
@@ -349,11 +379,23 @@ mod tests {
             panic!("a live instance answers its control socket");
         };
         assert_eq!((status.pid, status.phase.as_str(), status.stopping), (std::process::id(), "starting", None));
+        assert!(status.interface_failures.is_empty());
+        failures.send_modify(|values| {
+            values.insert(octopus_descriptors::InterfaceId::new("provider"), "No space left on device".to_string());
+        });
+        let Answer::Status(failed) = ask(RuntimeControlRequest::Status).await.unwrap().unwrap() else {
+            panic!("life failures remain observable without writing the ledger");
+        };
+        assert_eq!(failed.interface_failures, vec![RuntimeInterfaceFailure {
+            interface: "provider".into(), error: "No space left on device".into(),
+        }]);
+        failures.send_modify(|values| values.clear());
         assert!(!cancel.is_cancelled());
         let Answer::Status(accepted) = ask(RuntimeControlRequest::Restart).await.unwrap().unwrap() else {
             panic!("restart is answered");
         };
         assert_eq!(accepted.stopping, Some(RuntimeControlRequest::Restart));
+        assert!(accepted.interface_failures.is_empty());
         assert!(cancel.is_cancelled() && restart.load(Ordering::SeqCst));
         let Answer::Status(repeated) = ask(RuntimeControlRequest::Stop).await.unwrap().unwrap() else {
             panic!("a stopping instance still answers");

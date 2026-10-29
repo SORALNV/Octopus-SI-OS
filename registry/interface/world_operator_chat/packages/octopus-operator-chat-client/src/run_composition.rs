@@ -372,6 +372,7 @@ pub fn plan_authored_run_composition(
                     .collect::<BTreeSet<_>>();
                 for interface in interfaces {
                     let descriptor = load_interface_descriptor(&view.roots.registry_root.join("interface"), interface.as_str())?;
+                    if descriptor.role.0 != "provider" { continue; }
                     let Some(profile) = descriptor.interface_driver_config.as_ref()
                         .and_then(|config| config.private_config.get("run_authoring_profile")) else { continue; };
                     let profile = serde_json::from_value(profile.clone()).map_err(|error| format!("provider '{interface}' authoring profile is invalid: {error}"))?;

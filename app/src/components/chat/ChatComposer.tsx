@@ -64,6 +64,7 @@ type Props = {
   hasQueuedMessages?: boolean;
   onCancelQueuedEdit?: () => void;
   submitBlockReason?: string;
+  blockingReason?: string;
   interruptPending?: boolean;
   fileInputRef: RefObject<HTMLInputElement | null>;
   onTextChange: (value: string) => void;
@@ -138,6 +139,7 @@ export function ChatComposer({
   hasQueuedMessages = false,
   onCancelQueuedEdit,
   submitBlockReason = "",
+  blockingReason = "",
   interruptPending = false,
   fileInputRef,
   onTextChange,
@@ -210,7 +212,7 @@ export function ChatComposer({
   const voiceLayoutActive = dictation.isStarting || dictation.isDictating || dictation.isTranscribing;
   const suggestion = useComposerSuggestion(runId ?? "", suggestionSourceSequence, accessProfile === "live"
     && activeProvider?.runtimeHandlerRef === "codex_app_server" && !turnOpen && !isSubmitting
-    && !editingQueuedTurn && !voiceLayoutActive, runtimeHome);
+    && !editingQueuedTurn && !voiceLayoutActive && !blockingReason, runtimeHome);
   const hasSubmissionPayload = Boolean(text.trim() || attachments.length);
   const stopAvailable = turnOpen && !hasSubmissionPayload && !editingQueuedTurn && Boolean(onInterrupt);
   const resumeActionAvailable = !stopAvailable
@@ -235,13 +237,13 @@ export function ChatComposer({
     : !stopAvailable && !resumeActionAvailable && !canSubmit && submitBlockReason
       ? submitBlockReason
       : submitActionLabel;
-  const submitPending = stopAvailable || resumeActionAvailable
+  const submitPending = !blockingReason && (stopAvailable || resumeActionAvailable
     ? Boolean(interruptPending)
-    : Boolean(isSubmitting && variant !== "home");
+    : Boolean(isSubmitting && variant !== "home"));
   const queueMenuAvailable = Boolean(onQueue && canQueue && turnOpen && !editingQueuedTurn);
   const submitDisabled = stopAvailable || resumeActionAvailable
     ? Boolean(interruptPending || resumeActionBlocked)
-    : Boolean(isSubmitting || !canSubmit);
+    : Boolean(blockingReason || isSubmitting || !canSubmit);
   const projectedFileSource = availableProjectedFileSources.find((source) => projectedSourceKey(source) === projectedFileSourceKey) ?? null;
 
   async function pickFilesAndFolders() {
@@ -342,7 +344,7 @@ export function ChatComposer({
   return (
     <>
     <div
-      aria-busy={isSubmitting || interruptPending || undefined}
+      aria-busy={!blockingReason && (isSubmitting || interruptPending) || undefined}
       className="flex flex-col"
       data-composer-variant={variant}
       data-thread-find-composer="true"
@@ -363,6 +365,7 @@ export function ChatComposer({
         type="file"
       />
       <div className="flex flex-col gap-2">
+        {blockingReason ? <div className="composer-storage-warning" role="alert">{blockingReason}</div> : null}
         <div className="min-w-0" data-octopus-composer-root="">
           <div className="relative">
           {projectedFilePickerOpen && projectedFileSource ? (
@@ -581,7 +584,7 @@ export function ChatComposer({
                             <button
                               aria-label="Open Voice"
                               className="focus-visible:outline-token-button-background cursor-interaction size-token-button-composer flex items-center justify-center rounded-full bg-token-foreground p-0.5 transition-opacity focus-visible:outline-2 disabled:cursor-default disabled:opacity-50"
-                              disabled={voiceStartDisabled || !onVoiceStart}
+                              disabled={Boolean(blockingReason) || voiceStartDisabled || !onVoiceStart}
                               onClick={onVoiceStart}
                               type="button"
                             >

@@ -414,6 +414,7 @@ export function ChatView({
         applicationSelectionLocked={chat.applicationSelectionLocked}
         applicationSelectionLockReason={chat.applicationSelectionLockReason}
         canSubmit={chat.canSubmit}
+        blockingReason={chat.runtimeBlockReason}
         contextUsage={chat.contextUsage}
         canQueue={chat.canQueue}
         onQueue={chat.queueCurrentTurn}
@@ -616,6 +617,7 @@ export function ChatView({
               onPinMessageExcerpt={chat.pinMessageExcerpt}
               revealPinnedContext={revealedPinnedContext}
               responseStreaming={chat.busy}
+              blockingReason={chat.runtimeBlockReason}
               resolveAssistantVisualization={resolveAssistantVisualization}
               onPinnedContextRevealed={() => setRevealedPinnedContext(null)}
               onFindMatchCountChange={setFindMatchCount}

@@ -4426,6 +4426,12 @@ ipcMain.handle("octopus:runtime-status", async (_event, token, request) => {
   };
 });
 
+function retainChatAttachmentsAfterStorageFailure(token, attachments, error) {
+  if (error?.code !== "ENOSPC" && error?.code !== "EDQUOT" && error?.code !== "home_storage_blocked") return;
+  for (const attachment of attachments) getClientAttachmentStagingStore().restore(token, attachment);
+  attachments.length = 0;
+}
+
 ipcMain.handle("octopus:submit-chat-turn", async (_event, token, request) => {
   let profile = "unknown";
   let stagedAttachments = [];
@@ -4436,6 +4442,7 @@ ipcMain.handle("octopus:submit-chat-turn", async (_event, token, request) => {
       submissionStarted = true;
       return operatorChatSubmitSuccess(await getProjectionStore("lab").submitChatTurn(request));
     }
+    await ensureRuntimeHost().assertStorageWritable();
     await prepareLiveProjectionRead();
     const octopusHome = resolveOctopusHome();
     const { submitOperatorTurn } = await loadOperatorChatClient();
@@ -4512,6 +4519,8 @@ ipcMain.handle("octopus:submit-chat-turn", async (_event, token, request) => {
     );
     return operatorChatSubmitSuccess(result);
   } catch (error) {
+    if (profile === "live") runtimeHost?.recordStorageFailure(error);
+    retainChatAttachmentsAfterStorageFailure(token, stagedAttachments, error);
     await appendClientLog("error", "operator_chat.submit_failed", {
       profile,
       runId: stringValue(request?.runId),
@@ -4568,13 +4577,16 @@ ipcMain.handle("octopus:submit-operator-turn-control", async (_event, token, req
 });
 
 ipcMain.handle("octopus:submit-chat-steer", async (_event, token, request) => {
-  const { profile } = getClientAccessController().requireSession(token);
-  if (profile === "lab") return getProjectionStore("lab").submitChatSteer(request);
-  await prepareLiveProjectionRead();
-  const octopusHome = resolveOctopusHome();
-  const { submitOperatorTurn } = await loadOperatorChatClient();
+  let profile = "unknown";
+  let submissionStarted = false;
   const stagedAttachments = [];
   try {
+    ({ profile } = getClientAccessController().requireSession(token));
+    if (profile === "lab") return operatorChatSubmitSuccess(await getProjectionStore("lab").submitChatSteer(request));
+    await ensureRuntimeHost().assertStorageWritable();
+    await prepareLiveProjectionRead();
+    const octopusHome = resolveOctopusHome();
+    const { submitOperatorTurn } = await loadOperatorChatClient();
     const requestedPayloads = request?.payloadArtifactBindings === undefined
       ? undefined : payloadArtifactBindings(request.payloadArtifactBindings);
     const revalidatePayloadSource = async () => {
@@ -4586,6 +4598,7 @@ ipcMain.handle("octopus:submit-chat-steer", async (_event, token, request) => {
       stagedAttachments.push(await getClientAttachmentStagingStore().consume(token, input?.stage));
     }
     await revalidatePayloadSource();
+    submissionStarted = true;
     const result = await submitOperatorTurn({
       clientArtifactsRoot: (interfaceId) => path.join(octopusHome, "interface-hand-in", interfaceId, "client"),
       octopusHome: () => octopusHome,
@@ -4627,7 +4640,7 @@ ipcMain.handle("octopus:submit-chat-steer", async (_event, token, request) => {
       text: request?.text,
       attachments: stagedAttachments,
     });
-    return {
+    return operatorChatSubmitSuccess({
       interfaceId: result.chatInterfaceId,
       runId: result.runId,
       label: result.label,
@@ -4636,7 +4649,12 @@ ipcMain.handle("octopus:submit-chat-steer", async (_event, token, request) => {
       contentHash: result.contentHash,
       messageRecovered: result.messageRecovered,
       verdict: result.messageVerdict,
-    };
+    });
+  } catch (error) {
+    if (profile === "live") runtimeHost?.recordStorageFailure(error);
+    retainChatAttachmentsAfterStorageFailure(token, stagedAttachments, error);
+    if (error?.code !== "home_storage_blocked" && error?.code !== "ENOSPC" && error?.code !== "EDQUOT") throw error;
+    return operatorChatSubmitFailure(error, { submissionStarted });
   } finally {
     await Promise.allSettled(stagedAttachments.map((attachment) => getClientAttachmentStagingStore().discard(attachment)));
   }

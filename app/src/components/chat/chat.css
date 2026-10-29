@@ -2007,6 +2007,17 @@ mark.octopus-thread-find-active {
   outline-offset: 2px;
 }
 
+.composer-storage-warning {
+  border: 1px solid var(--color-token-error-foreground);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--color-token-error-foreground);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
 .composer-voice-recovery {
   display: flex;
   flex-wrap: wrap;

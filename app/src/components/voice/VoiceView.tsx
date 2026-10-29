@@ -527,7 +527,7 @@ export function VoiceView({ accessProfile, activity, builtinWidgetSources, comma
         source: "live" as const,
         listeningLevel: inputMeter.level,
         speakingLevel: outputMeter.level,
-        thinkingLevel: session.providerActivity || workspace.busy || workspace.submitting ? 1 : 0,
+        thinkingLevel: !workspace.runtimeBlockReason && (session.providerActivity || workspace.busy || workspace.submitting) ? 1 : 0,
       };
 
   if (!callActive && homeProjectionLoading) {
@@ -583,6 +583,7 @@ export function VoiceView({ accessProfile, activity, builtinWidgetSources, comma
           replyHidden={replyHidden}
           onReplyHidden={() => { if (callActiveRef.current) setCallSceneReady(true); }}
           busy={workspace.busy}
+          blockingReason={workspace.runtimeBlockReason}
           activity={latestHomeActivity}
           activityStartedAtMs={latestHomePrompt?.createdAtMs ?? 0}
           toolPresentations={workspace.toolPresentations}
@@ -607,7 +608,7 @@ export function VoiceView({ accessProfile, activity, builtinWidgetSources, comma
           onDrop={workspace.dropFiles}
           key="home"
           response={latestHomeResponse}
-          submitting={workspace.submitting}
+          submitting={workspace.submitting && !workspace.runtimeBlockReason}
           streamingResponse={latestHomeStreamingResponse}
           failure={latestHomeFailure}
           turnKey={latestHomePrompt?.id ?? latestHomeResponse?.id ?? "empty"}
@@ -770,12 +771,13 @@ function VoiceSessionTitle({ editable, onChange, title }: {
   );
 }
 
-function HomeResponseStage({ operatorRequests, onOperatorRequestResponse, replyHidden, onReplyHidden, busy, activity, activityStartedAtMs, toolPresentations, composer, dragOver, dropEnabled, homeInterfaceReady, loading, onDragLeave, onDragOver, onDrop, response, streamingResponse, submitting, failure, turnKey }: {
+function HomeResponseStage({ operatorRequests, onOperatorRequestResponse, replyHidden, onReplyHidden, busy, blockingReason, activity, activityStartedAtMs, toolPresentations, composer, dragOver, dropEnabled, homeInterfaceReady, loading, onDragLeave, onDragOver, onDrop, response, streamingResponse, submitting, failure, turnKey }: {
   operatorRequests: ChatRenderMessage[];
   onOperatorRequestResponse: ChatWorkspace["respondToOperatorRequest"];
   replyHidden: boolean;
   onReplyHidden: () => void;
   busy: boolean;
+  blockingReason: string;
   activity: ChatRenderMessage[];
   activityStartedAtMs: number;
   toolPresentations: ChatToolPresentationIndex;
@@ -800,7 +802,7 @@ function HomeResponseStage({ operatorRequests, onOperatorRequestResponse, replyH
   const text = response?.text.trim() ?? "";
   const finalReplyPending = (!response && homeTurnAwaitsFinalReply(activity)) || homeTurnAwaitsClientResult(activity, toolPresentations);
   const activityNotice = finalReplyPending ? null : homeTurnTerminalNotice(activity);
-  const working = (busy || finalReplyPending) && !response && !submitting && !failure && !activityNotice;
+  const working = !blockingReason && (busy || finalReplyPending) && !response && !submitting && !failure && !activityNotice;
   const streamingText = working ? streamingResponse?.text ?? "" : "";
   const responseStreaming = Boolean(streamingText.trim());
   const attachments = response?.attachments ?? [];
@@ -854,7 +856,7 @@ function HomeResponseStage({ operatorRequests, onOperatorRequestResponse, replyH
   return (
     <motion.section
       animate={{ opacity: 1 }}
-      aria-busy={working || submitting}
+      aria-busy={!blockingReason && (working || submitting)}
       aria-label="Home latest response viewport"
       className={`home-response-stage${working ? " is-generating is-transient" : ""}${hasResponse ? " has-response" : " is-empty"}${compact ? " is-compact" : " is-expanded"}${scrolled ? " is-scrolled" : ""}${dragOver ? " is-drag-over" : ""}${replyHidden ? " is-call" : ""}`}
       initial={{ opacity: 0 }}
@@ -922,7 +924,7 @@ function HomeResponseStage({ operatorRequests, onOperatorRequestResponse, replyH
               </article>
             ) : working || retainedActivity ? (
               <article className={`home-response-output home-response-output--activity${working ? " home-response-output--live" : ""}`} data-ocean-obstacle="" data-voice-placement-obstacle="" key="activity">
-                <HomeTurnActivity activities={activity} startedAtMs={activityStartedAtMs} toolPresentations={toolPresentations} turnInProgress={working} terminalNotice={activityNotice} />
+                <HomeTurnActivity activities={activity} blockingReason={blockingReason} startedAtMs={activityStartedAtMs} toolPresentations={toolPresentations} turnInProgress={working} terminalNotice={activityNotice} />
               </article>
             ) : quiet || loading ? null : (
               <div className="home-response-empty" data-ocean-obstacle="" data-voice-placement-obstacle="" key="empty">
@@ -1030,6 +1032,7 @@ function HomeCommandDock({ awaitingClientResult, callActive, commandsActive, onV
           activeProvider={workspace.activeProvider}
           attachments={workspace.attachments}
           canSubmit={workspace.canSubmit}
+          blockingReason={workspace.runtimeBlockReason}
           contextUsage={workspace.contextUsage}
           hasQueuedMessages={workspace.queuedTurns.length > 0}
           fileInputRef={workspace.fileInputRef}

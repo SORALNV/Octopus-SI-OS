@@ -76,6 +76,7 @@ type Props = {
   steerableMessageId: string;
   revealPinnedContext: ChatPinnedContextItem | null;
   responseStreaming: boolean;
+  blockingReason?: string;
   onPinnedContextRevealed: () => void;
 };
 
@@ -187,6 +188,7 @@ export function ChatMessageList({
   steerableMessageId,
   revealPinnedContext,
   responseStreaming,
+  blockingReason = "",
   onPinnedContextRevealed,
 }: Props) {
   const stableContinueInNewTask = useStableCallback(onContinueInNewTask);
@@ -832,6 +834,7 @@ export function ChatMessageList({
                       pinnedArtifactIds={pinnedArtifactIds}
                       pinningArtifactIds={pinningArtifactIds}
                       responseStreaming={responseStreaming && turnIndex === turns.length - 1}
+                      blockingReason={turnIndex === turns.length - 1 && responseStreaming ? blockingReason : ""}
                       resolveAssistantVisualization={stableResolveAssistantVisualization}
                       taskActionsEnabled={taskActionsEnabled}
                       toolPresentations={toolPresentations}
@@ -1473,6 +1476,7 @@ function ChatTurn({
   pinnedArtifactIds,
   pinningArtifactIds,
   responseStreaming,
+  blockingReason,
   resolveAssistantVisualization,
   taskActionsEnabled,
   toolPresentations,
@@ -1495,6 +1499,7 @@ function ChatTurn({
   pinnedArtifactIds: string[];
   pinningArtifactIds: string[];
   responseStreaming: boolean;
+  blockingReason: string;
   resolveAssistantVisualization: Props["resolveAssistantVisualization"];
   taskActionsEnabled: boolean;
   toolPresentations: ChatToolPresentationIndex;
@@ -1569,14 +1574,14 @@ function ChatTurn({
       onTogglePinnedMessage={onTogglePinnedMessage}
       pinned={Boolean(message.artifactId && pinnedArtifactIds.includes(message.artifactId))}
       pinning={Boolean(message.artifactId && pinningArtifactIds.includes(message.artifactId))}
-      streaming={responseStreaming && isLatestTurn && message === response}
+      streaming={!blockingReason && responseStreaming && isLatestTurn && message === response}
       resolveAssistantVisualization={resolveAssistantVisualization}
       taskActionsEnabled={taskActionsEnabled}
       toolPresentations={toolPresentations}
     />
   ) : (
     <SelectableMessageText message={message} onPinMessageExcerpt={onPinMessageExcerpt} taskActionsEnabled={taskActionsEnabled}>
-      <AssistantEventContent find={findOf(message)} message={message} onOpenAssistantReview={onOpenAssistantReview} onOpenAssistantVisualization={onOpenAssistantVisualization} onOpenFile={onOpenFile} onOperatorRequestResponse={onOperatorRequestResponse} resolveAssistantVisualization={resolveAssistantVisualization} streaming={responseStreaming && isLatestTurn && (message === response || message.eventKind === "message_delta")} toolPresentations={toolPresentations} />
+      <AssistantEventContent find={findOf(message)} message={message} onOpenAssistantReview={onOpenAssistantReview} onOpenAssistantVisualization={onOpenAssistantVisualization} onOpenFile={onOpenFile} onOperatorRequestResponse={onOperatorRequestResponse} resolveAssistantVisualization={resolveAssistantVisualization} streaming={!blockingReason && responseStreaming && isLatestTurn && (message === response || message.eventKind === "message_delta")} toolPresentations={toolPresentations} />
     </SelectableMessageText>
   );
 
@@ -1604,6 +1609,7 @@ function ChatTurn({
       {visibleUser && turn.length > 1 ? <div aria-hidden="true" className="w-full" style={{ height: "var(--conversation-item-gap, 16px)" }} /> : null}
       <TurnActivity
         activities={activities}
+        blockingReason={blockingReason}
         turnInProgress={responseStreaming && isLatestTurn}
         finalStartedAtMs={finalStartedAtMs}
         presentation={activityPresentation}
@@ -1706,6 +1712,7 @@ function chatTurnPropsEqual(
     && stringListsEqual(previous.pinnedArtifactIds, next.pinnedArtifactIds)
     && stringListsEqual(previous.pinningArtifactIds, next.pinningArtifactIds)
     && previous.responseStreaming === next.responseStreaming
+    && previous.blockingReason === next.blockingReason
     && previous.resolveAssistantVisualization === next.resolveAssistantVisualization
     && previous.taskActionsEnabled === next.taskActionsEnabled
     && previous.toolPresentations === next.toolPresentations

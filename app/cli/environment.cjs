@@ -140,6 +140,8 @@ async function status(environment, options = {}, currentProjection) {
     phase: observed.phase, runtimeReady: observed.ready, clientReady: false, ready: false,
     pid: observed.pid, ownership: observed.ownership, home: environment.home,
     endpoint: environment.endpoint, logPath: environment.logPath,
+    storageHealth: observed.storageHealth,
+    interfaceFailures: observed.interfaceFailures,
     reason: observed.error ?? (observed.ready ? "Home setup has not been verified." : "Octopus runtime is not ready."),
   };
   if (!observed.ready) return result;

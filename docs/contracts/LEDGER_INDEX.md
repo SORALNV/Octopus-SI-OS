@@ -32,8 +32,13 @@ outcome, and binding snapshot are typed provenance metadata *on* the edge,
 never alternate endpoint kinds.
 
 In durable invocation rows, `invocation_metadata.grant_content` references the
-stored grant projection. Decoding resolves that content into `grant`; formation
-still recomputes authority at the next arrival. See the
+stored grant projection, and non-empty binding reference lists use
+`artifact_binding_refs_content`. Both are canonical BLAKE3 addresses in
+`ledger/metadata/`, so repeated content is stored once. Decoding verifies and
+restores the typed fields; providing both inline and addressed forms of a field
+is invalid. Metadata content belongs to the durable truth and cannot be deleted
+as an index cache. Readers that reuse a checked prefix revalidate the metadata
+files they used. Formation still recomputes authority at the next arrival. See the
 [artifact and metadata example](ARTIFACTS.md#payload-manifest-and-delivery-metadata).
 
 | Kind | Meaning |

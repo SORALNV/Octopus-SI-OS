@@ -23,6 +23,29 @@ function projectionFixture(fields = {}) {
     structureMemo: new Map(), ledgerMemo: new Map(), ...fields };
 }
 
+test('durable metadata resolves exact binding refs and rejects ambiguous or changed content', (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'octopus-metadata-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(root, 'metadata'));
+  const refs = [{ id: 'bound', content: Array(32).fill(1) }];
+  const bytes = Buffer.from(JSON.stringify(refs));
+  const hash = Buffer.from(blake3(bytes)).toString('hex');
+  const contentFile = path.join(root, 'metadata', hash);
+  fs.writeFileSync(contentFile, bytes);
+  const row = { seq: 0, lamport: 1, recorded_at_unix_ms: 1, trace: 'metadata', kind: 'InterfaceOutbound',
+    from: { Interface: 'provider' }, to: { Interface: 'worker' }, artifact: null,
+    invocation_metadata: { grant: {}, artifact_binding_refs_content: hash } };
+  const store = projectionStore();
+  const read = (value = row) => store.parseCanonicalMovement(JSON.stringify(value), path.join(root, 'movements.jsonl'), 1);
+  assert.deepEqual(read().invocation_metadata.artifact_binding_refs, refs);
+  assert.deepEqual(read().invocation_metadata.artifact_binding_refs, refs);
+  assert.throws(() => read({ ...row, invocation_metadata: { ...row.invocation_metadata, artifact_binding_refs: refs } }), /both inline and content-addressed/);
+  fs.writeFileSync(contentFile, Buffer.alloc(bytes.length, 32));
+  assert.throws(() => read(), /integrity mismatch/);
+  fs.rmSync(contentFile);
+  assert.throws(() => read(), /content is invalid/);
+});
+
 test('Triggers includes bound event sensors without treating them as cron activations', async (t) => {
   const sensor = (id) => ({ id, interface_type: 'world', role: 'sensor', direction: 'inbound', source_names: ['issue.opened'] });
   const projection = projectionFixture({

@@ -25,6 +25,9 @@ function unwrapOperatorChatSubmitResult(result) {
   error.retryable = result?.contract === OPERATOR_CHAT_SUBMIT_RESULT
     && result.ok === false
     && result.error?.retryable === true;
+  error.deliveryState = result?.contract === OPERATOR_CHAT_SUBMIT_RESULT
+    && result.ok === false
+    && result.error?.deliveryState === "not_sent" ? "not_sent" : "unknown";
   throw error;
 }
 
@@ -622,8 +625,8 @@ contextBridge.exposeInMainWorld("octopusTransport", {
   submitOperatorTurnControl(request) {
     return invokeAccess("octopus:submit-operator-turn-control", request);
   },
-  submitChatSteer(request) {
-    return invokeAccess("octopus:submit-chat-steer", request);
+  async submitChatSteer(request) {
+    return unwrapOperatorChatSubmitResult(await invokeAccess("octopus:submit-chat-steer", request));
   },
   updateChatPins(request) {
     return invokeAccess("octopus:update-chat-pins", request);

@@ -480,6 +480,14 @@ operator's terminal, or a run whose room grants it. A room cannot signal the
 runtime's processes, and a command started from a room cannot launch a second
 runtime, because it would inherit the room's sandbox.
 
+Control status includes the lifecycle manager's current `interface_failures`,
+including a life that stops after declaring readiness. This observation is held
+in memory and remains available when the ledger cannot be written. A ready root
+does not imply every interface life is available. Failure of one life leaves
+healthy siblings running; successful readiness clears its failure. The client
+shows the exact bound provider as unavailable without inventing a terminal
+ledger movement.
+
 There is no recovery subsystem. This follows from intent, obligation, and
 memory living in files rather than in a running loop.
 

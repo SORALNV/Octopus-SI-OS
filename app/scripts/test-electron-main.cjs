@@ -176,6 +176,8 @@ function fakeRuntimeHost(world) {
       options,
       probe: async () => { world.events.push(["probe"]); return { ...world.runtimeState }; },
       snapshot: () => ({ ...world.runtimeState }),
+      assertStorageWritable: async () => { if (world.storageError) throw world.storageError; },
+      recordStorageFailure: (error) => world.events.push(["storage-failure", error]),
       observe: () => world.events.push(["observe"]),
       start: () => world.events.push(["runtime-start"]),
       waitUntilStopped: async () => { world.events.push(["wait-stopped"]); return true; },
@@ -877,12 +879,25 @@ test("chat turns, steering, turn control and artifact reads use the verified cha
   assert.equal(main.eventsOf("read-payload")[0][1].blobsRoot, blobs);
 
   main.world.events.length = 0;
-  assert.deepEqual(await main.invoke("octopus:submit-chat-steer", primary, token, { runId: "run-1", messageId: "m-2", text: "steer" }), {
+  const steered = await main.invoke("octopus:submit-chat-steer", primary, token, { runId: "run-1", messageId: "m-2", text: "steer" });
+  assert.equal(steered.ok, true);
+  assert.deepEqual(steered.value, {
     interfaceId: "world_operator_chat_home", runId: "run-1", label: "operator.message", messageId: "m-2", attachmentCount: 0,
     contentHash: "hash-1", messageRecovered: false, verdict: { admitted: { seq: 4 } },
   });
   assert.deepEqual(names(main, ["submit-operator-turn", "message-artifact"]), ["submit-operator-turn"]);
   assert.equal(main.eventsOf("read-payload")[0][1].blobsRoot, blobs);
+
+  main.world.storageError = Object.assign(new Error("Disk full. Your draft is retained."), { code: "home_storage_blocked", deliveryState: "not_sent" });
+  main.world.events.length = 0;
+  for (const channel of ["octopus:submit-chat-turn", "octopus:submit-chat-steer"]) {
+    const refused = await main.invoke(channel, primary, token, { runId: "run-1", text: "Keep this draft" });
+    assert.equal(refused.ok, false);
+    assert.equal(refused.error.code, "home_storage_blocked");
+    assert.equal(refused.error.deliveryState, "not_sent");
+  }
+  assert.equal(main.eventsOf("submit-operator-turn").length, 0);
+  main.world.storageError = null;
 
   main.world.events.length = 0;
   const control = await main.invoke("octopus:submit-operator-turn-control", primary, token, { interfaceId: "world_operator_chat_home", runId: "run-1", action: "pause", controlId: "control-1" });

@@ -330,7 +330,7 @@
         movement.invocation_metadata = Some(InvocationMetadata::new(GrantProjection {
             tools: vec!["file.write".into()], interfaces: vec!["system_room".into()], ..Default::default()
         }).into());
-        let row = octopus_ledger::encode_durable_movement_row(&movement, 0, |bytes| {
+        let row = octopus_ledger::encode_durable_movement_row(&movement, 0, |_, bytes| {
             let hash = ContentHash::of_bytes(bytes);
             std::fs::write(metadata.join(hash.to_hex()), bytes).unwrap(); Ok(hash)
         }).unwrap();
@@ -356,13 +356,13 @@
         foreign.from = Endpoint::Interface("other".into());
         foreign.invocation_metadata = Some(InvocationMetadata::new(Default::default()).into());
         let foreign_row = octopus_ledger::encode_durable_movement_row(&foreign, 0,
-            |bytes| Ok(ContentHash::of_bytes(bytes))).unwrap();
+            |_, bytes| Ok(ContentHash::of_bytes(bytes))).unwrap();
         let mut own = ledger_row(1);
         own.from = Endpoint::Interface(source.clone());
         own.invocation_metadata = Some(InvocationMetadata::new(GrantProjection {
             tools: vec!["file.write".into()], ..Default::default()
         }).into());
-        let own_row = octopus_ledger::encode_durable_movement_row(&own, 1, |bytes| {
+        let own_row = octopus_ledger::encode_durable_movement_row(&own, 1, |_, bytes| {
             let hash = ContentHash::of_bytes(bytes);
             std::fs::write(metadata.join(hash.to_hex()), bytes).unwrap(); Ok(hash)
         }).unwrap();

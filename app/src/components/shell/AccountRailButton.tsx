@@ -33,7 +33,8 @@ export function AccountRailButton({ accessProfile, runtimeHost, onLogOut, onOpen
     : account ? "ChatGPT disconnected" : "ChatGPT unavailable";
   const usageWindow = usage.value ? accountUsageGroups(usage.value)[0]?.windows.find((row) => row.reported && row.remaining !== null) : undefined;
   const openSettings = (section?: string) => { openingSettings.current = true; trigger.current?.focus(); onOpenSettings(section); };
-  const connected = runtimeHost.available && runtimeHost.ready;
+  const storageBlocked = accessProfile === "live" && runtimeHost.storageHealth && runtimeHost.storageHealth.status !== "writable";
+  const connected = runtimeHost.available && runtimeHost.ready && !storageBlocked;
   const settingsShortcut = formatKeyboardShortcuts(shortcuts.open_settings ?? []);
   const avatar = <span className="navigation-rail-avatar" aria-hidden="true">{name.slice(0, 1)}</span>;
 
@@ -58,9 +59,9 @@ export function AccountRailButton({ accessProfile, runtimeHost, onLogOut, onOpen
           type="button"
         >{avatar}</button>
       </MessageTooltip>
-      <MessageTooltip asChild label={connected ? "Runtime connected" : runtimeHost.error || runtimeHost.phase} side="right" delayMs={300}><span
-        aria-label={connected ? "Runtime connected" : "Runtime unavailable"}
-        className={`sidebar-runtime-dot navigation-rail-account-status${connected ? " is-ready" : runtimeHost.phase === "degraded" ? " is-error" : ""}`}
+      <MessageTooltip asChild label={storageBlocked ? runtimeHost.storageHealth!.message || "Home storage unavailable" : connected ? "Runtime connected" : runtimeHost.error || runtimeHost.phase} side="right" delayMs={300}><span
+        aria-label={storageBlocked ? "Home storage unavailable" : connected ? "Runtime connected" : "Runtime unavailable"}
+        className={`sidebar-runtime-dot navigation-rail-account-status${connected ? " is-ready" : storageBlocked || runtimeHost.phase === "degraded" ? " is-error" : ""}`}
         role="status"
       /></MessageTooltip>
       <OcDropdown align="end" alignOffset={-4} anchorRef={trigger} aria-label="Account" className="account-menu" contentWidth="sidebar" open={open} onOpenChange={setOpen} onCloseAutoFocus={(event) => {

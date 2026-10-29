@@ -1089,6 +1089,80 @@ test("a manual message refused before delivery returns to the composer and the e
   assert.equal(view.current.canSubmit, true);
 });
 
+test("Home storage blocking retains drafts, suspends sends and queue delivery, and keeps open turn evidence", async () => {
+  const host = fakeHost();
+  let state, emit;
+  host.transport.bootStatus = async () => state;
+  host.transport.onRuntimeHostState = (listener) => { emit = listener; return () => { emit = null; }; };
+  const home = "/home/storage-fixture";
+  state = { home, storageHealth: { status: "writable", message: null }, interfaceFailures: [] };
+  const view = await mount(host, "live", home);
+  view.current.selectRun("run-1");
+  await until(() => !view.current.loadingMessages && view.current.activeRunId === "run-1", "task unavailable");
+  await type(view, "Keep the disk-full draft");
+  Object.assign(host.run("run-1"), { turn_open: true, turn_state: "working" });
+  host.changed("ledger");
+  await until(() => view.current.turnOpen, "open turn was not observed");
+  await type(view, "Previously queued message");
+  await view.current.queueCurrentTurn();
+  await until(() => view.current.queuedTurns.length === 1, "follow-up was not queued");
+  await type(view, "Keep the disk-full draft");
+  state = { home, storageHealth: { status: "blocked", code: "ENOSPC", message: "Disk full. Sending is paused; your draft is retained." }, interfaceFailures: [] };
+  emit(state);
+  await until(() => Boolean(view.current.storageBlockReason), "storage warning missing");
+  assert.equal(view.current.canSubmit, false);
+  assert.equal(view.current.canQueue, false);
+  assert.equal(view.current.canSteer, false);
+  await view.current.submit();
+  await view.current.queueCurrentTurn();
+  await view.current.steerCurrentTurn();
+  assert.equal(view.current.text, "Keep the disk-full draft");
+  assert.equal(view.current.turnOpen, true);
+  assert.equal(host.turns.length + host.steers.length, 0);
+  assert.equal(view.current.queuedTurns.length, 1);
+  host.reply("run-1", "Previous reply finished");
+  await until(() => !view.current.turnOpen, "reply evidence was not observed");
+  await settle();
+  assert.equal(host.turns.length, 0);
+  emit({ home: "/another-home", storageHealth: { status: "writable", message: null } });
+  await settle();
+  assert.ok(view.current.storageBlockReason);
+  emit({ home, storageHealth: { status: "writable", message: null }, interfaceFailures: [] });
+  await until(() => !view.current.storageBlockReason && host.turns.length === 1, "writable Home did not resume its saved queue");
+  assert.equal(host.turns[0].text, "Previously queued message");
+  host.reply("run-1", "Queued reply finished");
+  await until(() => !view.current.busy, "queued reply did not finish");
+  assert.equal(view.current.text, "Keep the disk-full draft");
+});
+
+test("a stopped bound provider blocks only its task and preserves the open turn and draft", async () => {
+  const host = fakeHost();
+  host.runs[0].provider_bound_interface_id = "provider.bound";
+  host.runs.push(runRow("run-healthy", { provider_bound_interface_id: "provider.sibling" }));
+  host.messages["run-healthy"] = [];
+  let emit;
+  const home = "/home/provider-health-fixture";
+  host.transport.bootStatus = async () => ({ home, storageHealth: { status: "writable" }, interfaceFailures: [] });
+  host.transport.onRuntimeHostState = (listener) => { emit = listener; return () => { emit = null; }; };
+  const view = await mount(host, "live", home);
+  view.current.selectRun("run-1");
+  await until(() => !view.current.loadingMessages && view.current.activeRunId === "run-1", "task unavailable");
+  await type(view, "Keep my provider draft");
+  Object.assign(host.run("run-1"), { turn_open: true, turn_state: "working" }); host.changed("ledger");
+  await until(() => view.current.turnOpen, "open turn missing");
+  emit({ home, storageHealth: { status: "writable" }, interfaceFailures: [{ interfaceId: "provider.bound", message: "sandbox unavailable" }] });
+  await until(() => Boolean(view.current.providerFailureReason), "provider warning missing");
+  assert.match(view.current.runtimeBlockReason, /sandbox unavailable/);
+  await view.current.submit();
+  assert.equal(view.current.text, "Keep my provider draft"); assert.equal(view.current.turnOpen, true);
+  assert.equal(view.current.canQueue, false); assert.equal(view.current.storageBlockReason, "");
+  view.current.selectRun("run-healthy");
+  await until(() => !view.current.loadingMessages && view.current.activeRunId === "run-healthy", "sibling unavailable");
+  await type(view, "Healthy sibling message");
+  await until(() => view.current.canSubmit, "unrelated life failure blocked a healthy task");
+  assert.equal(view.current.runtimeBlockReason, ""); assert.equal(host.turns.length, 0);
+});
+
 
 test("a failed manual send preserves a newer composer draft and retains the refused message", async () => {
   const host = fakeHost();
