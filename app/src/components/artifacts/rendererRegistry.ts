@@ -29,7 +29,7 @@ export function createArtifactPreviewModel(reference: ArtifactReference, payload
   const mediaType = declaredMediaType || dataUrlMediaType(dataUrl) || mimeForExtension(extension);
   const bytes = embeddedBytes(record, media);
   const kind = rendererKind({ extension, mediaType, payload, record, sourceText });
-  const title = firstText(record.title, record.display_name, filename, reference.label) || "Artifact";
+  const title = firstText(record.title, record.display_name, filename, reference.label) || "成果物";
   return {
     bytes,
     dataUrl,

@@ -36,7 +36,7 @@ export function ShortcutsSection({ accessProfile }: { accessProfile: OctopusClie
         detail: command.detail,
       })),
       { id: "surface-index", action: "Jump to surface 1–9", command: null, keys: ["⌘1–9"], detail: "指定された画面を開く" },
-      { id: "send", action: "Send message", command: null, keys: sendKeys, detail: "入力中のメッセージを送信" },
+      { id: "send", action: "メッセージを送信", command: null, keys: sendKeys, detail: "入力中のメッセージを送信" },
       { id: "queue", action: "Queue message while replying", command: null,
         keys: [formatKeyboardShortcut(preferences.sendShortcut === "enter" ? "Mod+Enter" : "Mod+Shift+Enter")],
         detail: "現在の応答が終わってから送信します。通常の送信ではすぐに指示を追加します" },

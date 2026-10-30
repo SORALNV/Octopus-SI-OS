@@ -70,6 +70,7 @@ export type OctopusOsProjectWorkspace = {
 type ScopeEnvironment = {
   sourceFolders: string[];
   eeId: string;
+  name: string;
   parentEeId: string;
   templateName: string;
   goal: string;
@@ -206,7 +207,6 @@ export function useOctopusOsProjects(profile: OctopusClientAccessProfile, runtim
             workspace: workspaceMutationIdentity(scope),
             projects: next.map((project) => ({
               eeId: project.id,
-              name: project.name,
               icon: project.icon,
               color: project.color,
             })),
@@ -275,8 +275,11 @@ export function useOctopusOsProjects(profile: OctopusClientAccessProfile, runtim
         workspace: workspaceMutationIdentity(scope),
         projects: next.map((project) => ({
           eeId: project.id,
-          ...(project.id === edit.projectId ? { sourceFolders: edit.sourceFolders, expectedProjectDigest: current.recordDigest } : {}),
-          name: project.name,
+          ...(project.id === edit.projectId ? {
+            sourceFolders: edit.sourceFolders,
+            expectedProjectDigest: current.recordDigest,
+            ...(edit.name === current.name ? {} : { name: edit.name }),
+          } : {}),
           icon: project.icon,
           color: project.color,
         })),
@@ -435,7 +438,7 @@ export function useOctopusOsProjects(profile: OctopusClientAccessProfile, runtim
     homeInterfaceId: scope.homeInterfaceId,
     rootContext: scope.rootEnvironment ? {
       eeId: scope.rootEnvironment.eeId,
-      displayName: scope.spaceName || "Home",
+      displayName: scope.rootEnvironment.name || scope.rootEnvironment.eeId,
       templateName: scope.rootEnvironment.templateName,
     } : null,
     rootAllowedChildTemplateIds: scope.rootEnvironment?.allowedChildTemplateIds ?? [],
@@ -536,6 +539,7 @@ function normalizeEnvironment(value: unknown): ScopeEnvironment | null {
   if (!eeId) return null;
   return {
     eeId,
+    name: text(value.name),
     sourceFolders: list(isRecord(value.config) && isRecord(value.config.octopus_os) ? value.config.octopus_os.source_folders : []).map(text).filter(Boolean),
     parentEeId: text(value.parent_ee_id),
     templateName: text(value.template_name),
@@ -577,7 +581,7 @@ function mergeProjectedProjects(
     return {
       id,
       sourceFolders: environment.sourceFolders,
-      name: visual?.name || environment.goal,
+      name: environment.name || environment.eeId,
       icon: visual?.icon || "briefcase",
       color: visual?.color || DEFAULT_PROJECT_COLOR,
       parentId: environment.parentEeId === scope.rootEeId ? "" : environment.parentEeId,

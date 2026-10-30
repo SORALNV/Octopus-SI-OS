@@ -52,6 +52,10 @@ export type ScheduledInterfaceProjection = {
   activationDigest: string;
   activationPath: string;
   descriptorPath: string;
+  eventSource?: {
+    sources: string[];
+    targets: Array<{ runId: string; chatInterfaceId: string; title: string }>;
+  } | null;
   schedule: {
     type: "interval";
     intervalSeconds: number;

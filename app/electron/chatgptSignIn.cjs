@@ -408,17 +408,19 @@ function createChatgptSignIn(options) {
         if (!Array.isArray(response?.data)) throw new Error("Codex returned an invalid model list.");
         for (const model of response.data) {
           const efforts = model?.supportedReasoningEfforts?.map((entry) => entry?.reasoningEffort);
+          const hasNoReasoningControls = efforts?.length === 0 && model?.defaultReasoningEffort === "none";
           if (typeof model?.model !== "string" || !model.model || modelIds.has(model.model)
             || typeof model.displayName !== "string" || !Array.isArray(efforts)
             || !efforts.every((effort) => typeof effort === "string" && effort)
-            || new Set(efforts).size !== efforts.length || !efforts.includes(model.defaultReasoningEffort)) {
+            || new Set(efforts).size !== efforts.length
+            || (!hasNoReasoningControls && !efforts.includes(model.defaultReasoningEffort))) {
             throw new Error("Codex returned an invalid or repeated model.");
           }
           modelIds.add(model.model);
           result.push({
             model: model.model, displayName: model.displayName,
             description: typeof model.description === "string" ? model.description : "",
-            defaultReasoningEffort: model.defaultReasoningEffort, supportedReasoningEfforts: efforts,
+            defaultReasoningEffort: hasNoReasoningControls ? "" : model.defaultReasoningEffort, supportedReasoningEfforts: efforts,
             showInPicker: model.hidden !== true, isDefault: model.isDefault === true,
             ...require("./providerModelTiers.cjs").modelServiceTiers(model.serviceTiers, model.defaultServiceTier, `Codex model '${model.model}'`),
           });

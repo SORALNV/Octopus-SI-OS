@@ -334,7 +334,7 @@ pub(crate) async fn codex_life(
                 continue;
             };
             if authoring_result
-                .consume_if_matches(&ctx, &own.movement, &envelope, &manifest.label)
+                .consume_if_matches(&ctx, &handoff_session, &own.movement, &envelope, &manifest.label)
                 .await?
             {
                 commit_main_reader(&mut reader, &own, &main_reader_progress)?;

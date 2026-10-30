@@ -167,7 +167,7 @@ export function buildVoiceWidgetDocuments(input: {
           gap: "none",
           children: input.taskProgress.unseenDone + input.taskProgress.running + input.taskProgress.waiting
             + input.taskProgress.scheduled + input.taskProgress.failed === 0
-            ? [{ type: "text", value: "No tasks yet", role: "caption", tone: "muted" }]
+            ? [{ type: "text", value: "タスクはまだありません", role: "caption", tone: "muted" }]
             : [{
             type: "donut",
             value: input.taskProgress.completion,
@@ -366,5 +366,5 @@ function compileWidget(document: ClientSurfaceDocument): AdmittedClientSurfaceDo
 
 function memorySummary(items: VoiceWidgetItem[]): string {
   if (!items.length) return "No memory";
-  return `${items.length} bound artifact${items.length === 1 ? "" : "s"}`;
+  return `${items.length} bound artifact${items.length === 1 ? "" : " 秒"}`;
 }

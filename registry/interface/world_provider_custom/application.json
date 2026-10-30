@@ -7,7 +7,6 @@
   "developer": "Octopus",
   "version": "1.0.0",
   "icon": "sparkles",
-  "logo": "application-logo.svg",
   "interfaces": [
     "world_provider_custom"
   ],

@@ -132,8 +132,8 @@ function fakeElectron(world) {
     module: {
       app,
       BrowserWindow,
-      clipboard: { writeText: () => {} },
-      dialog: { showOpenDialog: async () => ({ canceled: true, filePaths: [] }) },
+      clipboard: { writeText: (text) => { world.clipboard = text; } },
+      dialog: { showOpenDialog: async () => ({ canceled: true, filePaths: [] }), showSaveDialog: async () => world.saveResult ?? ({ canceled: true }), showMessageBox: async () => ({ response: 0 }) },
       globalShortcut: {
         register: (accelerator, callback) => { shortcuts.set(accelerator, callback); return true; },
         unregister: (accelerator) => { shortcuts.delete(accelerator); },
@@ -157,7 +157,7 @@ function fakeElectron(world) {
         getCursorScreenPoint: () => ({ x: 0, y: 0 }),
       },
       session: { defaultSession: { setPermissionRequestHandler: () => {}, setPermissionCheckHandler: () => {} } },
-      shell: { openExternal: async () => {}, openPath: async () => "", showItemInFolder: () => {} },
+      shell: { openExternal: async (url) => { world.events.push(["external", url]); }, openPath: async () => "", showItemInFolder: () => {} },
       systemPreferences: world.touchId === false ? {} : {
         promptTouchID: async (reason) => {
           world.events.push(["touch-id", reason]);
@@ -176,6 +176,8 @@ function fakeRuntimeHost(world) {
       options,
       probe: async () => { world.events.push(["probe"]); return { ...world.runtimeState }; },
       snapshot: () => ({ ...world.runtimeState }),
+      assertStorageWritable: async () => { if (world.storageError) throw world.storageError; },
+      recordStorageFailure: (error) => world.events.push(["storage-failure", error]),
       observe: () => world.events.push(["observe"]),
       start: () => world.events.push(["runtime-start"]),
       waitUntilStopped: async () => { world.events.push(["wait-stopped"]); return true; },
@@ -217,6 +219,12 @@ function fakeProjectionStore(world) {
 
 function overrides(world) {
   return {
+    "./clientDictationStream.cjs": () => ({ createClientDictationStream: (_request, options) => ({
+      ready: Promise.resolve(),
+      append: (bytes) => world.events.push(["dictation-audio", bytes.length]),
+      finish: async () => { options.onEvent({ type: "transcript", text: "Final words" }); return { text: "Final words" }; },
+      close: () => world.events.push(["dictation-close"]),
+    }) }),
     "./runtimeHost.cjs": (real) => ({ ...real, createRuntimeHost: fakeRuntimeHost(world) }),
     "./terminalHost.cjs": () => ({ createTerminalHost: fakeTerminalHost(world) }),
     "./clientDataSource.cjs": (real) => ({ ...real, createClientProjectionStore: fakeProjectionStore(world) }),
@@ -363,6 +371,99 @@ async function launchMain(options = {}) {
 }
 
 const surface = { kind: "surface", runId: "run-1", surfaceId: "chat", workspaceKey: "octopus-os" };
+
+test("streaming dictation binds audio, events and finalization to the unlocked owner window and closes on lock", async () => {
+  const main = await launchMain();
+  const [primary] = main.windows();
+  const request = { attemptId: require("node:crypto").randomUUID(), sampleRateHz: 24_000 };
+  assert.equal((await main.invoke("octopus:dictation-stream-start", primary, null, request)).ok, false);
+  const token = await main.unlock(primary);
+  assert.equal((await main.invoke("octopus:dictation-stream-start", primary, token, request)).ok, true);
+  const other = new main.electron.module.BrowserWindow({});
+  main.sendSync("octopus:dictation-stream-audio", other, token, request.attemptId, Buffer.from([0, 1]));
+  assert.equal(main.eventsOf("dictation-audio").length, 0);
+  assert.equal((await main.invoke("octopus:dictation-stream-finish", other, token, request.attemptId)).ok, false);
+  main.sendSync("octopus:dictation-stream-audio", primary, token, request.attemptId, Buffer.from([0, 1]));
+  assert.equal(main.eventsOf("dictation-audio").length, 1);
+  const final = await main.invoke("octopus:dictation-stream-finish", primary, token, request.attemptId);
+  assert.equal(final.value.text, "Final words");
+  assert.equal(primary.webContents.sentOn("octopus:dictation-stream-event")[0][0].text, "Final words");
+  assert.deepEqual(other.webContents.sentOn("octopus:dictation-stream-event"), []);
+  assert.equal((await main.invoke("octopus:dictation-stream-start", primary, token, request)).ok, true);
+  main.world.expiredTokens.add(token);
+  main.sendSync("octopus:dictation-stream-audio", primary, token, request.attemptId, Buffer.from([0, 1]));
+  assert.equal(main.eventsOf("dictation-audio").length, 1);
+  assert.equal(main.eventsOf("dictation-close").length, 2);
+});
+
+test("dictation recording IPC requires access and returns saved audio or a safe failure", async () => {
+  const main = await launchMain();
+  const [primary] = main.windows();
+  const denied = await main.invoke("octopus:dictation-recordings-read", primary, null);
+  assert.equal(denied.ok, false);
+  assert.equal(denied.error.code, "recording-storage");
+  const token = await main.unlock(primary);
+  const initial = await main.invoke("octopus:dictation-recordings-read", primary, token);
+  assert.equal(initial.ok, true);
+  assert.equal(initial.value.enabled, true);
+  assert.deepEqual(initial.value.recordings, []);
+  const bytes = Buffer.alloc(44 + 24_000 * 0.3 * 2);
+  bytes.write("RIFF"); bytes.write("WAVE", 8);
+  const saved = await main.invoke("octopus:dictation-recording-save", primary, token, {
+    bytes, durationMs: 300, mediaType: "audio/wav", provider: "codex", sampleRateHz: 24_000,
+  });
+  assert.equal(saved.ok, true);
+  const recording = await main.invoke("octopus:dictation-recording-read", primary, token, saved.value.id);
+  assert.equal(recording.ok, true);
+  assert.deepEqual(recording.value.bytes, bytes);
+  const refused = await main.invoke("octopus:dictation-recording-read", primary, token, "../../outside");
+  assert.equal(refused.ok, false);
+  assert.equal(refused.error.code, "recording-storage");
+  const deleted = await main.invoke("octopus:dictation-recording-delete", primary, token, saved.value.id);
+  assert.deepEqual(deleted, { ok: true, value: null });
+  assert.deepEqual((await main.invoke("octopus:dictation-recordings-read", primary, token)).value.recordings, []);
+});
+
+test("Help reports work independently of the main renderer and export the reviewed snapshot", async () => {
+  const main = await launchMain();
+  const [primary] = main.windows();
+  const help = main.world.menu.template.find((item) => item.role === "help");
+  const reportItem = help.submenu.find((item) => item.label === "Report a Problem…");
+  primary.focus();
+  reportItem.click();
+  const locked = main.windows().at(-1);
+  assert.match(locked.options.webPreferences.preload, /supportPreload\.cjs$/);
+  assert.equal(locked.options.webPreferences.sandbox, true);
+  const basic = await main.invoke("octopus:support-collect", locked, { includeDetails: false });
+  assert.equal(basic.access, "locked");
+  assert.equal(basic.client_logs, undefined);
+  await assert.rejects(main.invoke("octopus:support-collect", locked, { includeDetails: true }), /Unlock/);
+  await assert.rejects(main.invoke("octopus:support-collect", primary, { includeDetails: false }), /report window/);
+  locked.destroy();
+  await main.unlock(primary);
+  primary.focus();
+  reportItem.click();
+  const support = main.windows().at(-1);
+  primary.webContents.emit("render-process-gone", {}, { reason: "crashed", exitCode: 1 });
+  await until(() => main.log().some((item) => item.event === "client.renderer.gone"), "renderer crash was recorded");
+  const report = await main.invoke("octopus:support-collect", support, { includeDetails: true });
+  assert.equal(report.access, "live");
+  assert.ok(report.client_logs.events.some((item) => item.message?.includes("Renderer exited: crashed")));
+  const request = { reportId: report.report_id, description: "Setup is waiting" };
+  await main.invoke("octopus:support-copy", support, request);
+  assert.match(main.world.clipboard, /Setup is waiting/);
+  assert.deepEqual(await main.invoke("octopus:support-save", support, request), { saved: false });
+  const destination = path.join(main.world.root, "report.txt");
+  main.world.saveResult = { canceled: false, filePath: destination };
+  assert.deepEqual(await main.invoke("octopus:support-save", support, request), { saved: true });
+  assert.equal(fs.readFileSync(destination, "utf8"), main.world.clipboard);
+  assert.equal(fs.statSync(destination).mode & 0o777, 0o600);
+  await main.invoke("octopus:support-issue", support, request);
+  assert.match(main.eventsOf("external").at(-1)[1], /^https:\/\/github.com\/miuuyy\/Octopus-SI-OS\/issues\/new\?/);
+  await main.invoke("octopus:support-collect", support, { includeDetails: false });
+  await assert.rejects(main.invoke("octopus:support-copy", support, request), /Refresh/);
+  assert.equal(main.eventsOf("runtime-start").length, 0);
+});
 const names = (main, wanted) => main.world.events.map(([name]) => name).filter((name) => wanted.includes(name));
 const claimOf = (win) => win.options.webPreferences.additionalArguments?.[0]?.slice("--octopus-access-claim=".length);
 
@@ -537,6 +638,8 @@ test("logging out locks the session, tells every window of that owner, closes it
   const { peer } = await openPeer(main, primary, token);
   await main.invoke("octopus:quick-task-open", primary, token);
   const quickTask = main.windows().at(-1);
+  await main.invoke("octopus:support-open", primary, token);
+  const support = main.windows().at(-1);
   await main.invoke("octopus:global-dictation-shortcut", primary, token, { enabled: true, shortcut: "Mod+Shift+KeyD" });
   assert.equal(main.electron.shortcuts.size, 1);
   await assert.rejects(main.invoke("octopus:access-lock", peer, "another-token"), /belongs to its authenticated full client window/);
@@ -547,6 +650,7 @@ test("logging out locks the session, tells every window of that owner, closes it
   assert.equal(peer.webContents.sentOn("octopus:client-access-locked").length, 1);
   assert.equal(peer.isDestroyed(), true);
   assert.equal(quickTask.isDestroyed(), true);
+  assert.equal(support.isDestroyed(), true);
   assert.equal(primary.isDestroyed(), false);
   assert.equal(main.electron.shortcuts.size, 0, "the owner's global dictation shortcut is released");
   main.world.expiredTokens.delete(token);
@@ -775,12 +879,25 @@ test("chat turns, steering, turn control and artifact reads use the verified cha
   assert.equal(main.eventsOf("read-payload")[0][1].blobsRoot, blobs);
 
   main.world.events.length = 0;
-  assert.deepEqual(await main.invoke("octopus:submit-chat-steer", primary, token, { runId: "run-1", messageId: "m-2", text: "steer" }), {
+  const steered = await main.invoke("octopus:submit-chat-steer", primary, token, { runId: "run-1", messageId: "m-2", text: "steer" });
+  assert.equal(steered.ok, true);
+  assert.deepEqual(steered.value, {
     interfaceId: "world_operator_chat_home", runId: "run-1", label: "operator.message", messageId: "m-2", attachmentCount: 0,
     contentHash: "hash-1", messageRecovered: false, verdict: { admitted: { seq: 4 } },
   });
   assert.deepEqual(names(main, ["submit-operator-turn", "message-artifact"]), ["submit-operator-turn"]);
   assert.equal(main.eventsOf("read-payload")[0][1].blobsRoot, blobs);
+
+  main.world.storageError = Object.assign(new Error("Disk full. Your draft is retained."), { code: "home_storage_blocked", deliveryState: "not_sent" });
+  main.world.events.length = 0;
+  for (const channel of ["octopus:submit-chat-turn", "octopus:submit-chat-steer"]) {
+    const refused = await main.invoke(channel, primary, token, { runId: "run-1", text: "Keep this draft" });
+    assert.equal(refused.ok, false);
+    assert.equal(refused.error.code, "home_storage_blocked");
+    assert.equal(refused.error.deliveryState, "not_sent");
+  }
+  assert.equal(main.eventsOf("submit-operator-turn").length, 0);
+  main.world.storageError = null;
 
   main.world.events.length = 0;
   const control = await main.invoke("octopus:submit-operator-turn-control", primary, token, { interfaceId: "world_operator_chat_home", runId: "run-1", action: "pause", controlId: "control-1" });

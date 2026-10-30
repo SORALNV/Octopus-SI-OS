@@ -36,6 +36,22 @@ resetting a disposable Home; do not transplant old runs, checkpoints or ledgers.
 
 ## Interface process lifecycle
 
+Life reconciliation caches resolved configurations and executable digests using
+file identity, size, modification and change times. Cold resolution shares the
+same digest cache; content fingerprints include the checked executable digest
+instead of copying its bytes for each bound interface. Reconciliation yields
+between interfaces and observes shutdown before lifting further lives.
+A metadata observation less
+than one second old is racy: only that file is read again, so equal-size writes
+within a coarse filesystem clock tick cannot reuse stale content. The observation
+must already be settled before the read starts; a cached racy observation never
+becomes reusable merely because time passes. Missing or future timestamps keep
+the read path. Platforms without a change timestamp also keep that path.
+Build receipts still check the executable digest, and changed content participates
+in the life restart fingerprint. Cache age alone cannot change that fingerprint
+or restart a process. This is freshness and receipt consistency, not
+a security boundary against an actor able to replace both executable and receipt.
+
 The generic Rust life bridge acknowledges readiness publication. Awaiting its
 ready signal succeeds only after the bounded Ready frame has been written and
 flushed; synchronous recovery work after that boundary cannot postpone the
@@ -52,6 +68,27 @@ cleanup failures remain explicit, with the original exit status and private
 diagnostics preserved.
 
 ## In the client
+
+Conversation pane tabs, selection, visibility and layout are client-local state,
+scoped to the Home, access profile, client window and conversation. Navigation
+restores that conversation's state without writing it into a run. Reading or
+opening a task does not change its position in the normal last-update order.
+Creating or explicitly renaming a Project writes `name` in its EE record through
+the guarded authoring transaction. Topology and Project lists read that record;
+the presentation sidecar's name is only a mirror. Goal and template remain
+separate fields, and an unnamed EE is shown by its ID.
+
+Composer dictation is client-local preparation. Live speech is streamed to the
+client's transcription provider and appears as a transient editor preview.
+Only finalized text enters the persisted draft. Completed and cancelled audio is saved by
+default under the selected Home's client data, separated by access profile,
+with a bounded history of 20 recordings. Voice settings show that history
+inline under Dictation: transcript, timestamp, Copy, Retry for audio without text,
+and a Download/Delete menu. Composer failure recovery opens the exact recording
+in these settings. Stop finalizes recognized text; the Send arrow finalizes and
+submits it through the declared operator interface. Escape cancels capture or a
+pending transcription while preserving manually typed text. Transcription failure
+retains its audio for explicit retry; it does not silently switch recognition paths.
 
 Project source folders are ordered client configuration in the EE's
 `config.octopus_os.source_folders`. The first folder is Primary. New task
@@ -71,6 +108,15 @@ retries automatically. A newer draft is preserved, with the failed message kept
 in durable client storage until it can be restored or explicitly handled.
 Provider turn boundaries also split the visible history when another run starts
 a new turn, so an earlier answer cannot hide later activity.
+
+The native client checks the selected Home's writable storage before sending.
+Below 16 MiB available, a native ENOSPC/EDQUOT refusal, or an unsuccessful write
+probe blocks new sends with a visible explanation. The composer keeps its
+current draft in memory; failed disk persistence explicitly asks the operator
+to keep the window open. Queued messages do not dispatch while storage or their
+exact provider life is unavailable. Observed life failures are presentation
+state, not fabricated run status or ledger evidence.
+
 
 
 
@@ -257,6 +303,19 @@ resources, including ICU locale data, alongside system libraries and timezone
 data. Application files and credentials come from the process authority
 declared by their owner.
 
+The macOS desktop helper builds its pinned Swift package with SwiftPM sandboxing
+disabled. This avoids nesting SwiftPM's manifest sandbox inside the caller's
+existing process sandbox; the caller's declared filesystem, network and process
+restrictions remain in force.
+
+`read_executable_relative_paths` declares read-only runtime resources relative
+to the parent of a resolved executable, after following its symlinks. Each entry
+names an executable already in `executable_commands` and a relative path; a
+missing path fails authority formation. For example, a Python verifier declares
+`{"executable":"python3","relative_path":"../lib"}` for its installation's
+standard library. The host resolves paths without knowing the language or
+substituting a different interpreter. Copies cannot add these read grants.
+
 ## Add a provider
 
 1. Copy the nearest provider folder that speaks your wire, for example
@@ -318,6 +377,14 @@ every reachable worker pin before any dependency or activation is published.
 A future route cannot enter the live topology with an unbound mandatory role and
 thereby invalidate the run's existing input or control checkpoints.
 
+Authored run previews and publication plans also validate the complete candidate
+against each bound provider's declared authoring profile. They use the provider
+owner's topology validator, including its frontier and future checkpoint
+templates, before publishing any files. The model receives the validation
+verdict, regressions and remaining issues without repeated registry snapshots.
+This checks declarations and formation; it does not establish that a trigger
+has fired or a result reached its consumer.
+
 Intermediate provider observations are handed to their client route as soon as
 they are complete. Their delivery does not close the source. The provider keeps
 source completion on its final output or suspended external call, so reporting
@@ -331,6 +398,22 @@ Recovery retains that failure, checks both exact file states, and never treats
 the error as a successful receipt. A spent writer call needs an independently
 authorized edit to its recorded next generation. A fresh attempt skips voided
 generations; historical replay uses the next admitted preimage, not today's file.
+
+Claude Code replay carries user attachments and tool screenshots as native image
+blocks in conversation order. Whole-message history cuts remove their images
+together with the message. Invalid image carriers fail before the CLI starts;
+images are never replaced by captions or a text-only request. Native tool schemas
+make types implied by `const` and `enum` explicit without coercing arguments or
+rewriting literal data.
+
+The native Codex/ChatGPT descriptors set `model_context_window=400000`.
+Generated OpenCodex catalogues default `context_window` to the smaller of
+the provider's `default_context_window` (400,000 when omitted) and the model's
+declared capacity. Claude Code and Anthropic declare 700,000 tokens;
+`max_context_window` retains each model's capacity. The curated OpenCodex home
+uses these per-model values without global context or compaction overrides.
+Context usage remains the provider's reported usable
+window; the client does not substitute a display-only limit.
 
 For the desktop picker, declare `private_config.model_catalog` in
 `interface_driver_config`. Each entry names its `model`, `display_name`,
@@ -355,9 +438,15 @@ to match a bundled copy. Before installation, setup discovery uses the selected
 source registry; it never substitutes source code for a missing installed module.
 
 A signed-in CLI provider owns its authentication and declares the executable
-and account paths its life may use. The bridge supplies its interface-private
+and account paths its life may use, including subprocesses used for account
+access. Claude Code on macOS requires both `sh` and `security` to read Keychain.
+The bridge supplies its interface-private
 temporary directory to the CLI explicitly; the client does not copy tokens or
 choose a replacement provider.
+
+A replayed intermediate output does not establish that earlier context has been
+restored. Snapshot recovery proves inserted history entries through the checked
+source and output publications, preserving their content and order.
 
 A retained output whose original edges are still pending remains the same
 hand-in. The provider captures its artifact once and waits within its declared
@@ -372,6 +461,21 @@ same refusal proof as failed-source settlement; an admitted edge, an unconfirmed
 outcome or a temporary admission refusal cannot take this path. The provider
 publishes the failure through its declared route and continues processing
 operator controls without repeating the rejected operation.
+
+A final client projection that failed before hand-in may also close as a failed
+source. Its durable dispatch fence, absent hand-in identity and marker, and
+complete ledger prefix must prove that none of its final artifacts reached an
+edge. Already delivered progress remains admitted history. Recovery additionally
+requires an admitted terminal `turn.error` for that exact source and pinned run
+record before it accepts a later source. It reconstructs the original input and
+completed tool results from checked writer and ledger evidence, without admitting
+the undelivered final output or repeating an effect. Native requests and uncertain
+deliveries remain unresolved.
+
+Session snapshots retain their immutable parent prefix when ledger validation
+fills previously absent movement coordinates. Prefix identity includes labels,
+payloads and exact artifact references; every movement coordinate is validated
+separately. Appending recovered history does not force another full-history copy.
 
 A deterministic projection package may explicitly replace a final artifact that
 its verifier rejected. The checked writer proves the exact predecessor record,
@@ -516,6 +620,27 @@ same clone, each with its own interface id and quiet period, only when its
 package was selected; a retried setup finds the armed trigger and creates
 nothing.
 
+Triggers also lists World sensor interfaces with active inbound run bindings,
+including event sources without a clock activation. Their receiving tasks and
+admitted deliveries come from run records and the ledger. An active binding is
+not evidence that an external event has arrived. Event sources expose no cron
+edit, pause or delete controls; their configuration belongs to their package.
+
+Operator-opened artifacts from the tool trace, Sources and Outputs use the
+existing right Files pane in their originating client workspace. A proven read
+retains its exact admitted content or excerpt and its run/artifact coordinates
+as a bounded, read-only client preview. The Files pane preserves its ordinary
+draft ownership and Save/Discard/Cancel path. Opening this preview creates no
+run, publication or model authority.
+
+Home uses compact widgets as its ordinary visual presentation, including during
+voice calls. Longer results may span several focused widgets; long text belongs
+in a saved document. The correlated `open_file` client control reads a text file
+through the existing admitted Files roots and requests its tab in the right
+pane. Its result identifies the readable target and opening request, not rendered
+pixels. Missing, unreadable, binary and oversized files fail explicitly. It
+executes no file and starts no external application.
+
 Home binds a compact client-delivery artifact separately from its full authoring
 coordinates. The compact delivery contract is included in the provider's
 declared instruction selection. Client controls use it directly; configuration
@@ -579,7 +704,9 @@ without client JSON wrappers, extra instructions or synthetic completion message
 Call creation returns its SDP before the control connection is established,
 allowing WebRTC to activate the remote session. The provider joins that exact
 call with bounded activation retries. The microphone remains disabled until
-both WebRTC and an admitted provider-ready event are confirmed.
+both WebRTC and an admitted provider-ready event are confirmed. An authenticated
+sideband join publishes attached state for that exact call; joining an existing
+call does not wait for its earlier session-start event.
 
 ## Media across interfaces
 

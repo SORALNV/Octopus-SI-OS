@@ -228,7 +228,7 @@ export function scheduledCalendarTime(timestamp: number, now: number, timezone: 
     const time = new Intl.DateTimeFormat(APP_LOCALE, { timeZone, hour: "numeric", ...(minuteOfHour === 0 ? {} : { minute: "2-digit" }) }).format(at);
     const dayDifference = (calendarDay(timestamp) - calendarDay(now)) / 86_400_000;
     if (dayDifference === 0) return `今日 ${time}`;
-    if (dayDifference === 1) return `Tomorrow ${time}`;
+    if (dayDifference === 1) return `明日 ${time}`;
     return new Intl.DateTimeFormat(APP_LOCALE, { timeZone, month: "short", day: "numeric", ...(withTime ? { hour: "numeric", minute: "2-digit" } : {}) }).format(at);
   } catch {
     return "Time unavailable";

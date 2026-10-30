@@ -126,7 +126,7 @@ export function TaskMonitorWindow({ accessProfile }: { accessProfile: OctopusCli
           <article className={`task-monitor-message is-${message.role}${message.error ? " is-error" : ""}`} key={message.id}>
             <header><span>{messageTitle(message)}</span><time>{formatTime(message.createdAtMs)}</time></header>
             {message.role === "assistant" ? <MessageContent text={message.text} /> : <p>{message.text}</p>}
-            {message.attachments.length ? <small>{message.attachments.length} 添付ファイル{message.attachments.length === 1 ? "" : "s"}</small> : null}
+            {message.attachments.length ? <small>{message.attachments.length} 添付ファイル{message.attachments.length === 1 ? "" : " 秒"}</small> : null}
           </article>
         ))}
         {run?.turnState === "working" ? <div className="task-monitor-live-edge"><span className="composer-spinner" />許可された出力を受信しています</div> : null}

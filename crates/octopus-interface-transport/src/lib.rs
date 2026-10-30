@@ -160,7 +160,7 @@ pub struct InterfaceActivationReconciler {
     life_exit_tx: tokio::sync::mpsc::UnboundedSender<InterfaceLifeEvent>,
     life_exit_rx: tokio::sync::mpsc::UnboundedReceiver<InterfaceLifeEvent>,
     next_lift_id: u64,
-    failures: BTreeMap<InterfaceId, String>,
+    failures: tokio::sync::watch::Sender<BTreeMap<InterfaceId, String>>,
     live: bool,
 }
 
@@ -184,6 +184,7 @@ enum InterfaceLifeEvent {
     Exited {
         interface: InterfaceId,
         lift_id: u64,
+        error: String,
     },
     Retry {
         interface: InterfaceId,
@@ -271,16 +272,30 @@ impl InterfaceActivationReconciler {
             life_exit_tx,
             life_exit_rx,
             next_lift_id: 0,
-            failures: BTreeMap::new(),
+            failures: tokio::sync::watch::channel(BTreeMap::new()).0,
             live: false,
         }
     }
 
     fn record_failure(&mut self, interface: &InterfaceId, failure: &str) {
-        if self.live && self.failures.get(interface).map(String::as_str) != Some(failure) {
+        if self.live && self.failures.borrow().get(interface).map(String::as_str) != Some(failure) {
             eprintln!("interface '{}' is in coma: {failure}", interface.as_str());
         }
-        self.failures.insert(interface.clone(), failure.to_string());
+        self.failures.send_modify(|failures| {
+            failures.insert(interface.clone(), failure.to_string());
+        });
+    }
+
+    pub fn observe_failures(&self) -> tokio::sync::watch::Receiver<BTreeMap<InterfaceId, String>> {
+        self.failures.subscribe()
+    }
+
+    fn clear_failure(&self, interface: &InterfaceId) -> bool {
+        let mut removed = false;
+        self.failures.send_modify(|failures| {
+            removed = failures.remove(interface).is_some();
+        });
+        removed
     }
 
     fn resolve_interface_life(
@@ -300,7 +315,11 @@ impl InterfaceActivationReconciler {
             }
         }
         self.resolved_lives.remove(interface);
-        let resolved = interface_life::resolve_spawn_life_config(&self.registry_root, interface)?;
+        let resolved = interface_life::resolve_spawn_life_config_with_verification(
+            &self.registry_root,
+            interface,
+            verification,
+        )?;
         let Some(resolved) = resolved else {
             return Ok(None);
         };
@@ -321,6 +340,10 @@ impl InterfaceActivationReconciler {
     }
 
     async fn reconcile_interface_lives(&mut self) -> Result<(), String> {
+        if self.root_cancel.is_cancelled() {
+            self.stop_all_lives().await;
+            return Err("interface lifecycle reconciliation cancelled".to_string());
+        }
         let Some(durable_root) = self.durable_root.clone() else {
             self.stop_all_lives().await;
             return Ok(());
@@ -352,8 +375,9 @@ impl InterfaceActivationReconciler {
         }
         let mentioned = self.run_index.interfaces_requiring_life();
         let activation_scan = scan_activation_lives(&self.registry_root, &mentioned);
-        self.failures
-            .retain(|interface, _| mentioned.contains(interface));
+        self.failures.send_modify(|failures| {
+            failures.retain(|interface, _| mentioned.contains(interface));
+        });
         let mut failures = Vec::new();
         let stale = self
             .lifted
@@ -364,10 +388,15 @@ impl InterfaceActivationReconciler {
         for interface in stale {
             self.stop_life(&interface).await;
             self.resolved_lives.remove(&interface);
-            self.failures.remove(&interface);
+            self.clear_failure(&interface);
         }
         let mut verification = std::mem::take(&mut self.imported_executables);
         for interface in mentioned {
+            tokio::task::yield_now().await;
+            if self.root_cancel.is_cancelled() {
+                self.stop_all_lives().await;
+                return Err("interface lifecycle reconciliation cancelled".to_string());
+            }
             if let Some(error) = activation_scan.errors.get(&interface) {
                 self.stop_life(&interface).await;
                 tracing::warn!(
@@ -389,7 +418,7 @@ impl InterfaceActivationReconciler {
                         self.record_failure(&interface, &failure);
                         failures.push(format!("interface '{}': {failure}", interface.as_str()));
                     } else {
-                        self.failures.remove(&interface);
+                        self.clear_failure(&interface);
                     }
                     continue;
                 }
@@ -476,7 +505,7 @@ impl InterfaceActivationReconciler {
                 .filter(|_| !fingerprint_changed)
                 .map(|lifted| lifted.restart_attempt)
                 .unwrap_or(0);
-            let after_coma = self.live.then(|| self.failures.get(&interface).cloned()).flatten();
+            let after_coma = self.live.then(|| self.failures.borrow().get(&interface).cloned()).flatten();
             self.stop_life(&interface).await;
             let config = resolved.config;
             let descriptor_snapshot = resolved.interface_descriptor;
@@ -514,30 +543,29 @@ impl InterfaceActivationReconciler {
             };
             let lifted_interface = interface.clone();
             let life_exit_tx = self.life_exit_tx.clone();
+            let life_cancel = cancel.clone();
             let handle = tokio::spawn(async move {
                 let result = life(ctx).await;
-                let readiness_result = match &result {
-                    Ok(()) => Err(format!(
-                        "interface life '{}' ended before declaring readiness",
-                        lifted_interface.as_str()
-                    )),
-                    Err(error) => Err(error.clone()),
+                let failure = match result {
+                    Ok(()) => format!("interface life '{}' ended", lifted_interface.as_str()),
+                    Err(error) => error,
                 };
-                let _ = readiness.signal(readiness_result);
-                if let Err(error) = result {
+                let _ = readiness.signal(Err(failure.clone()));
+                if !life_cancel.is_cancelled() {
                     eprintln!(
-                        "interface life '{}' stopped: {error}",
+                        "interface life '{}' stopped: {failure}",
                         lifted_interface.as_str()
                     );
                     tracing::warn!(
                         interface = lifted_interface.as_str(),
-                        error = %error,
+                        error = %failure,
                         "interface life stopped"
                     );
                 }
                 let _ = life_exit_tx.send(InterfaceLifeEvent::Exited {
                     interface: lifted_interface,
                     lift_id,
+                    error: failure,
                 });
             });
             let mut readiness_rx = Some(readiness_rx);
@@ -676,7 +704,7 @@ impl InterfaceActivationReconciler {
             completed = completed.saturating_add(1);
             match outcome {
                 Ok(Ok(())) => {
-                    self.failures.remove(&interface);
+                    self.clear_failure(&interface);
                     ready = ready.saturating_add(1);
                     if let Some(report) = report.as_deref_mut() {
                         report(InterfaceBootEvent::Ready {
@@ -688,7 +716,7 @@ impl InterfaceActivationReconciler {
                 }
                 Ok(Err(error)) => {
                     let failure = format!("failed before readiness: {error}");
-                    self.failures.insert(interface.clone(), failure.clone());
+                    self.record_failure(&interface, &failure);
                     let lift_id = self
                         .lifted
                         .get(&interface)
@@ -711,7 +739,7 @@ impl InterfaceActivationReconciler {
                 }
                 Err(_) => {
                     let failure = "readiness channel closed".to_string();
-                    self.failures.insert(interface.clone(), failure.clone());
+                    self.record_failure(&interface, &failure);
                     let lift_id = self
                         .lifted
                         .get(&interface)
@@ -838,8 +866,11 @@ impl InterfaceActivationReconciler {
                         break;
                     };
                     match event {
-                        InterfaceLifeEvent::Exited { interface, lift_id } => {
-                            self.schedule_life_retry(&interface, lift_id);
+                        InterfaceLifeEvent::Exited { interface, lift_id, error } => {
+                            if self.lifted.get(&interface).is_some_and(|life| life.lift_id == lift_id && !life.cancel.is_cancelled()) {
+                                self.record_failure(&interface, &error);
+                                self.schedule_life_retry(&interface, lift_id);
+                            }
                         }
                         InterfaceLifeEvent::Retry { interface, lift_id } => {
                             let current = self
@@ -859,7 +890,7 @@ impl InterfaceActivationReconciler {
                             if self.lifted.get(&interface).is_some_and(|lifted| lifted.lift_id == lift_id) {
                                 match outcome {
                                     Ok(()) => {
-                                        if self.failures.remove(&interface).is_some() {
+                                        if self.clear_failure(&interface) {
                                             eprintln!("interface '{}' woke from coma", interface.as_str());
                                         }
                                     }
@@ -1117,6 +1148,18 @@ fn interface_watch_event_requires_reconcile(
     event: &notify::Event,
     roots: &InterfaceWatchRoots,
 ) -> bool {
+    if event.need_rescan() {
+        return true;
+    }
+    use notify::event::{AccessKind, AccessMode};
+    if matches!(
+        event.kind,
+        notify::EventKind::Access(
+            AccessKind::Read | AccessKind::Open(_) | AccessKind::Close(AccessMode::Read)
+        )
+    ) {
+        return false;
+    }
     event.paths.iter().any(|path| {
         if path.starts_with(&roots.interface_registry) || path.starts_with(&roots.run_records) {
             return true;
@@ -1430,6 +1473,7 @@ pub async fn prepare_interface_activation_reconciler(
     };
     let preflight_failures = reconciler
         .failures
+        .borrow()
         .iter()
         .filter(|(interface, _)| !reconciler.lifted.contains_key(*interface))
         .map(|(interface, error)| (interface.clone(), error.clone()))
@@ -1454,7 +1498,7 @@ pub async fn prepare_interface_activation_reconciler(
         }
         None => reconciler.await_initial_readiness(total, 0, None).await?,
     };
-    let initial_failures = reconciler.failures.clone();
+    let initial_failures = reconciler.failures.borrow().clone();
     Ok(InterfaceActivationReconcilerHandle {
         reconciler,
         initial_task_count,
@@ -1477,6 +1521,27 @@ mod interface_life_switch_tests {
 
     fn watch_event(path: PathBuf) -> notify::Event {
         notify::Event::new(notify::EventKind::Any).add_path(path)
+    }
+
+    #[test]
+    fn reconciliation_reads_do_not_wake_the_watcher_but_writes_and_rescans_do() {
+        use notify::event::{AccessKind, AccessMode, Flag};
+        let roots = watch_roots(Path::new("/octopus-home"));
+        for (kind, expected) in [
+            (AccessKind::Open(AccessMode::Read), false),
+            (AccessKind::Open(AccessMode::Any), false),
+            (AccessKind::Read, false),
+            (AccessKind::Close(AccessMode::Read), false),
+            (AccessKind::Close(AccessMode::Write), true),
+            (AccessKind::Close(AccessMode::Any), true),
+            (AccessKind::Any, true),
+        ] {
+            let event = notify::Event::new(notify::EventKind::Access(kind))
+                .add_path(roots.interface_registry.join("world_probe/life.json"));
+            assert_eq!(interface_watch_event_requires_reconcile(&event, &roots), expected);
+        }
+        let event = notify::Event::new(notify::EventKind::Other).set_flag(Flag::Rescan);
+        assert!(interface_watch_event_requires_reconcile(&event, &roots));
     }
 
     #[test]
@@ -1932,7 +1997,7 @@ mod interface_life_switch_tests {
             Some(durable_root.clone()),
         );
         assert_eq!(probe.reconcile_once().await.unwrap(), 0);
-        assert!(probe.failures.is_empty());
+        assert!(probe.failures.borrow().is_empty());
         let run_path = runs_dir.join("run_shell.json");
         let run = serde_json::json!({
             "id": "run_shell", "ee": "ee_test", "worker": "system_worker_test",
@@ -1950,14 +2015,14 @@ mod interface_life_switch_tests {
         let activation = std::fs::read(&activation_path).unwrap();
         std::fs::write(&activation_path, b"{}").unwrap();
         assert_eq!(probe.reconcile_once().await.unwrap(), 0);
-        assert!(probe.failures[&InterfaceId::new("test_shell")].contains("activation is invalid"));
+        assert!(probe.failures.borrow()[&InterfaceId::new("test_shell")].contains("activation is invalid"));
         std::fs::write(&activation_path, activation).unwrap();
         assert_eq!(probe.reconcile_once().await.unwrap(), 1);
         let mut settled = run.clone();
         settled["active_checkpoints"] = serde_json::json!([]);
         std::fs::write(&run_path, settled.to_string()).unwrap();
         assert_eq!(probe.reconcile_once().await.unwrap(), 0);
-        assert!(probe.failures.is_empty());
+        assert!(probe.failures.borrow().is_empty());
         std::fs::write(&run_path, run.to_string()).unwrap();
 
         let (tx, mut rx) = tokio::sync::mpsc::channel::<InterfaceActivationArrival>(4);
@@ -2017,6 +2082,7 @@ mod interface_life_switch_tests {
                 if interface == &InterfaceId::new("test_broken")
                     && handle.initial_failures.get(interface) == Some(error)
         )));
+        let mut observed_failures = handle.reconciler.observe_failures();
         let reconciler_task = tokio::spawn(handle.reconciler.run());
 
         let arrival = tokio::time::timeout(std::time::Duration::from_secs(5), rx.recv())
@@ -2046,6 +2112,9 @@ mod interface_life_switch_tests {
         verdict_tx
             .send(DeliveryVerdict::Admitted { seq: 73 })
             .unwrap();
+        tokio::time::timeout(Duration::from_secs(5), observed_failures.wait_for(|failures| {
+            failures.contains_key(&InterfaceId::new("test_shell"))
+        })).await.expect("a life that exits after readiness must be observable").unwrap();
         let mut verdict = None;
         for _ in 0..100 {
             if let Ok(value) = std::fs::read_to_string(&verdict_path) {
@@ -2066,6 +2135,9 @@ mod interface_life_switch_tests {
             repeated.artifact.read_payload_bytes().unwrap(),
             br#"{"text":"from-shell"}"#
         );
+        tokio::time::timeout(Duration::from_secs(5), observed_failures.wait_for(|failures| {
+            !failures.contains_key(&InterfaceId::new("test_shell"))
+        })).await.expect("successful readiness clears the observed life failure").unwrap();
         cancel.cancel();
         reconciler_task.await.unwrap();
     }

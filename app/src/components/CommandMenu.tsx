@@ -259,7 +259,7 @@ export function CommandMenu({
         id: `run:${run.runId}`,
         label: clientTaskTitle(run.runId, run.title, organization),
         detail: `${run.messageCount} ${run.messageCount === 1 ? "message" : "messages"} · ${relativeDate(run.updatedAtMs)}${run.continuedFrom ? " · 継続した実行" : ""}`,
-        group: "Recent tasks",
+        group: "最近のタスク",
         glyph: "chat",
         run: () => {
           onOpenRun(run.runId);
@@ -391,6 +391,12 @@ export function CommandMenu({
     setSelectedIndex((current) => Math.min(current, Math.max(0, orderedEntries.length - 1)));
   }, [orderedEntries.length]);
 
+  useLayoutEffect(() => {
+    const selected = orderedEntries[selectedIndex];
+    if (!open || !selected) return;
+    document.getElementById(commandDomId(selected.id))?.scrollIntoView({ block: "nearest" });
+  }, [open, orderedEntries, selectedIndex]);
+
   if (!open) return null;
 
   function activate(entry: CommandMenuEntry | undefined) {
@@ -430,11 +436,12 @@ export function CommandMenu({
       }}
       role="dialog"
     >
-      <div className="octopus-command-menu fixed left-1/2 z-50 flex -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-token-border bg-token-dropdown-background text-token-foreground" ref={dialogRef}>
+      <div className="octopus-command-menu fixed left-1/2 z-50 flex -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-token-border text-token-foreground" ref={dialogRef}>
         <input
           aria-activedescendant={orderedEntries[selectedIndex]?.id ? commandDomId(orderedEntries[selectedIndex].id) : undefined}
           aria-autocomplete="list"
           aria-controls="octopus-command-menu-list"
+          aria-expanded={open}
           className="command-menu-input w-full min-w-0 shrink-0 bg-transparent text-token-foreground outline-none placeholder:text-token-input-placeholder-foreground"
           onChange={(event) => {
             setQuery(event.currentTarget.value);
@@ -449,7 +456,7 @@ export function CommandMenu({
         <div className="command-menu-list min-h-0 overflow-y-auto" id="octopus-command-menu-list" role="listbox">
           {grouped.map(({ group, items }) => (
             <section aria-label={group} className="flex flex-col gap-1" key={group}>
-              <div className="px-2 pt-2 text-sm text-token-description-foreground">{group}</div>
+              <div className="pe-2 ps-[calc(var(--spacing)*.75)] pt-2 text-sm text-token-description-foreground">{group}</div>
               {items.map((entry) => {
                 flatIndex += 1;
                 const index = flatIndex;
@@ -479,16 +486,16 @@ export function CommandMenu({
               })}
             </section>
           ))}
-          {messageSearch.error ? <div className="px-3 py-2 text-sm text-token-error-foreground" role="status">タスクの会話を検索できません · {messageSearch.error}</div> : null}
-          {normalize(query).length >= 2 && !messageSearch.error ? (
-            <div className="px-3 py-2 text-sm text-token-description-foreground" role="status">
-              {searchingMessages
-                ? "タスクの会話の索引を検索しています…"
-                : `確定済みのユーザーとエージェントのメッセージ · ${messageSearch.taskCount} 件の表示中のタスク · ${messageSearch.runCount} 件の実行`}
-            </div>
-          ) : null}
-          {!filtered.length ? <div className="flex h-14 items-center justify-center text-sm text-token-description-foreground">{searchingMessages ? "タスクの会話の索引を検索しています…" : "一致するものがありません"}</div> : null}
+          {!filtered.length ? <div className="command-menu-empty-state text-lg text-token-description-foreground">{searchingMessages ? "タスクの会話の索引を検索しています…" : "一致するものがありません"}</div> : null}
         </div>
+        {messageSearch.error ? <div className="command-menu-status text-sm text-token-error-foreground" role="status" tabIndex={0}>タスクの会話を検索できません · {messageSearch.error}</div> : null}
+        {normalize(query).length >= 2 && !messageSearch.error ? (
+          <div className="command-menu-status text-sm text-token-description-foreground" role="status" tabIndex={0}>
+            {searchingMessages
+              ? "タスクの会話の索引を検索しています…"
+              : `確定済みのユーザーとエージェントのメッセージ · ${messageSearch.taskCount} 件の表示中のタスク · ${messageSearch.runCount} 件の実行`}
+          </div>
+        ) : null}
       </div>
     </div>
   );

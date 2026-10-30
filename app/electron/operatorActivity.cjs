@@ -1,5 +1,5 @@
 const attentionKinds = new Set(["approval", "user_input", "elicitation"]);
-const titles = { message: "Message", approval: "Approval needed", user_input: "Input needed", elicitation: "Information needed" };
+const titles = { message: "Message", approval: "承認が必要", user_input: "Input needed", elicitation: "Information needed" };
 const EXCERPT_LIMIT = 320;
 
 function activityExcerpt(text) {

@@ -23,6 +23,8 @@ import type { SettingsSectionId } from "./settingsCatalog";
 import { settingsTargetProps } from "./settingsCatalog";
 
 export type SettingsSectionContext = {
+  dictationRecordingId?: string;
+  onShowAllRecordings?: () => void;
   accessProfile: OctopusClientAccessProfile;
   documentRoot: string;
   documentVerdicts: ClientSurfaceAdmissionVerdict[];
@@ -36,7 +38,7 @@ const SETTINGS_SECTION_CONTENT: Record<SettingsSectionId, (context: SettingsSect
   general: ({ accessProfile, surfaces }) => <GeneralSection accessProfile={accessProfile} surfaces={surfaces} />,
   account: () => <AccountSettingsSection />,
   appearance: () => <div {...settingsTargetProps("appearance.theme")}><AppearanceSection /></div>,
-  "voice-audio": ({ accessProfile }) => <VoiceAudioSection accessProfile={accessProfile} />,
+  "voice-audio": ({ accessProfile, dictationRecordingId, onShowAllRecordings }) => <VoiceAudioSection accessProfile={accessProfile} recordingId={dictationRecordingId} onShowAllRecordings={onShowAllRecordings} />,
   "computer-use": () => <ComputerUseSettingsSection />,
   gestures: ({ accessProfile }) => <GesturesSection accessProfile={accessProfile} />,
   shortcuts: ({ accessProfile }) => <ShortcutsSection accessProfile={accessProfile} />,

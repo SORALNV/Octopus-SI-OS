@@ -57,10 +57,10 @@ function InboxPreview({ item, group, activity, onOpen }: {
     : null;
   const presentation = activityPresentation(item);
   const homeRun = item.navigation.kind === "run" && item.navigation.clientSurfaceRole === "home";
-  const title = item.kind === "message" ? item.sourceTitle ?? "Home" : source?.title ?? presentation.label;
+  const title = item.kind === "message" ? item.sourceTitle ?? "ホーム" : source?.title ?? presentation.label;
   const action = item.kind === "approval" ? "Review in task"
     : request ? "Answer in task"
-      : item.navigation.kind === "mark" ? "Open history" : homeRun ? "ホームを開く" : "Open task";
+      : item.navigation.kind === "mark" ? "Open history" : homeRun ? "ホームを開く" : "タスクを開く";
   const author = activitySource(item);
   const occurrences = group.map((id) => activity.projectedItems.find((candidate) => candidate.id === id)?.createdAt ?? null)
     .filter((at): at is number => at !== null).sort((left, right) => left - right);

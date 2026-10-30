@@ -1483,7 +1483,7 @@ pub fn default_private_run_request(
         ))
     })?;
     let model = metadata_string(provider_config, "model", &provider.id)?;
-    let reasoning_effort = metadata_string(provider_config, "reasoning_effort", &provider.id)?;
+    let reasoning_effort = configured_reasoning_effort(provider_config, &provider.id)?;
     let ee_template = load_ee_template(registry_root, &descriptor.private_run.ee_template)?;
     let request = PrivateRunRequest::new(model, reasoning_effort, ee_template.goal_class);
     let catalog = load_root_catalog(registry_root, &descriptor, &request)?;
@@ -1638,7 +1638,7 @@ pub fn load_private_run_topology(
         ))
     })?;
     let model = metadata_string(provider_config, "model", &provider.id)?;
-    let reasoning_effort = metadata_string(provider_config, "reasoning_effort", &provider.id)?;
+    let reasoning_effort = configured_reasoning_effort(provider_config, &provider.id)?;
     let expected_catalog = load_root_catalog(
         registry_root,
         &descriptor,
@@ -2301,7 +2301,6 @@ fn load_root_catalog(
     request: &PrivateRunRequest,
 ) -> Result<RootCatalog, TopologyError> {
     require_non_empty("private run model", &request.model)?;
-    require_non_empty("private run reasoning effort", &request.reasoning_effort)?;
     require_non_empty("private run goal", &request.goal)?;
     let templates = &descriptor.private_run.interface_templates;
     let terminal = load_template_interface(registry_root, &templates.terminal)?;
@@ -3893,6 +3892,7 @@ fn plan_private_run(
         }
         None => (
             EeInstance {
+                name: None,
                 ee_id: EeId::new(format!("{}{}", prefixes.ee, opaque_id)),
                 template: catalog.ee_template.id.clone(),
                 parent_ee: Some(EeId::new(&descriptor.private_run.parent_ee)),
@@ -5055,6 +5055,20 @@ fn formed_provider_models_with_instance_policy(
     Ok(models)
 }
 
+fn configured_reasoning_effort(
+    config: &InterfaceDriverConfig,
+    interface: &InterfaceId,
+) -> Result<String, TopologyError> {
+    match config.private_config.get("reasoning_effort") {
+        None => Ok(String::new()),
+        Some(serde_json::Value::String(effort)) => Ok(effort.clone()),
+        Some(_) => Err(contract(format!(
+            "provider interface '{}' reasoning_effort must be a string",
+            interface.as_str()
+        ))),
+    }
+}
+
 fn provider_model_catalog(
     config: &InterfaceDriverConfig,
     interface: &InterfaceId,
@@ -5086,10 +5100,6 @@ fn provider_model_catalog(
     for preset in &catalog {
         require_non_empty("provider model catalog model", &preset.model)?;
         require_non_empty("provider model catalog display name", &preset.display_name)?;
-        require_non_empty(
-            "provider model catalog default reasoning effort",
-            &preset.default_reasoning_effort,
-        )?;
         if !models.insert(preset.model.clone()) {
             return Err(contract(format!(
                 "provider interface '{}' model catalog repeats model '{}'",
@@ -5122,7 +5132,11 @@ fn provider_model_catalog(
                 )));
             }
         }
-        if !efforts.contains(preset.default_reasoning_effort.as_str()) {
+        if if efforts.is_empty() {
+            !preset.default_reasoning_effort.is_empty()
+        } else {
+            !efforts.contains(preset.default_reasoning_effort.as_str())
+        } {
             return Err(contract(format!(
                 "provider interface '{}' model '{}' default reasoning effort '{}' is not in its supported list",
                 interface.as_str(),
@@ -5173,11 +5187,11 @@ fn validate_provider_model_selection(
                 model
             ))
         })?;
-    if !preset
-        .supported_reasoning_efforts
-        .iter()
-        .any(|supported| supported.effort == reasoning_effort)
-    {
+    if if preset.supported_reasoning_efforts.is_empty() {
+        !reasoning_effort.is_empty()
+    } else {
+        !preset.supported_reasoning_efforts.iter().any(|supported| supported.effort == reasoning_effort)
+    } {
         return Err(contract(format!(
             "provider interface '{}' model '{}' does not support reasoning effort '{}'; supported values are [{}]",
             interface.as_str(),
@@ -6150,6 +6164,7 @@ mod tests {
         assert!(remote_exec.sidecars.contains_key("remote_exec.json"));
 
         for interface in [
+            "world_mcp_firecrawl",
             "world_mcp_github",
             "world_mcp_unity",
         ] {
@@ -6202,6 +6217,7 @@ mod tests {
         std::fs::create_dir_all(&ee_instances_root).unwrap();
         std::fs::create_dir_all(&registry_interface_root).unwrap();
         let root_ee = EeInstance {
+            name: None,
             ee_id: EeId::new("ee_existence"),
             template: catalog.ee_template.id.clone(),
             parent_ee: None,
@@ -6705,9 +6721,15 @@ mod tests {
                 .map(|model| model.as_str().unwrap().to_string())
                 .collect::<BTreeSet<_>>();
             let model = config.private_config["model"].as_str().unwrap();
-            let effort = config.private_config["reasoning_effort"].as_str().unwrap();
-            validate_provider_model_selection(config, &provider.id, model, effort, &formed)
+            let effort = configured_reasoning_effort(config, &provider.id).unwrap();
+            validate_provider_model_selection(config, &provider.id, model, &effort, &formed)
                 .unwrap_or_else(|error| panic!("{}: {error}", provider.id.as_str()));
+            if effort.is_empty() {
+                assert!(validate_provider_model_selection(config, &provider.id, model, "high", &formed).is_err());
+                let mut malformed = config.clone();
+                malformed.private_config.get_mut("model_catalog").unwrap().as_array_mut().unwrap()[0]["default_reasoning_effort"] = serde_json::json!("high");
+                assert!(provider_model_catalog(&malformed, &provider.id, &formed).is_err());
+            }
             checked += 1;
         }
         assert!(checked >= 30, "only {checked} provider catalogs were checked");

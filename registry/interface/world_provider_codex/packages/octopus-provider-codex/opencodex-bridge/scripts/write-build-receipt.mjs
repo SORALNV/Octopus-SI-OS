@@ -9,7 +9,9 @@ const inputs = [
   "package.json",
   "package-lock.json",
   "upstream.json",
-  "src/main.ts"
+  "src/main.ts",
+  "src/claude-cli.ts",
+  "src/claude-replay.ts"
 ];
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const files = Object.fromEntries(inputs.map((name) => [name, digest(readFileSync(resolve(root, name)))]));

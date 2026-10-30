@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -10,6 +10,7 @@ type SpawnedBridge = {
 
 const children: Array<ReturnType<typeof Bun.spawn>> = [];
 const servers: Array<ReturnType<typeof Bun.serve>> = [];
+const directories: string[] = [];
 
 afterEach(async () => {
   for (const child of children.splice(0)) {
@@ -17,6 +18,7 @@ afterEach(async () => {
     await child.exited;
   }
   for (const server of servers.splice(0)) server.stop(true);
+  for (const directory of directories.splice(0)) rmSync(directory, { recursive: true, force: true });
 });
 
 function config(baseUrl: string, provider: Record<string, unknown> = {}) {
@@ -63,7 +65,7 @@ async function readLine(stream: ReadableStream<Uint8Array>): Promise<string> {
   }
 }
 
-const bridgeBinary = resolve(import.meta.dir, "../bin/octopus-opencodex-bridge");
+const bridgeBinary = process.env.OCTOPUS_TEST_BRIDGE_BINARY ?? resolve(import.meta.dir, "../bin/octopus-opencodex-bridge");
 
 async function spawnBridge(value: unknown, env?: Record<string, string>): Promise<SpawnedBridge> {
   const child = Bun.spawn([bridgeBinary], { stdin: "pipe", stdout: "pipe", stderr: "pipe", ...(env ? { env } : {}) });
@@ -270,8 +272,20 @@ for (const adapter of ["openai-responses", "azure"]) {
 
 test("claude-cli turns run through the signed-in CLI with a scoped env and the bridge's own capture MCP", async () => {
   const home = mkdtempSync(join(tmpdir(), "octopus-claude-cli-"));
+  directories.push(home);
   const bin = join(home, "bin");
   mkdirSync(bin);
+  const toolArguments = [JSON.stringify({ value: `${"x".repeat(70000)}🙂\n\"` }), JSON.stringify({ value: "second call" })];
+  const frames: unknown[] = [];
+  toolArguments.forEach((args, index) => {
+    frames.push({ type: "stream_event", event: { type: "content_block_start", index, content_block: { type: "tool_use", id: `call_${index}`, name: "exact_tool", input: {} } } });
+    for (let offset = 0; offset < args.length; offset += 16) {
+      frames.push({ type: "stream_event", event: { type: "content_block_delta", index, delta: { type: "input_json_delta", partial_json: args.slice(offset, offset + 16) } } });
+    }
+    frames.push({ type: "stream_event", event: { type: "content_block_stop", index } });
+  });
+  frames.push({ type: "stream_event", event: { type: "message_delta", delta: { stop_reason: "tool_use" } } }, { type: "stream_event", event: { type: "message_stop" } });
+  writeFileSync(join(home, "tool-frames"), frames.map(frame => JSON.stringify(frame)).join("\n") + "\n");
   writeFileSync(join(bin, "claude"), [
     "#!/bin/sh",
     'printf "%s\\n" "$@" > "$HOME/args"',
@@ -283,6 +297,7 @@ test("claude-cli turns run through the signed-in CLI with a scoped env and the b
     'cp "$catalog" "$HOME/catalog.json"',
     `printf '%s\\n' '{"type":"system","subtype":"init","mcp_servers":[{"name":"opencodex","status":"connected"}]}'`,
     `printf '%s\\n' '{"type":"assistant","message":{"content":[{"type":"text","text":"claude cli says hi"}]}}'`,
+    'cat "$HOME/tool-frames"',
     `printf '%s\\n' '{"type":"result","subtype":"success","is_error":false,"result":"claude cli says hi","usage":{"input_tokens":3,"output_tokens":4}}'`,
   ].join("\n"), { mode: 0o755 });
   const bridge = await spawnBridge(config("https://api.anthropic.com", {
@@ -309,14 +324,21 @@ test("claude-cli turns run through the signed-in CLI with a scoped env and the b
     body: JSON.stringify({
       model: "claude-sonnet-5",
       stream: true,
-      input: [{ role: "user", content: [{ type: "input_text", text: "hello claude" }] }],
+      input: [{ role: "user", content: [
+        { type: "input_text", text: "hello claude" },
+        { type: "input_image", image_url: "data:image/png;base64,aGVsbG8=" },
+      ] }],
       tools: [exactTool],
     }),
   });
   expect(response.status).toBe(200);
   const text = await response.text();
   expect(text).toContain("claude cli says hi");
-  expect(text).toContain("response.completed");
+  const events = text.split("\n").filter(line => line.startsWith("data: {")).map(line => JSON.parse(line.slice(6)));
+  expect(events.filter(event => event.type === "response.failed").map(event => event.response.error)).toEqual([]);
+  expect(events.some(event => event.type === "response.completed")).toBe(true);
+  const calls = events.find(event => event.type === "response.completed").response.output.filter((item: { type: string }) => item.type === "function_call");
+  expect(calls.map((call: { call_id: string; name: string; arguments: string }) => [call.call_id, call.name, call.arguments])).toEqual(toolArguments.map((args, index) => [`call_${index}`, "exact_tool", args]));
   const args = readFileSync(join(home, "args"), "utf8").split("\n");
   expect(args).toEqual(expect.arrayContaining(["-p", "--tools", "", "--strict-mcp-config", "--setting-sources", "--no-session-persistence", "--model", "claude-sonnet-5", "--mcp-config"]));
   const env = readFileSync(join(home, "env"), "utf8");
@@ -325,6 +347,8 @@ test("claude-cli turns run through the signed-in CLI with a scoped env and the b
   expect(env).toContain("USER=octopus-test");
   expect(env).not.toContain("ANTHROPIC_");
   expect(readFileSync(join(home, "stdin"), "utf8")).toContain("hello claude");
+  const nativeInput = JSON.parse(readFileSync(join(home, "stdin"), "utf8"));
+  expect(nativeInput.message.content).toContainEqual({ type: "image", source: { type: "base64", media_type: "image/png", data: "aGVsbG8=" } });
   const mcp = JSON.parse(readFileSync(join(home, "mcp.json"), "utf8"));
   const server = Object.values(mcp.mcpServers)[0] as { command: string; args: string[] };
   expect(server.command).toBe(bridgeBinary);

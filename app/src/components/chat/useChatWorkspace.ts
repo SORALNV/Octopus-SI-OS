@@ -12,6 +12,7 @@ import {
   type ChatWorkerEnvironmentRoom,
 } from "../../chatRuns";
 import { useClientPreferences } from "../../clientPreferences";
+import { useRuntimeHomeHealth } from "../../runtimeHost";
 import { latestContextUsage } from "./contextUsage";
 import { withRunOperationTargets } from "./runOperationTargets";
 import {
@@ -172,6 +173,8 @@ export function useChatWorkspace(
   runtimeHome = "",
   clientContext: OctopusClientContext = [],
 ) {
+  const { storageHealth, interfaceFailures } = useRuntimeHomeHealth(runtimeHome, accessProfile === "live");
+  const storageBlockReason = storageHealth && storageHealth.status !== "writable" ? storageHealth.message || "Home storage is unavailable. Sending is paused; your draft is retained." : "";
   const clientContextRef = useRef(clientContext);
   clientContextRef.current = clientContext;
   const clientPreferences = useClientPreferences();
@@ -203,15 +206,23 @@ export function useChatWorkspace(
     replaceQueuedTurns,
   } = useChatTurnQueue(accessProfile, runtimeHome);
   const activeRunIdRef = useRef("");
-  const deliveryContextRef = useRef({ accessProfile, runtimeHome, enabled, runtimeReady });
-  deliveryContextRef.current = { accessProfile, runtimeHome, enabled, runtimeReady };
+  const deliveryContextRef = useRef({ accessProfile, runtimeHome, enabled, runtimeReady, storageBlockReason, interfaceFailures });
+  deliveryContextRef.current = { accessProfile, runtimeHome, enabled, runtimeReady, storageBlockReason, interfaceFailures };
+  function exactInterfaceFailureReason(interfaceId: string | undefined) {
+    const failure = deliveryContextRef.current.interfaceFailures.find((item) => item.interfaceId === interfaceId);
+    return failure ? `このタスクのプロバイダーを利用できません (${failure.interfaceId}): ${failure.message}. Sending is paused; your draft is retained.` : "";
+  }
+  function interfaceFailureReason(runId: string, providerId = "") {
+    return exactInterfaceFailureReason(runId ? projectedRunsRef.current.find((run) => run.runId === runId)?.providerBoundInterfaceId : providerId);
+  }
   function deliveryScopeCurrent() {
     const latest = deliveryContextRef.current;
     return latest.accessProfile === accessProfile && latest.runtimeHome === runtimeHome;
   }
-  function deliveryStillAllowed(owner: string, runId: string, background = false) {
+  function deliveryStillAllowed(owner: string, runId: string, background = false, providerId = "") {
     const latest = deliveryContextRef.current;
-    return queueOwner.active && queueOwner.ready && queueOwner.id === owner && latest.enabled && latest.runtimeReady
+    return queueOwner.active && queueOwner.ready && queueOwner.id === owner && latest.enabled && latest.runtimeReady && !latest.storageBlockReason
+      && !interfaceFailureReason(runId, providerId)
       && latest.accessProfile === accessProfile && latest.runtimeHome === runtimeHome && (background || activeRunIdRef.current === runId);
   }
 
@@ -839,6 +850,14 @@ export function useChatWorkspace(
         accessMode,
       )
     : "";
+  const workspaceSelectionError = useMemo(() => {
+    if (activeRunId || !capabilitySelectionReady || selectedClientAgentCapabilityFailure) return "";
+    try {
+      return executionContextTaskCapabilities(executionContexts, eeId, workerInterfaceId, applicationIds, driverNames, accessMode).workspaceSelectionError;
+    } catch (failure) {
+      return failure instanceof Error ? failure.message : String(failure);
+    }
+  }, [activeRunId, capabilitySelectionReady, selectedClientAgentCapabilityFailure, executionContexts, eeId, workerInterfaceId, applicationIds, driverNames, accessMode]);
   const clientAgentSelectionReady = Boolean(
     selectedClientAgent
     && !selectedClientAgentFailure
@@ -878,6 +897,8 @@ export function useChatWorkspace(
   const resolvedProviderInterfaceId = activeRunId
     ? activeRun?.providerInterfaceId ?? ""
     : providerInterfaceId;
+  const providerFailureReason = exactInterfaceFailureReason(activeRunId ? activeRun?.providerBoundInterfaceId : resolvedProviderInterfaceId);
+  const runtimeBlockReason = [storageBlockReason, providerFailureReason].filter(Boolean).join("\n");
   const providerSelectionReady = providerInterfacesLoaded && Boolean(
     activeRunId ? activeRun && resolvedProviderInterfaceId : newTaskDefaults && resolvedProviderInterfaceId,
   );
@@ -1029,9 +1050,10 @@ export function useChatWorkspace(
   }, [agentPresets, executionContexts, executionContextsLoaded, providerInterfacesLoaded]);
 
   useEffect(() => {
-    if (!enabled || !runtimeReady || !queueReady || !runsLoaded) return;
+    if (!enabled || !runtimeReady || storageBlockReason || !queueReady || !runsLoaded) return;
     const ready = queueDispatchCandidates(queueStore.snapshot, runs);
     for (const item of ready) {
+      if (interfaceFailureReason(item.runKey, item.providerInterfaceId)) continue;
       if (submitLockRef.current.has(item.runKey) || steeringComposerRef.current.has(item.runKey)) continue;
       const projected = runs.find((run) => run.runId === item.runKey)!;
       const signature = JSON.stringify([projected.lastMovementSeq, queuedTurns.filter((peer) => peer.runKey === item.runKey).map((peer) => [peer.id, peer.messageId, peer.status])]);
@@ -1041,7 +1063,7 @@ export function useChatWorkspace(
         if (deliveryScopeCurrent()) setError(formatRuntimeError(failure));
       });
     }
-  }, [runs, runsLoaded, enabled, runtimeReady, queueReady, queuedTurns, pausedQueueRunKeys, inFlightRunKeys, steeringComposerPendingRunKeys]);
+  }, [runs, runsLoaded, enabled, runtimeReady, storageBlockReason, interfaceFailures, queueReady, queuedTurns, pausedQueueRunKeys, inFlightRunKeys, steeringComposerPendingRunKeys]);
 
   const renderedMessages = useMemo<ChatRenderMessage[]>(() => {
     const projected = messages.map(toRender);
@@ -1186,7 +1208,7 @@ export function useChatWorkspace(
   const serviceTierSelectionValid = Boolean(activeProvider && providerServiceTierAvailable(activeProvider, providerModel, serviceTier ?? ""));
   const canQueueOnActiveRun = replyOpen && replyRunKey === chatDraftKey(activeRunId);
   const canSteer = Boolean(
-    steeringWriterAvailable
+    !runtimeBlockReason && steeringWriterAvailable
     && activeRun?.writable
     && replyOpen
     && canQueueOnActiveRun
@@ -1197,13 +1219,13 @@ export function useChatWorkspace(
   const steerableMessageIdRef = useRef(steerableMessageId);
   steerableMessageIdRef.current = steerableMessageId;
   const activeRunSubmitAllowed = activeRun?.writable && canQueueOnActiveRun;
-  const canSendQueued = Boolean(enabled && runtimeReady && queueReady && activeRun?.writable && !loadingMessages
+  const canSendQueued = Boolean(enabled && runtimeReady && !runtimeBlockReason && queueReady && activeRun?.writable && !loadingMessages
     && !activeRunSteeringPending && !applicationMutationPending
     && (replyOpen ? canSteer : artifactWriterAvailable && !activeRun.turnOpen)
     && !queuedTurns.some((item) => item.runKey === activeRunKey
       && (item.status === "sending" || item.status === "unknown" || (!replyOpen && item.status === "accepted"))));
   const hasSubmissionPayload = Boolean(text.trim() || attachments.length);
-  const submitBlockReason = !enabled
+  const submitBlockReason = runtimeBlockReason || (!enabled
     ? "This surface is read-only."
     : activeRun?.archived
       ? "This task is archived. Restore it to send messages."
@@ -1236,12 +1258,14 @@ export function useChatWorkspace(
                   : !executionContextReady
                     ? executionContextError || (!executionContextsLoaded ? "Loading task capabilities…" : "")
                       || selectedClientAgentCapabilityFailure || newTaskAuthoringError || "Choose an Agent available in a projected execution environment."
-                    : !hasSubmissionPayload
-                      ? "Type a message or attach a file."
-                      : "";
+                    : workspaceSelectionError
+                      ? workspaceSelectionError
+                      : !hasSubmissionPayload
+                        ? "Type a message or attach a file."
+                        : "");
   const editingQueuedTurn = queuedTurns.find((item) => item.runKey === activeRunKey && item.status === "editing" && item.messageId === draftMessageId && item.editOwner === queueOwner.id);
-  const canSubmit = !activeRun?.archived && (Boolean(editingQueuedTurn && queueReady && hasSubmissionPayload) || submitBlockReason === "");
-  const canQueue = enabled && runtimeReady && queueReady && activeRun?.writable === true && canQueueOnActiveRun && hasSubmissionPayload && providerDeclared && !providerInterfacesRefreshing && !providerInterfaceError && reasoningSelectionValid && serviceTierSelectionValid;
+  const canSubmit = !runtimeBlockReason && !activeRun?.archived && (Boolean(editingQueuedTurn && queueReady && hasSubmissionPayload) || submitBlockReason === "");
+  const canQueue = enabled && runtimeReady && !runtimeBlockReason && queueReady && activeRun?.writable === true && canQueueOnActiveRun && hasSubmissionPayload && providerDeclared && !providerInterfacesRefreshing && !providerInterfaceError && reasoningSelectionValid && serviceTierSelectionValid;
 
   function selectRun(runId: string) {
     if (runId === activeRunIdRef.current) return;
@@ -1535,7 +1559,7 @@ export function useChatWorkspace(
       void beginSubmission({
       messageId, recoverPreparedMessage: false, runId: run.runId, runKey: chatDraftKey(run.runId),
       replacesMessage,
-      text: nextText, attachments: [], eeId: run.eeId, workerInterfaceId: run.workerInterfaceId,
+      text: nextText, attachments: [], eeId: run.eeId, workerInterfaceId: run.workerChoiceInterfaceId || run.workerInterfaceId,
       providerInterfaceId: run.providerInterfaceId, providerModel: run.providerModel,
       reasoningEffort: run.reasoningEffort, serviceTier: run.serviceTier,
       applicationIds: [], driverNames: [], accessMode: "project_access", endpoint,
@@ -1962,7 +1986,7 @@ export function useChatWorkspace(
 
   async function executeTurnSequence(initial: ChatTurnSubmission, onAdmitted?: () => void) {
     const owner = queueOwner.id;
-    if (!queueOwner.active || !queueReady || !enabled || !runtimeReady) return;
+    if (!queueOwner.active || !queueReady || !enabled || !runtimeReady || deliveryContextRef.current.storageBlockReason || interfaceFailureReason(initial.runId, initial.providerInterfaceId)) return;
     if (!acquireSubmission(initial.runKey)) {
       if (initial.manual) await replaceQueuedTurns((items) => items.map((item) => item.id === initial.queueId && item.status === "queued" && item.owner === owner
         ? { ...item, status: "failed", owner: undefined, error: "This task already has an in-flight operator turn. This message was not sent." } : item));
@@ -2082,7 +2106,8 @@ export function useChatWorkspace(
                 turn.driverNames,
                 turn.accessMode,
               );
-          if (!deliveryStillAllowed(owner, turn.runId, !turn.manual)) {
+          if (taskCapabilities?.workspaceSelectionError) throw new Error(taskCapabilities.workspaceSelectionError);
+          if (!deliveryStillAllowed(owner, turn.runId, !turn.manual, turn.providerInterfaceId)) {
             await queueStore.settle(queueId, owner, turn.manual ? "failed" : "queued", turn.manual ? "The sending view or task state changed before submission. This message was not sent." : undefined);
             replaceRunPending(turn.runKey, []);
             break;
@@ -2101,7 +2126,7 @@ export function useChatWorkspace(
               break;
             }
           }
-          if (!deliveryStillAllowed(owner, turn.runId, !turn.manual)) {
+          if (!deliveryStillAllowed(owner, turn.runId, !turn.manual, turn.providerInterfaceId)) {
             await queueStore.settle(queueId, owner, turn.manual ? "failed" : "queued", turn.manual ? "The sending view or task state changed before submission. This message was not sent." : undefined);
             break;
           }
@@ -2155,7 +2180,9 @@ export function useChatWorkspace(
               runId: submitted.runId,
             },
           }));
-          void refreshRuns();
+          if (!turn.runId) await refreshRuns();
+          else void refreshRuns();
+          if (!queueOwner.active || queueOwner.id !== owner || !deliveryScopeCurrent()) break;
           if (
             accessProfile === "lab"
             && !turn.runId
@@ -2347,8 +2374,8 @@ export function useChatWorkspace(
                   reasoningEffort: turn.reasoningEffort, serviceTier: turn.serviceTier,
                   applicationIds: turn.applicationIds, driverNames: turn.driverNames, accessMode: turn.accessMode,
                 };
-                writeDraft(activeRunIdRef.current, restored);
                 applyDraft(restored);
+                writeDraft(activeRunIdRef.current, restored);
               }
             }
           }
@@ -2428,6 +2455,11 @@ export function useChatWorkspace(
     mode: "send" | "queue" | "steer", releaseComposerAction: () => void,
   ) {
     event?.preventDefault();
+    const healthBlockReason = deliveryContextRef.current.storageBlockReason || interfaceFailureReason(activeRunIdRef.current, resolvedProviderInterfaceId);
+    if (healthBlockReason) {
+      setError(healthBlockReason);
+      return;
+    }
     if (!runtimeReady) {
       setError("The runtime is unavailable. Your message has not been sent.");
       return;
@@ -2542,6 +2574,8 @@ export function useChatWorkspace(
   }
 
   async function beginSubmission(submission: ChatTurnSubmission, releaseComposerAction?: () => void, onAdmitted?: () => void) {
+    const healthBlockReason = deliveryContextRef.current.storageBlockReason || interfaceFailureReason(submission.runId, submission.providerInterfaceId);
+    if (healthBlockReason) { setError(healthBlockReason); return; }
     if (!submission.queueId && submission.clientSurfaceRole === "home") {
       submission = { ...submission, ...await currentHomeProviderSelection(submission.runId) };
     }
@@ -2550,6 +2584,12 @@ export function useChatWorkspace(
       ...submission, id: queueId, intent: "turn", status: "queued", owner: queueOwner.id, hadAttachments: submission.attachments.length > 0,
       createdAtMs: Date.now(),
     }]);
+    const blocked = deliveryContextRef.current.storageBlockReason || interfaceFailureReason(submission.runId, submission.providerInterfaceId);
+    if (blocked) {
+      await replaceQueuedTurns((items) => items.map((item) => item.id === queueId && item.status === "queued"
+        ? { ...item, status: "failed", owner: undefined, error: blocked } : item));
+      setError(blocked); return;
+    }
     submission = { ...submission, queueId, manual: true };
     if (!submission.replacesMessage) consumeDraft(submission.runId, submission.text, submission.attachments);
     resetInputHistory();
@@ -2694,6 +2734,8 @@ export function useChatWorkspace(
   }
 
   async function resumeActiveTurn() {
+    const blocked = deliveryContextRef.current.storageBlockReason || interfaceFailureReason(activeRunIdRef.current);
+    if (blocked) { setError(blocked); return; }
     const run = activeRun;
     if (
       !resumeAvailable
@@ -2855,6 +2897,8 @@ export function useChatWorkspace(
     recoverPreparedMessage?: boolean; queueId?: string; runKey: string; text: string; editedMessageId?: string;
   }): Promise<boolean> {
     const run = activeRun;
+    const blocked = deliveryContextRef.current.storageBlockReason || interfaceFailureReason(activeRunIdRef.current);
+    if (blocked) { setError(blocked); return false; }
     if (!queueOwner.active || !queueReady || !enabled || !runtimeReady || !canSteer || !run
       || input.runKey !== chatDraftKey(activeRunIdRef.current) || !run.turnOpen || !run.chatInterfaceId) {
       setError("The current reply cannot accept steering. Your message has not been sent."); return false;
@@ -2863,6 +2907,7 @@ export function useChatWorkspace(
     const owner = queueOwner.id;
     const messageId = input.messageId ?? `msg_${randomId()}`;
     const queueId = input.queueId ?? `steer_${messageId}`;
+    const draftBeforeSubmission = readDraft(run.runId);
     let bridgeAttempted = false;
     let accepted = false;
     steeringComposerRef.current.add(input.runKey);
@@ -2870,7 +2915,7 @@ export function useChatWorkspace(
     try {
       if (!input.queueId) await replaceQueuedTurns((items) => items.some((item) => item.id === queueId) ? items : [...items, {
         id: queueId, messageId, runKey: input.runKey, text: input.text, attachments: input.attachments, clientSurfaceRole: run.clientSurfaceRole,
-        hadAttachments: input.attachments.length > 0, eeId: run.eeId, workerInterfaceId: run.workerInterfaceId,
+        hadAttachments: input.attachments.length > 0, eeId: run.eeId, workerInterfaceId: run.workerChoiceInterfaceId || run.workerInterfaceId,
         providerInterfaceId: run.providerInterfaceId, providerBoundInterfaceId: run.providerBoundInterfaceId,
         providerModel: run.providerModel, reasoningEffort,
         endpoint, createdAtMs: Date.now(), status: "queued", intent: "steer", owner,
@@ -2919,7 +2964,15 @@ export function useChatWorkspace(
       return true;
     } catch (failure) {
       const formatted = formatRuntimeError(failure);
-      if (!accepted) await queueStore.settle(queueId, owner, bridgeAttempted ? "unknown" : "failed", formatted);
+      if (!accepted) await queueStore.settle(queueId, owner, queueSubmissionFailureStatus(failure, bridgeAttempted), formatted);
+      if (!accepted && input.fromComposer && draftBeforeSubmission && input.runKey === chatDraftKey(activeRunIdRef.current)
+        && !composerDraftRef.current.text.trim() && !composerDraftRef.current.attachments.length) {
+        const restored = { ...draftBeforeSubmission, messageId: queueSubmissionFailureStatus(failure, bridgeAttempted) === "failed" ? "" : messageId,
+          messageHadAttachments: input.attachments.length > 0, text: input.text, attachments: input.attachments };
+        applyDraft(restored);
+        writeDraft(activeRunIdRef.current, restored);
+        await replaceQueuedTurns((items) => items.filter((item) => item.id !== queueId));
+      }
       if (deliveryScopeCurrent() && input.runKey === chatDraftKey(activeRunIdRef.current)) setError(formatted);
       return false;
     } finally {
@@ -3029,6 +3082,9 @@ export function useChatWorkspace(
   return {
     accessProfile,
     runtimeHome,
+    storageBlockReason,
+    providerFailureReason,
+    runtimeBlockReason,
     accessMode,
     activeRun,
     activeRunId,

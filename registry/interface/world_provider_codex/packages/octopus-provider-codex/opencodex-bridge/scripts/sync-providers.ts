@@ -16,6 +16,8 @@ type ProviderSpec = {
   icon?: string;
   icon_dark?: string[];
   local?: boolean;
+  default_context_window?: number;
+  input_modalities?: string[];
   allow_private_network?: boolean;
   headers?: Record<string, string>;
   key?: { env: string; label: string; header?: string; prefix?: string };
@@ -49,6 +51,7 @@ const ADAPTERS = new Set(["anthropic", "azure", "claude-cli", "google", "openai-
 const CODEX_ONLY_PRIVATE_CONFIG = ["provider_operations", "web_search", "client_metadata"];
 const CODEX_NATIVE_SEARCH_TOOLS = ["web.search", "web.extract"];
 const CODEX_ONLY_OVERRIDES = [/^model_context_window=/, /^model_auto_compact_token_limit=/];
+const DEFAULT_CONTEXT_WINDOW = 400000;
 const LIFE_BIN = "interface://world_provider_codex/packages/octopus-provider-codex/life-bin/octopus-provider-opencodex-life";
 const BRIDGE_SUBPATH = "world_provider_codex/packages/octopus-provider-codex/opencodex-bridge/bin/octopus-opencodex-bridge";
 const MACHINE_AUTH_ENV = "OCTOPUS_MACHINE_CODEX_AUTH_FILE";
@@ -112,7 +115,7 @@ function registryModels(spec: ProviderSpec, seed: any): ModelRow[] {
       ...(Number.isInteger(seed.modelContextWindows?.[slug] ?? seed.contextWindow)
         ? { context_window: seed.modelContextWindows?.[slug] ?? seed.contextWindow }
         : {}),
-      input_modalities: seed.modelInputModalities?.[slug] ?? ["text"],
+      input_modalities: spec.input_modalities ?? seed.modelInputModalities?.[slug] ?? ["text"],
       efforts: supported,
       ...(supported.length ? { default_effort: supported.includes(declaredDefault) ? declaredDefault : fallback } : {}),
     };
@@ -135,7 +138,7 @@ function effortRows(row: ModelRow) {
   return selectableEfforts(row).map((effort) => ({ effort, description: EFFORT_DESCRIPTIONS[effort] }));
 }
 
-function codexModelInfo(row: ModelRow, priority: number, description: string) {
+function codexModelInfo(row: ModelRow, priority: number, description: string, contextWindow: number) {
   return {
     slug: row.slug,
     display_name: row.display_name,
@@ -152,7 +155,7 @@ function codexModelInfo(row: ModelRow, priority: number, description: string) {
     support_verbosity: false,
     truncation_policy: { mode: "tokens", limit: 10000 },
     supports_parallel_tool_calls: false,
-    ...(row.context_window ? { context_window: row.context_window, max_context_window: row.context_window } : {}),
+    ...(row.context_window ? { context_window: Math.min(row.context_window, contextWindow), max_context_window: row.context_window } : {}),
     effective_context_window_percent: 95,
     experimental_supported_tools: [],
     input_modalities: row.input_modalities.filter((value) => value === "text" || value === "image"),
@@ -217,7 +220,7 @@ function descriptor(spec: ProviderSpec, template: any, rows: ModelRow[], adapter
       max_translated_call_bytes: 2097152,
       max_translated_turn_bytes: 33554432,
     },
-    model_catalog: { models: rows.map((row, index) => codexModelInfo(row, index, description(row))) },
+    model_catalog: { models: rows.map((row, index) => codexModelInfo(row, index, description(row), spec.default_context_window ?? DEFAULT_CONTEXT_WINDOW)) },
   };
   config.transport = {
     base_url: baseUrl,

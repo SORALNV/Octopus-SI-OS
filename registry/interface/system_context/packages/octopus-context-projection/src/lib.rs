@@ -605,7 +605,7 @@ async fn run(ctx: InterfaceLiftContext) -> Result<(), String> {
             let envelope = reader.envelope(&own)?;
             let manifest = envelope.artifact_file.read_manifest().map_err(|e| e.to_string())?;
             if !authoring_result
-                .consume_if_matches(&ctx, &own.movement, &envelope, &manifest.label)
+                .consume_if_matches(&ctx, &session, &own.movement, &envelope, &manifest.label)
                 .await?
             {
                 process_admitted_input(&ctx, &session, &config, &envelope, &own.movement).await?;

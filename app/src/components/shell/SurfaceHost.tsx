@@ -193,7 +193,7 @@ function renderSurface(
     case "extension.builtin":
       return surface.extension
         ? <BuiltinClientExtensionSurface query={query} searchFocusTick={searchFocusTick} surfaceId={surface.extension.surfaceId} />
-        : <StaticSurface surface={{ ...surface, staticContent: { title: "拡張機能を利用できません", body: "The installed extension has no admitted surface contribution." } }} />;
+        : <StaticSurface surface={{ ...surface, staticContent: { title: "拡張機能を利用できません", body: "インストール済みの拡張機能には、利用できる画面がありません。" } }} />;
     case "builtin.applications":
       return <ApplicationsView accessProfile={accessProfile} searchFocusTick={searchFocusTick} />;
     case "builtin.drivers":
@@ -203,7 +203,7 @@ function renderSurface(
     case "builtin.voice":
       return <HomeSurface accessProfile={accessProfile} commandsActive={commandsActive} homeRunId={homeRunId} voiceSession={voiceSession} homeViewMode={homeViewMode} onHomeViewModeChange={onHomeViewModeChange} searchFocusTick={searchFocusTick} chatWorkspace={chatWorkspace} onOpenFiles={onOpenFiles} voiceSurfaces={voiceSurfaces} installedVoiceWidgetIds={installedVoiceWidgetIds} installedVoiceWidgetsReady={installedVoiceWidgetsReady} builtinVoiceWidgetSources={builtinVoiceWidgetSources} workerEnvironmentSurfaces={workerEnvironmentSurfaces} topology={topology} />;
     case "builtin.scheduled":
-      return <ScheduledView searchFocusTick={searchFocusTick} navigationInPane={paneRole === "secondary"} />;
+      return <ScheduledView searchFocusTick={searchFocusTick} navigationInPane={paneRole === "secondary"} onSelectChat={onOpenRun ? (runId) => onOpenRun(runId, "task") : undefined} />;
     case "builtin.worker_environments":
       return <WorkerEnvironmentsView accessProfile={accessProfile} chatRuns={chatWorkspace.runs} onOpenRun={onOpenRun} onSelect={onSelect} searchFocusTick={searchFocusTick} snapshot={topology} surfaces={workerEnvironmentSurfaces} />;
     case "custom.projection":

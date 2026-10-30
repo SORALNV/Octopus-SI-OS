@@ -1,0 +1,27 @@
+{
+  "schema": "octopus.local_package",
+  "schema_version": 1,
+  "id": "world_mcp_firecrawl",
+  "version": "1.0.0",
+  "product_kind": "application",
+  "product_id": "world_mcp_firecrawl",
+  "release_status": "optional",
+  "display": {
+    "name": "Firecrawl",
+    "description": "Firecrawl's MCP server: search the web, scrape and crawl pages into clean markdown, and extract structured data. Needs a Firecrawl API key.",
+    "developer": "Firecrawl",
+    "category": "plugin",
+    "icon": "globe"
+  },
+  "members": [
+    {
+      "registry_kind": "interface",
+      "owner": "world_mcp_firecrawl",
+      "primary": true
+    },
+    {
+      "registry_kind": "artifact",
+      "owner": "artifact-application-mcp-firecrawl-context"
+    }
+  ]
+}

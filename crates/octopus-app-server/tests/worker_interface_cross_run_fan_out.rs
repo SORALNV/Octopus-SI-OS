@@ -365,7 +365,8 @@ async fn worker_interface_delivers_executor_artifact_cross_run_to_the_planner_th
                 .filter(|movement| matches!(movement.kind, MovementKind::MarkOutcomeAdmitted(_)))
                 .count(),
             2,
-            "cut {cut}"
+            "cut {cut}; verifier refusals: {:?}",
+            recovered_rows.iter().filter_map(|row| row.invocation_metadata.as_ref()?.invocation()?.verification_failure.as_ref()).collect::<Vec<_>>()
         );
         assert_eq!(
             recovered_rows

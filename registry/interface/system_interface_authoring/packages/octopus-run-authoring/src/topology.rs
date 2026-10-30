@@ -92,8 +92,8 @@ pub(crate) fn config_from_persisted_profile(
     })?;
     let value = provider_state.get(RUN_AUTHORING_BINDING).ok_or_else(|| {
         format!(
-            "provider run '{}' authoring result has no durable run_authoring_binding",
-            record.id.as_str()
+            "provider run '{}' interface '{}' authoring result has no durable run_authoring_binding",
+            record.id.as_str(), provider.as_str()
         )
     })?;
     let topology: BoundRunAuthoringTopology =

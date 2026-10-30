@@ -1,7 +1,7 @@
 {
   "name": "octopus-desktop-app",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
@@ -58,8 +58,8 @@
     "@xterm/xterm": "^6.0.0",
     "ajv": "^8.17.1",
     "highlight.js": "^11.11.1",
-    "katex": "0.18.0",
-    "mermaid": "11.16.0",
+    "katex": "0.18.2",
+    "mermaid": "11.17.2",
     "motion": "^12.42.2",
     "node-pty": "^1.0.0",
     "prosemirror-commands": "^1.7.2",
@@ -87,7 +87,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.2.0",
-    "electron": "^41.7.1",
+    "electron": "^42.11.16",
     "jsdom": "26.1.0",
     "json-schema-to-typescript": "^15.0.4",
     "tailwindcss": "^4.3.3",
@@ -101,6 +101,7 @@
     "@octopus/files-diffs": {
       "shiki": "3.20.0",
       "@shikijs/themes": "4.3.1"
-    }
+    },
+    "katex": "0.18.2"
   }
 }

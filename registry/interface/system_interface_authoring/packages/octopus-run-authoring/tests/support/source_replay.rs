@@ -19,6 +19,16 @@ fn selected_run_replays_completed_source_after_outgoing_withdrawal() {
         arrivals, Default::default()).with_host_io_limits(serde_json::from_value(life["processes"][0]["io_limits"].clone()).unwrap()).unwrap();
     let path = home.join("state/runs").join(format!("{run}.json"));
     let current = std::fs::read(&path).unwrap();
+    for directory in ["emitted", "handoff-delivery"] {
+        let target = ctx.interface_var_dir().join(directory);
+        std::fs::create_dir_all(&target).unwrap();
+        for entry in std::fs::read_dir(home.join("interfaces").join(provider.as_str()).join(directory)).unwrap() {
+            let entry = entry.unwrap();
+            if entry.file_type().unwrap().is_file() && (directory != "emitted" || entry.file_name().to_string_lossy().ends_with(".artifact.json")) {
+                std::fs::copy(entry.path(), target.join(entry.file_name())).unwrap();
+            }
+        }
+    }
     let mut replay = octopus_world_pyecho_life_runtime::LedgerReplayReader::open(&ctx).unwrap();
     let mut input = None;
     while let Some(batch) = replay.read_batch(256).unwrap() {
@@ -30,14 +40,19 @@ fn selected_run_replays_completed_source_after_outgoing_withdrawal() {
     for bytes in [&pinned, &current] {
         let record = RunRecord::from_bytes(bytes).unwrap();
         if let Some(pending) = persisted_pending_handoff(&record, &provider).unwrap() {
-            for item in pending.items {
+            for item in pending.with_standing_items().items {
                 let target = ctx.interface_var_dir().join(&item.manifest_relative_path);
                 std::fs::create_dir_all(target.parent().unwrap()).unwrap();
                 std::fs::copy(home.join("interfaces").join(provider.as_str()).join(&item.manifest_relative_path), target).unwrap();
             }
         }
     }
-    ProviderHandoffSession::new(&ctx).unwrap().from_invocation(&ctx, &descriptor, &run, &input, source, &pinned).unwrap();
+    let handoff = ProviderHandoffSession::new(&ctx).unwrap().from_invocation(&ctx, &descriptor, &run, &input, source, &pinned).unwrap();
+    let record = RunRecord::from_bytes(&current).unwrap();
+    if let Some(pending) = persisted_pending_handoff(&record, &provider).unwrap() {
+        let mut state = handoff.state.try_lock().unwrap().clone();
+        handoff.restore_pending_context(&mut state, &record, &pending).unwrap();
+    }
     assert_eq!(std::fs::read(path).unwrap(), current);
 }
 
@@ -337,6 +352,16 @@ fn context_publications_preserve_fanout_evidence_without_repeating_the_output() 
             fixture.rows.push(row);
         }
         fixture.save();
+        let mut full = octopus_ledger_index::ArrivalDedupIndex::new();
+        full.catch_up_movements(fixture.rows.clone()).unwrap();
+        let mut selected = octopus_ledger_index::InterfaceArrivalProjection::new("provider".into());
+        for row in &fixture.rows {
+            if row.from == Endpoint::Interface("provider".into()) { selected.observe(row).unwrap(); }
+        }
+        assert_eq!(selected.retained_arrival_scope("same-output").unwrap(),
+            full.retained_arrival_scope(&"provider".into(), "same-output").unwrap());
+        assert_eq!(format!("{:?}", selected.retained_arrival_edges(scope).unwrap()),
+            format!("{:?}", full.retained_arrival_edges(scope).unwrap()));
         let mut publications=ContextPublications::new();
         for seq in &arrivals { fixture.handoff.record_context_publication(&mut publications,&artifact,*seq).unwrap(); }
         assert_eq!(publications[&artifact_ref_key(&artifact)], arrivals.iter().copied().collect());
@@ -500,6 +525,162 @@ struct CompletedInputReplayFixture {
     rows: Vec<Movement>,
     input: ArtifactRef,
     input_file: InterfaceArtifactFile,
+}
+
+#[test]
+fn failed_capture_closes_only_a_fenced_unsubmitted_final_with_its_exact_admitted_failure() {
+    let mut fixture = CompletedInputReplayFixture::new();
+    let before = std::fs::read(&fixture.handoff.run_path).unwrap();
+    let file = InterfaceArtifactFile::write(fixture.handoff.var_dir.join("final"), "answer", br#"{"text":"final answer"}"#).unwrap();
+    let identity = artifact_identity(&file, &fixture.handoff.var_dir).unwrap();
+    let authored = fixture.handoff.author_run_with_bindings(&before, &[fixture.input.id.clone()], &[PreparedHandoff {
+        identity, output_checkpoint: fixture.handoff.config.checkpoint_for_role(RunAuthoringCheckpointRole::ProviderArtifactOutput).unwrap().clone(),
+        verified_inputs: Vec::new(),
+    }], true, None, false, true, &[]).unwrap();
+    fixture.install(&authored);
+    let record = RunRecord::from_bytes(authored.content.as_bytes()).unwrap();
+    let pending = &authored.pending_handoff;
+    assert!(fixture.handoff.pending_source_unsubmitted(&record, pending).unwrap());
+    assert!(!fixture.handoff.unsubmitted_source_failure_before(pending, fixture.rows.len() as u64).unwrap());
+    let error = InterfaceArtifactFile::write(fixture.handoff.var_dir.join("failure"), "turn.error",
+        &serde_json::to_vec(&serde_json::json!({"label":"turn.error","will_retry":false,
+            "additional_details":{"source_movement_seq":pending.source_movement_seq}})).unwrap()).unwrap();
+    let failure_seq = fixture.rows.len() as u64;
+    fixture.edge(authored.content.as_bytes(), &pending.items[0].checkpoint.id, &error, "worker".into(), MovementKind::InterfaceArrival);
+    assert!(!fixture.handoff.unsubmitted_source_failure_before(pending, failure_seq).unwrap());
+    assert!(fixture.handoff.unsubmitted_source_failure_before(pending, failure_seq + 1).unwrap());
+    let mut changed = pending.clone(); changed.source_movement_seq += 1;
+    assert!(!fixture.handoff.unsubmitted_source_failure_before(&changed, failure_seq + 1).unwrap());
+    let mut legacy = pending.clone(); legacy.dispatch_fenced = false;
+    assert!(!fixture.handoff.pending_source_unsubmitted(&record, &legacy).unwrap());
+    let marker = source_withdrawal::dispatch_path(&fixture.handoff.ctx, &record, &pending.items[0]);
+    std::fs::create_dir_all(marker.parent().unwrap()).unwrap();
+    std::fs::write(&marker, b"{}").unwrap();
+    assert!(!fixture.handoff.pending_source_unsubmitted(&record, pending).unwrap());
+    assert!(!fixture.handoff.unsubmitted_source_failure_before(pending, failure_seq + 1).unwrap());
+    std::fs::remove_file(marker).unwrap();
+    fixture.edge(authored.content.as_bytes(), &pending.items[0].checkpoint.id, &file, "worker".into(), MovementKind::InterfaceArrival);
+    assert!(!fixture.handoff.pending_source_unsubmitted(&record, pending).unwrap());
+    assert!(!fixture.handoff.unsubmitted_source_failure_before(pending, fixture.rows.len() as u64).unwrap());
+
+    let mut effect = CompletedInputReplayFixture::new();
+    let call = effect.output(true, false, false);
+    let record = RunRecord::from_bytes(call.content.as_bytes()).unwrap();
+    assert!(!effect.handoff.pending_source_unsubmitted(&record, &call.pending_handoff).unwrap());
+}
+
+#[test]
+fn historical_role_binding_is_static_only_with_its_admitted_grant() {
+    let mut fixture = CompletedInputReplayFixture::new();
+    let role_file = InterfaceArtifactFile::write(fixture.handoff.var_dir.join("role"), "context.role",
+        br#"{"label":"context.role","text":"Reviewer instructions"}"#).unwrap();
+    let role = artifact_identity(&role_file, &fixture.handoff.var_dir).unwrap().artifact;
+    std::fs::write(fixture.handoff.ctx.blobs_dir.join(role.content.to_hex()), std::fs::read(role_file.manifest_path()).unwrap()).unwrap();
+    std::fs::write(fixture.handoff.ctx.blobs_dir.join(role_file.read_manifest().unwrap().payload_content_hash.unwrap()), role_file.read_payload_bytes().unwrap()).unwrap();
+    let mut value: serde_json::Value = serde_json::from_slice(&std::fs::read(&fixture.handoff.run_path).unwrap()).unwrap();
+    value["checkpoints"].as_array_mut().unwrap().iter_mut().find(|cp| cp["id"] == "input").unwrap()["artifact_bindings"] =
+        serde_json::json!([{ "id": role.id, "access": { "read": true, "create": false, "change": false, "delete": false } }]);
+    let bytes = serde_json::to_vec(&value).unwrap();
+    let record = RunRecord::from_bytes(&bytes).unwrap();
+    fixture.rows.clear();
+    fixture.edge(&bytes, &"input".into(), &fixture.input_file.clone(), "provider".into(), MovementKind::InterfaceOutbound);
+    let mut metadata = fixture.rows[0].invocation_metadata.as_ref().unwrap().invocation().unwrap().clone();
+    metadata.grant.role_artifacts = vec![role.id.to_string()];
+    fixture.rows[0].invocation_metadata = Some(metadata.clone().into());
+    fixture.save();
+    let recover = |fixture: &CompletedInputReplayFixture| {
+        recover_source_session_context_from_cache(&fixture.handoff.ctx.blobs_dir,
+            fixture.handoff.ctx.required_host_io_limits().unwrap(),
+            &ProviderHandoffSession::new(&fixture.handoff.ctx).unwrap(), &record, &fixture.handoff.config, 0,
+            &fixture.handoff.context_output_labels, &fixture.handoff.session_snapshot_labels)
+    };
+    let (history, _, statics) = recover(&fixture).unwrap();
+    assert_eq!(statics, vec![role.id.clone()]);
+    assert_eq!(history.artifacts.len(), 1);
+    assert_eq!(history.artifacts[0].source_artifact, fixture.input);
+    metadata.grant.role_artifacts.clear();
+    fixture.rows[0].invocation_metadata = Some(metadata.into());
+    fixture.save();
+    assert!(recover(&fixture).err().unwrap().contains("no eligible movement"));
+}
+
+#[test]
+#[ignore = "requires explicitly selected read-only source context evidence"]
+fn selected_home_source_context_preserves_admitted_roles_and_input() {
+    let home = PathBuf::from(std::env::var("OCTOPUS_REPLAY_HOME").unwrap());
+    let provider = InterfaceId::new(std::env::var("OCTOPUS_REPLAY_PROVIDER").unwrap());
+    let run = RunId::new(std::env::var("OCTOPUS_REPLAY_RUN").unwrap());
+    let dir = home.join("registry/interface").join(provider.as_str());
+    let descriptor: InterfaceDescriptor = serde_json::from_slice(&std::fs::read(dir.join("interface.json")).unwrap()).unwrap();
+    let scratch = tempfile::tempdir().unwrap();
+    let (sender, receiver) = tokio::sync::mpsc::channel(1); drop(receiver);
+    let ctx = InterfaceLiftContext::unprivileged(provider.clone(), dir, Some(descriptor.clone()), scratch.path().join("var"),
+        home.join("ledger/movements.jsonl"), home.join("ledger/blobs"), scratch.path().join("index.sqlite"),
+        BTreeMap::new(), sender, Default::default()).with_host_io_limits(InterfaceHostIoLimits {
+            max_control_frame_bytes:1_048_576, max_stderr_bytes:262_144,
+            max_manifest_bytes:1_048_576, max_payload_bytes:268_435_456,
+        }).unwrap();
+    let path = home.join("state/runs").join(format!("{run}.json"));
+    let current = std::fs::read(&path).unwrap();
+    let record = RunRecord::from_bytes(&current).unwrap();
+    let config = config_from_persisted_profile(&record, &provider, &run_authoring_profile(&descriptor).unwrap()).unwrap();
+    let (outputs, snapshots) = provider_context_label_sets(&descriptor).unwrap();
+    let session = ProviderHandoffSession::new(&ctx).unwrap();
+    for source in std::env::var("OCTOPUS_REPLAY_SOURCE").unwrap().split(',').map(|value| value.parse::<u64>().unwrap()) {
+        let (_, admitted) = session.index().unwrap().exact_provider_source_outbound(&run, &record.worker, &provider, source).unwrap();
+        assert!(!admitted.role_artifacts.is_empty());
+        let (history, _, statics) = recover_source_session_context_from_cache(&ctx.blobs_dir, ctx.required_host_io_limits().unwrap(),
+            &session, &record, &config, source, &outputs, &snapshots).unwrap();
+        assert!(admitted.role_artifacts.iter().all(|id| statics.contains(&ArtifactId::new(id))));
+        assert!(history.artifacts.iter().all(|entry| !admitted.role_artifacts.contains(&entry.source_artifact.id.to_string())));
+        assert_eq!(history.artifacts.last().unwrap().source_artifact, admitted.artifact);
+        assert_eq!(history.artifacts.last().unwrap().source_movement_seq, Some(source));
+        eprintln!("source {source}: admitted roles remain static; exact input and ledger provenance recovered");
+    }
+    assert_eq!(std::fs::read(path).unwrap(), current);
+}
+
+#[tokio::test]
+#[ignore = "requires an explicitly selected Home; reads live evidence without delivering or writing run state"]
+async fn selected_home_failed_capture_recovers_original_inputs_without_delivering() {
+    let home = PathBuf::from(std::env::var("OCTOPUS_REPLAY_HOME").unwrap());
+    let provider = InterfaceId::new(std::env::var("OCTOPUS_REPLAY_PROVIDER").unwrap());
+    let run = RunId::new(std::env::var("OCTOPUS_REPLAY_RUN").unwrap());
+    let sequence: u64 = std::env::var("OCTOPUS_REPLAY_SOURCE").unwrap().parse().unwrap();
+    let failed: u64 = std::env::var("OCTOPUS_REPLAY_FAILED_SOURCE").unwrap().parse().unwrap();
+    let directory = home.join("registry/interface").join(provider.as_str());
+    let descriptor: InterfaceDescriptor = serde_json::from_slice(&std::fs::read(directory.join("interface.json")).unwrap()).unwrap();
+    let scratch = tempfile::tempdir().unwrap();
+    let (sender, receiver) = tokio::sync::mpsc::channel(1); drop(receiver);
+    let ctx = InterfaceLiftContext::unprivileged(provider.clone(), directory, Some(descriptor.clone()),
+        home.join("interfaces").join(provider.as_str()), home.join("ledger/movements.jsonl"), home.join("ledger/blobs"),
+        scratch.path().join("index.sqlite"), BTreeMap::from([
+            ("run_records_root".into(), home.join("state/runs")),
+            ("interface_hand_in_root".into(), home.join("interface-hand-in")),
+        ]), sender, Default::default()).with_host_io_limits(InterfaceHostIoLimits {
+            max_control_frame_bytes:1_048_576, max_stderr_bytes:262_144,
+            max_manifest_bytes:1_048_576, max_payload_bytes:268_435_456,
+        }).unwrap();
+    let path = home.join("state/runs").join(format!("{run}.json"));
+    let before = std::fs::read(&path).unwrap();
+    let mut replay = octopus_world_pyecho_life_runtime::LedgerReplayReader::open(&ctx).unwrap();
+    let mut input = None;
+    while let Some(batch) = replay.read_batch(256).unwrap() {
+        for entry in batch { if entry.movement.seq.0 == sequence { input = Some(replay.envelope(&entry).unwrap()); } }
+        if input.is_some() { break; }
+    }
+    let input = input.expect("selected source is not an outbound of this provider");
+    let session = ProviderHandoffSession::new(&ctx).unwrap();
+    let pinned = ctx.pinned_run_record_bytes(&input).unwrap();
+    let handoff = session.from_invocation_state(&ctx, &descriptor, &run, &input, sequence, &pinned).unwrap();
+    let contexts = handoff.checked_failed_source_contexts(&before, &[], None).unwrap();
+    assert!(contexts.contains_key(&failed), "lost the source whose final capture failed");
+    let recovered = &contexts[&failed].artifacts;
+    assert_eq!(recovered.iter().filter(|entry| entry.source_movement_seq == Some(failed)).count(), 1);
+    let (_, source) = session.index().unwrap().exact_provider_source_outbound(&run, &handoff.config.worker, &provider, failed).unwrap();
+    assert!(recovered.iter().any(|entry| entry.source_artifact == source.artifact));
+    assert_eq!(std::fs::read(path).unwrap(), before);
+    eprintln!("recovered exact source {failed} and {} admitted history artifacts; no outputs delivered", recovered.len());
 }
 
 impl CompletedInputReplayFixture {
@@ -681,6 +862,42 @@ impl CompletedInputReplayFixture {
         self.handoff.bound_topology.checkpoints = self.handoff.config.checkpoints.clone();
         record
     }
+}
+
+#[tokio::test]
+async fn a_snapshot_restores_checked_history_before_an_already_replayed_output() {
+    let mut fixture = CompletedInputReplayFixture::new();
+    fixture.handoff.context_output_labels.insert("reply".into());
+    fixture.handoff.session_snapshot_labels.insert("reply".into());
+    let call = fixture.output(false, true, true);
+    fixture.publish(&call);
+    fixture.reload_definition();
+    let (file, reference) = load_pending_artifact(&fixture.handoff.var_dir, &call.pending_handoff.items[0]).unwrap();
+    let sequence = fixture.handoff.pending_handoff_evidence(&call.pending_handoff).unwrap()[0].unwrap();
+    let mut captured = fixture.handoff.state.try_lock().unwrap().session_context.clone();
+    append_session_payload(&mut captured, "tool.call", &file.read_payload_bytes().unwrap(), &reference, Some(sequence), "admitted output").unwrap();
+    let reply = InterfaceArtifactFile::write(fixture.handoff.var_dir.join("reply"), "reply", br#"{"text":"Done"}"#).unwrap();
+    let snapshot = materialize_session_snapshot(&reply, &captured, None).unwrap();
+    let identity = artifact_identity(&snapshot, &fixture.handoff.var_dir).unwrap();
+    let source = identity.artifact.clone();
+    let before = std::fs::read(&fixture.handoff.run_path).unwrap();
+    let authored = fixture.handoff.author_run_with_bindings(&before, &[source.id.clone()], &[PreparedHandoff {
+        identity, output_checkpoint: fixture.handoff.config.checkpoint_for_role(RunAuthoringCheckpointRole::ProviderArtifactOutput).unwrap().clone(), verified_inputs: Vec::new(),
+    }], true, None, false, true, &[]).unwrap();
+    fixture.install(&authored);
+    fixture.edge(authored.content.as_bytes(), &authored.pending_handoff.items[0].checkpoint.id, &snapshot, "worker".into(), MovementKind::InterfaceArrival);
+    if authored.pending_handoff.context_publication.is_some() { fixture.publish(&authored); }
+    let record = fixture.reload_definition();
+    let bytes = std::fs::read(&fixture.handoff.run_path).unwrap();
+    let ledger = std::fs::read(&fixture.handoff.ctx.movements_path).unwrap();
+    let pending = persisted_pending_handoff(&record, &fixture.handoff.config.provider_interface).unwrap().unwrap();
+    let mut state = fixture.handoff.state.try_lock().unwrap().clone();
+    state.run_record_bytes = bytes.clone();
+    state.session_context.artifacts = vec![captured.artifacts[1].clone()];
+    fixture.handoff.restore_pending_context(&mut state, &record, &pending).unwrap();
+    assert_eq!(state.session_context.artifacts.iter().map(|entry| &entry.source_artifact).collect::<Vec<_>>(), vec![&fixture.input, &reference, &source]);
+    assert_eq!(std::fs::read(&fixture.handoff.run_path).unwrap(), bytes);
+    assert_eq!(std::fs::read(&fixture.handoff.ctx.movements_path).unwrap(), ledger);
 }
 
 #[tokio::test]

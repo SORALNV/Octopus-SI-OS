@@ -54,6 +54,7 @@
       "instruction_artifacts": [],
       "worker_instruction_artifacts": [],
       "model_tool_names": {},
+      "native_thread_sandbox": "danger-full-access",
       "native_mcp_resource_discovery": true,
       "run_affordance_profile": {
         "catalog": {
@@ -2603,7 +2604,8 @@
           "description": "Claude Fable 5.1 through Claude Code.",
           "context_window": 1000000,
           "input_modalities": [
-            "text"
+            "text",
+            "image"
           ],
           "output_modalities": [
             "text"
@@ -2641,7 +2643,8 @@
           "description": "Claude Fable 5 through Claude Code.",
           "context_window": 1000000,
           "input_modalities": [
-            "text"
+            "text",
+            "image"
           ],
           "output_modalities": [
             "text"
@@ -2679,7 +2682,8 @@
           "description": "Claude Sonnet 5.5 through Claude Code.",
           "context_window": 1000000,
           "input_modalities": [
-            "text"
+            "text",
+            "image"
           ],
           "output_modalities": [
             "text"
@@ -2717,7 +2721,8 @@
           "description": "Claude Sonnet 5 through Claude Code.",
           "context_window": 1000000,
           "input_modalities": [
-            "text"
+            "text",
+            "image"
           ],
           "output_modalities": [
             "text"
@@ -2755,7 +2760,8 @@
           "description": "Claude Opus 5.5 through Claude Code.",
           "context_window": 1000000,
           "input_modalities": [
-            "text"
+            "text",
+            "image"
           ],
           "output_modalities": [
             "text"
@@ -2793,7 +2799,8 @@
           "description": "Claude Opus 5 through Claude Code.",
           "context_window": 1000000,
           "input_modalities": [
-            "text"
+            "text",
+            "image"
           ],
           "output_modalities": [
             "text"
@@ -2831,7 +2838,8 @@
           "description": "Claude Opus 4.8 through Claude Code.",
           "context_window": 1000000,
           "input_modalities": [
-            "text"
+            "text",
+            "image"
           ],
           "output_modalities": [
             "text"
@@ -2869,7 +2877,8 @@
           "description": "Claude Opus 4.7 through Claude Code.",
           "context_window": 1000000,
           "input_modalities": [
-            "text"
+            "text",
+            "image"
           ],
           "output_modalities": [
             "text"
@@ -2907,7 +2916,8 @@
           "description": "Claude Opus 4.6 through Claude Code.",
           "context_window": 1000000,
           "input_modalities": [
-            "text"
+            "text",
+            "image"
           ],
           "output_modalities": [
             "text"
@@ -2945,7 +2955,8 @@
           "description": "Claude Sonnet 4.6 through Claude Code.",
           "context_window": 1000000,
           "input_modalities": [
-            "text"
+            "text",
+            "image"
           ],
           "output_modalities": [
             "text"
@@ -2983,7 +2994,8 @@
           "description": "Claude Haiku 5.5 through Claude Code.",
           "context_window": 1000000,
           "input_modalities": [
-            "text"
+            "text",
+            "image"
           ],
           "output_modalities": [
             "text"
@@ -3021,7 +3033,8 @@
           "description": "Claude Haiku 4.5 through Claude Code.",
           "context_window": 200000,
           "input_modalities": [
-            "text"
+            "text",
+            "image"
           ],
           "output_modalities": [
             "text"
@@ -3249,12 +3262,13 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
               "input_modalities": [
-                "text"
+                "text",
+                "image"
               ],
               "supports_search_tool": false,
               "use_responses_lite": false
@@ -3299,12 +3313,13 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
               "input_modalities": [
-                "text"
+                "text",
+                "image"
               ],
               "supports_search_tool": false,
               "use_responses_lite": false
@@ -3349,12 +3364,13 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
               "input_modalities": [
-                "text"
+                "text",
+                "image"
               ],
               "supports_search_tool": false,
               "use_responses_lite": false
@@ -3399,12 +3415,13 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
               "input_modalities": [
-                "text"
+                "text",
+                "image"
               ],
               "supports_search_tool": false,
               "use_responses_lite": false
@@ -3449,12 +3466,13 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
               "input_modalities": [
-                "text"
+                "text",
+                "image"
               ],
               "supports_search_tool": false,
               "use_responses_lite": false
@@ -3499,12 +3517,13 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
               "input_modalities": [
-                "text"
+                "text",
+                "image"
               ],
               "supports_search_tool": false,
               "use_responses_lite": false
@@ -3549,12 +3568,13 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
               "input_modalities": [
-                "text"
+                "text",
+                "image"
               ],
               "supports_search_tool": false,
               "use_responses_lite": false
@@ -3599,12 +3619,13 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
               "input_modalities": [
-                "text"
+                "text",
+                "image"
               ],
               "supports_search_tool": false,
               "use_responses_lite": false
@@ -3649,12 +3670,13 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
               "input_modalities": [
-                "text"
+                "text",
+                "image"
               ],
               "supports_search_tool": false,
               "use_responses_lite": false
@@ -3699,12 +3721,13 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
               "input_modalities": [
-                "text"
+                "text",
+                "image"
               ],
               "supports_search_tool": false,
               "use_responses_lite": false
@@ -3749,12 +3772,13 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
               "input_modalities": [
-                "text"
+                "text",
+                "image"
               ],
               "supports_search_tool": false,
               "use_responses_lite": false
@@ -3804,7 +3828,8 @@
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
               "input_modalities": [
-                "text"
+                "text",
+                "image"
               ],
               "supports_search_tool": false,
               "use_responses_lite": false

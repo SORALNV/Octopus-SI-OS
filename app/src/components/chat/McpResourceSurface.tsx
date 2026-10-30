@@ -775,8 +775,8 @@ function humanize(value: string): string {
 
 function formatDuration(value: number): string {
   if (value < 1_000) return `${Math.round(value)} ms`;
-  if (value < 60_000) return `${(value / 1_000).toFixed(value < 10_000 ? 1 : 0)} s`;
-  return `${Math.floor(value / 60_000)}m ${Math.round((value % 60_000) / 1_000)}s`;
+  if (value < 60_000) return `${(value / 1_000).toFixed(value < 10_000 ? 1 : 0)}  秒`;
+  return `${Math.floor(value / 60_000)} 分 ${Math.round((value % 60_000) / 1_000)}s`;
 }
 
 async function copyLocalText(value: string): Promise<void> {

@@ -820,6 +820,33 @@ impl LedgerSqliteReader {
         })
     }
 
+    pub fn outbound_rows_on_edge(
+        &self,
+        from: &str,
+        to: &str,
+        after_seq: u64,
+        before_seq: u64,
+    ) -> Result<Vec<IndexedMovementRowRange>, SqliteIndexError> {
+        let mut statement = self.conn.prepare_cached(
+            "SELECT seq, start_offset, end_offset FROM movements
+             WHERE from_kind = 'interface' AND from_id = ?1
+               AND to_kind = 'interface' AND to_id = ?2
+               AND kind = 'InterfaceOutbound' AND seq >= ?3 AND seq < ?4
+             ORDER BY seq ASC",
+        )?;
+        let rows = statement.query_map(
+            params![from, to, sqlite_u64("after sequence", after_seq)?, sqlite_u64("before sequence", before_seq)?],
+            |row| Ok((row.get::<_, i64>(0)?, row.get::<_, i64>(1)?, row.get::<_, i64>(2)?)),
+        )?;
+        rows.map(|row| {
+            let (seq, start, end) = row?;
+            if seq < 0 {
+                return Err(SqliteIndexError::InconsistentSnapshot { message: "negative outbound sequence".into() });
+            }
+            checked_indexed_row_range(seq as u64, start, end)
+        }).collect()
+    }
+
     pub fn movement_rows_touching_run(
         &self,
         run: &str,

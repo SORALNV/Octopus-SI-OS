@@ -48,7 +48,7 @@ async function saveClientFile({ browserWindow, bytes, dialog, filename }) {
   const suggestedFilename = safeFilename(filename);
   const result = await dialog.showSaveDialog(browserWindow, {
     defaultPath: suggestedFilename,
-    title: "Save file",
+    title: "ファイルを保存",
   });
   if (result.canceled || !result.filePath) return { saved: false };
   await fs.promises.mkdir(path.dirname(result.filePath), { recursive: true });

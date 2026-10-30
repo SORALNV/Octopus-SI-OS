@@ -391,12 +391,12 @@ impl ConsentEvidenceReader {
         self.charge(len as u64)?;
         require(row.last() == Some(&b'\n'), "consent evidence names an incomplete ledger row")?;
         let line = usize::try_from(seq).map_err(string_error)?;
-        let movement = octopus_ledger::decode_durable_movement_row(&row, line, |hash| {
+        let movement = octopus_ledger::decode_durable_movement_row(&row, line, |kind, hash| {
             let mut resolve = || -> Result<Value, String> {
                 let bytes = octopus_interfaces::read_artifact_carrier_file_bounded(&self.metadata_dir.join(hash.to_hex()),
                     self.max_payload_bytes.min(self.remaining)).map_err(string_error)?;
                 self.charge(bytes.len() as u64)?;
-                require(ContentHash::of_bytes(&bytes) == hash, "consent invocation grant changed its immutable content address")?;
+                require(ContentHash::of_bytes(&bytes) == hash, &format!("consent {} changed its immutable content address", kind.describe()))?;
                 serde_json::from_slice(&bytes).map_err(string_error)
             };
             resolve().map_err(|message| octopus_ledger::LedgerError::MalformedMovementMetadata { line, message })

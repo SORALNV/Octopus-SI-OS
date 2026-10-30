@@ -26,7 +26,8 @@ function scheduledInterfacesProjection(store) {
     const boundInterfaces = new Set(arrayValue(projection.runRecords).flatMap((record) => (
       [...runInterfaceReferences(record)]
     )).filter(Boolean));
-    const descriptors = baseInterfaceRows(projection).filter((descriptor) => (
+    const interfaces = baseInterfaceRows(projection);
+    const descriptors = interfaces.filter((descriptor) => (
       arrayValue(arrayValue(descriptor.activation_sidecars)[0]?.activations)
         .some((activation) => activationDriverRef(activation) === "cron_life")
     ));
@@ -62,7 +63,7 @@ function scheduledInterfacesProjection(store) {
         }
         const evidence = template
           ? { lastRunAtMs: null, lastMovementSeq: null, nextRunAtMs: null, nextRunSource: "", inactivityState: null, deliveries: [] }
-          : await scheduledInterfaceEvidence(projection, interfaceId, parsed.config, evidenceRows);
+          : await scheduledInterfaceEvidence(projection, interfaceId, parsed.config, evidenceRows, descriptor);
         rows.push({
           interface_id: interfaceId,
           display_name: scheduledInterfaceDisplayName(interfaceId, runTemplate.id),
@@ -113,13 +114,43 @@ function scheduledInterfacesProjection(store) {
         });
       }
     }
+    const scheduledIds = new Set(rows.map((row) => row.interface_id));
+    const eventSources = interfaces.filter((descriptor) => descriptor.interface_type === "world"
+      && descriptor.role === "sensor" && ["inbound", "bidirectional"].includes(descriptor.direction)
+      && !scheduledIds.has(stringValue(descriptor.rule_id ?? descriptor.id)));
+    for (const descriptor of eventSources) {
+      const interfaceId = stringValue(descriptor.rule_id ?? descriptor.id);
+      const targets = arrayValue(projection.runRecords).filter((record) => arrayValue(record.checkpoints)
+        .some((checkpoint) => checkpoint.status === "projected" && checkpoint.interface === interfaceId));
+      if (!targets.length) continue;
+      const indexed = await store.readIndexedInterfaceArtifactRows(projection, "", interfaceId, new Set(), -1);
+      if (indexed === null) await store.refreshLedgerProjection(projection);
+      const evidence = await scheduledInterfaceEvidence(projection, interfaceId, { schedule: {} },
+        (indexed ?? projection.ledgerRows).filter(isAdmittedInterfaceArtifactMovement));
+      const entries = new Map((await store.operatorChatRunIndex(projection)).map((entry) => [entry.runId, entry]));
+      const sidecars = octopusOsInterfaceSidecars(projection);
+      const eventTargets = [];
+      for (const target of targets) {
+        const entry = entries.get(target.run_id);
+        eventTargets.push({ run_id: target.run_id, chat_interface_id: entry?.chatInterfaceId ?? "",
+          title: entry ? await store.operatorChatTitle(projection, entry, sidecars, objectOrEmpty(projection.operatorChatProtocol)) : target.run_id });
+      }
+      rows.push({
+        interface_id: interfaceId, display_name: scheduledInterfaceDisplayName(interfaceId, ""),
+        status: "enabled", valid: true, template: false, clone_eligible: false,
+        descriptor_path: stringValue(descriptor.descriptor_path),
+        event_source: { sources: arrayValue(descriptor.source_names), targets: eventTargets },
+        last_run_at_ms: evidence.lastRunAtMs, last_movement_seq: evidence.lastMovementSeq,
+        deliveries: evidence.deliveries,
+      });
+    }
     return rows.sort((left, right) => (
       numberValue(left.next_run_at_ms, Number.MAX_SAFE_INTEGER) - numberValue(right.next_run_at_ms, Number.MAX_SAFE_INTEGER)
       || stringValue(left.display_name).localeCompare(stringValue(right.display_name))
     ));
   }
 
-  async function scheduledInterfaceEvidence(projection, interfaceId, config, evidenceRows) {
+  async function scheduledInterfaceEvidence(projection, interfaceId, config, evidenceRows, descriptor) {
     let lastRunAtMs = 0;
     let lastMovementSeq = 0;
     const firings = new Map();
@@ -173,9 +204,17 @@ function scheduledInterfacesProjection(store) {
       nextRunSource = "schedule";
     }
     if (schedule.interval_seconds != null) {
-      const fingerprint = cronScheduleFingerprint(interfaceId, config);
       const statePath = path.join(projection.octopusHome, "interfaces", interfaceId, "cron-interval-state.json");
       const state = await readJsonFile(statePath);
+      let fingerprint = null;
+      if (state) {
+        const privateRoot = config.target.mode === "new_run" ? path.dirname(await fs.realpath(path.dirname(statePath))) : null;
+        if (privateRoot && config.target.interface_private_state_root !== undefined
+          && await fs.realpath(config.target.interface_private_state_root) !== privateRoot) {
+          throw new Error("cron target.interface_private_state_root must name this Home's interface state root");
+        }
+        fingerprint = cronScheduleFingerprint(interfaceId, config, descriptor, privateRoot);
+      }
       if (
         state
         && state.schema_version === 1

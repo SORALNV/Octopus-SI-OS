@@ -6,6 +6,38 @@ use serde_json::{Value, json};
 mod support;
 use support::{fixture, write};
 
+#[test]
+fn authored_run_checks_provider_frontiers_without_treating_other_writers_as_providers() {
+    let temp = tempfile::tempdir().unwrap();
+    let request = fixture(temp.path());
+    let room_path = "registry/interface/system_room/interface.json";
+    let mut room: Value = serde_json::from_slice(&std::fs::read(temp.path().join(room_path)).unwrap()).unwrap();
+    room["interface_driver_config"]["private_config"]["run_authoring_profile"] = json!({
+        "file_write_tool":"file.write", "file_write_label":"tool.call", "file_write_result_label":"file.write.result", "result_timeout_ms":30000
+    });
+    write(temp.path(), room_path, room);
+    let plan = plan_run_composition(&request).unwrap();
+    let mut authored = AuthoredRunComposition {
+        run_id: plan.run_id.clone(), writes: composition_candidate_writes(&plan),
+        outgoing_bindings: Vec::new(), publication_read_refs: Vec::new(), seed: None,
+    };
+    let valid = plan_authored_run_composition(&request.roots, &request.admitted_parent_record, authored.clone(), false).unwrap();
+    assert!(valid.validation.safe_to_apply, "{:?}", valid.validation.regressions);
+    let run_write = authored.writes.iter_mut().find(|write| write.path == plan.run_write.path).unwrap();
+    let mut record: Value = serde_json::from_str(&run_write.content).unwrap();
+    let mut output = record["checkpoints"].as_array().unwrap().iter()
+        .find(|checkpoint| checkpoint["interface_binding"]["interface"] == plan.provider_interface_id).unwrap().clone();
+    output["id"] = json!("extra_output");
+    output["trace"] = json!("trace:extra_output");
+    output["required_verified_artifacts"] = json!([]);
+    record["checkpoints"].as_array_mut().unwrap().push(output);
+    record["active_checkpoints"].as_array_mut().unwrap().push(json!("extra_output"));
+    run_write.content = serde_json::to_string(&record).unwrap();
+    let error = plan_authored_run_composition(&request.roots, &request.admitted_parent_record, authored, false).unwrap_err();
+    assert!(error.contains("extra_output") && error.contains("outside the provider-owned frontier"), "{error}");
+    assert!(!plan.run_write.path.exists());
+}
+
 fn enable_native_profile(root: &std::path::Path) {
     let source = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../../../registry/interface/world_provider_codex/interface.json");
     let declared: Value = serde_json::from_slice(&std::fs::read(source).unwrap()).unwrap();

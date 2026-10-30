@@ -16,7 +16,7 @@ export function AccountSettingsSection() {
   const [logoutOpen, setLogoutOpen] = useState(false);
   const busy = state.action !== "idle";
   const status = !account ? "Unavailable"
-    : account.signedIn ? accountPlanLabel(account.planType) : "Signed out";
+    : account.signedIn ? accountPlanLabel(account.planType) : "未ログイン";
   async function refresh() {
     const refreshed = await state.refresh?.();
     if (refreshed?.signedIn) await usage.refresh?.();

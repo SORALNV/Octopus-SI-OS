@@ -19,10 +19,10 @@ export function AccountSection({ title, description, actions, children, classNam
   </section>;
 }
 
-export function AccountRemainingProgress({ remaining, label, suffix = "left" }: { remaining: number | null; label: string; suffix?: string }) {
-  return <div className="account-usage-progress">
+export function AccountRemainingProgress({ remaining, label, description, suffix = "残り" }: { remaining: number | null; label: string; description?: ReactNode; suffix?: string }) {
+  return <div className="account-usage-progress" data-low={remaining !== null && remaining <= 10 || undefined}>
+    <div className="account-usage-progress-meta"><span>{description}</span><span>{accountRemainingLabel(remaining, suffix)}</span></div>
     {remaining !== null ? <progress max={100} value={remaining} aria-label={label} /> : null}
-    <span>{accountRemainingLabel(remaining, suffix)}</span>
   </div>;
 }
 
@@ -46,13 +46,13 @@ export function AccountUsageSections({ state, signedIn, accountUnavailable = fal
   return <>{groups.map((group) => <AccountSection key={group.key}
     title={group.limit.limitName ? `${group.label} 使用上限` : "全体の使用上限"}
     actions={group.limit.rateLimitReachedType || group.limit.spendControlReached ? <span className="account-limit-reached">上限に達しました</span> : undefined}>
-    <div className="account-row-list">
-      {group.windows.filter((row) => row.reported).map((row) => <OcSettingsRow key={row.key} label={row.label}
-        description={accountResetTime(row.resetsAt, row.durationMins)}
-        control={<AccountRemainingProgress remaining={row.remaining} label={`${group.label}: ${row.label} 残り`} />} />)}
-      {group.limit.individualLimit ? <OcSettingsRow label="月間の使用上限"
-        description={<>{accountResetTime(group.limit.individualLimit.resetsAt, 43_200)} · {group.limit.individualLimit.used} / {group.limit.individualLimit.limit} クレジット使用済み</>}
-        control={<AccountRemainingProgress remaining={group.limit.individualLimit.remainingPercent} label={`${group.label}：月間の残り使用枠`} suffix="remaining" />} /> : null}
+    <div className="account-row-list account-usage-rows">
+      {group.windows.filter((row) => row.reported).map((row) => <OcSettingsRow key={row.key} className="account-usage-row" label={row.label}
+        control={<AccountRemainingProgress remaining={row.remaining} label={`${group.label}: ${row.label} 残り`}
+          description={accountResetTime(row.resetsAt, row.durationMins)} />} />)}
+      {group.limit.individualLimit ? <OcSettingsRow className="account-usage-row" label="月間の使用上限"
+        control={<AccountRemainingProgress remaining={group.limit.individualLimit.remainingPercent} label={`${group.label}：月間の残り使用枠`} suffix="残り"
+          description={<>{accountResetTime(group.limit.individualLimit.resetsAt, 43_200)} · {group.limit.individualLimit.used} / {group.limit.individualLimit.limit} クレジット使用済み</>} />} /> : null}
       {group.limit.credits ? <OcSettingsRow label="クレジット残高" control={<span className="account-value">
         {group.limit.credits.unlimited ? "無制限" : group.limit.credits.balance ?? (group.limit.credits.hasCredits ? "利用できません" : "なし")}
       </span>} /> : null}

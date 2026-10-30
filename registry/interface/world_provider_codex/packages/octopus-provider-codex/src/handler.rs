@@ -286,6 +286,7 @@ pub(crate) use turn_sink::*;
 mod driver_compaction;
 mod driver_turn;
 mod thread_params;
+mod tool_schema;
 pub(crate) use thread_params::*;
 mod operation_catalog;
 pub(crate) use operation_catalog::*;

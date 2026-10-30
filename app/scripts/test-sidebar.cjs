@@ -37,6 +37,7 @@ const compiled = build({
       'import "./src/components/icon-glyphs/shell"; export { Sidebar } from "./src/components/Sidebar";',
       'export { ProjectSourceFolders } from "./src/components/project/ProjectSourceFolders";',
       'export { projectChatRuns, projectChatExecutionContexts } from "./src/chatRuns"; export { resolveClientAgents } from "./src/agentPresets";',
+      'export { recordClientTaskRead, recordClientDestination, updateClientTaskOrganization } from "./src/shell/clientWorkspaces";',
     ].join("\n"),
     resolveDir: path.join(__dirname, ".."), loader: "tsx",
   },
@@ -78,8 +79,8 @@ const surfaces = [
   { id: "scheduled", label: "Triggers", glyph: "scheduled", rendererKind: "builtin.scheduled", order: 60, source: "builtin", placements: ["home"], chrome: { topbar: "none", workspace: "immersive" } },
 ];
 
-async function show() {
-  const { Sidebar, projectChatRuns, projectChatExecutionContexts, resolveClientAgents } = await compiled;
+async function show(patch = {}, organization = {}) {
+  const { Sidebar, projectChatRuns, projectChatExecutionContexts, resolveClientAgents, updateClientTaskOrganization } = await compiled;
   const contexts = projectChatExecutionContexts({ contexts: [
     context("ee.root", [agent("agent-writer", "Writer", "worker.writer")], { is_os_root: true }),
     context("ee.project", [agent("agent-analyst", "Analyst", "worker.analyst")]),
@@ -102,19 +103,77 @@ async function show() {
     },
     agentExecutionContexts: contexts, agentDefinitions: resolveClientAgents(contexts), agentProviderInterfaces: [provider], agentModelsLoading: false, agentModelError: "",
     onRefreshAgentModels: async () => {}, surfaceErrors: [], runtimeHost: { home: "/home/fixture" },
-    onSurfaceChange() {}, onSelectChat() {}, onNewChat: (projectId) => calls.newChat.push(projectId), onSearch() {}, onAgentProjectFilterEeIdChange() {},
+    onSurfaceChange() {}, onSelectChat: (runId) => rerender({ activeChatRunId: runId }), onNewChat: (projectId) => calls.newChat.push(projectId), onSearch() {}, onAgentProjectFilterEeIdChange() {},
     onAgentPinnedChatIdsChange: (ids) => { calls.pinned.push(ids); rerender({ agentPinnedChatIds: ids }); },
     onAgentChatOrderIdsChange: (ids) => { calls.order.push(ids); rerender({ agentChatOrderIds: ids }); },
   };
   const rerender = (patch) => { Object.assign(state, patch); root.render(React.createElement(Sidebar, { ...state })); };
   window.localStorage.clear();
-  rerender({});
+  updateClientTaskOrganization("live", () => organization);
+  rerender(patch);
   await settle();
-  return calls;
+  return { ...calls, state, rerender };
 }
 const sectionToggle = (label) => [...document.querySelectorAll("button[aria-expanded]")].find((toggle) => toggle.textContent === label) ?? null;
 const agentRows = () => [...document.querySelectorAll("button[aria-label]")].map((row) => row.getAttribute("aria-label")).filter((label) => /, \d+ tasks?$/.test(label));
 const taskTitles = () => [...document.querySelectorAll(".octopus-task-row")].map((row) => row.getAttribute("aria-label").split(",")[0]);
+
+test("chat order stays fixed across clicks, reads and status changes; only data updates change recency", async () => {
+  const { recordClientTaskRead, recordClientDestination } = await compiled;
+  const { state, rerender } = await show({}, { readBaselineAtMs: 100 });
+  const initial = ["Task run-a", "Task run-b", "Task run-c"];
+  assert.deepEqual(taskTitles(), initial);
+  document.querySelector('.octopus-task-row[aria-label^="Task run-b"]').click();
+  await settle();
+  assert.equal(state.activeChatRunId, "run-b");
+  assert.deepEqual(taskTitles(), initial);
+  const read = recordClientTaskRead("live", "run-b", 2_000);
+  const visited = recordClientDestination("live", { workspaceKey: "octopus-os", surfaceId: "chat", runId: "run-b" });
+  await settle();
+  assert.equal(read.readMarks["run-b"], 2_000);
+  assert.equal(visited.recentRunIds[0], "run-b");
+  assert.deepEqual(taskTitles(), initial);
+  rerender({ chatRuns: state.chatRuns.map((chat, index) => ({ ...chat, turnState: ["working", "failed", "waiting"][index], turnOpen: index === 0 })) });
+  await settle();
+  assert.deepEqual(taskTitles(), initial);
+  rerender({ chatRuns: state.chatRuns.map((chat) => chat.runId === "run-c" ? { ...chat, updatedAtMs: 4_000 } : chat) });
+  await settle();
+  assert.deepEqual(taskTitles(), ["Task run-c", "Task run-a", "Task run-b"]);
+  rerender({ chatRuns: state.chatRuns.map((chat) => chat.runId === "run-c" ? { ...chat, updatedAtMs: 3_000 } : chat) });
+  await settle();
+  assert.deepEqual(taskTitles(), ["Task run-a", "Task run-c", "Task run-b"], "equal timestamps preserve source order");
+});
+
+test("manual order, pins and project groups survive clicks, reads and task updates", async () => {
+  const { recordClientTaskRead } = await compiled;
+  const calls = await show({ agentPinnedChatIds: ["run-b"], agentChatOrderIds: ["run-c", "run-a"] }, { sortMode: "manual", readBaselineAtMs: 100 });
+  const initial = ["Task run-b", "Task run-c", "Task run-a"];
+  assert.deepEqual(taskTitles(), initial);
+  document.querySelector('.octopus-task-row[aria-label^="Task run-c"]').click();
+  recordClientTaskRead("live", "run-c", 1_000);
+  calls.rerender({ chatRuns: calls.state.chatRuns.map((chat) => ({ ...chat, updatedAtMs: chat.runId === "run-a" ? 9_000 : 4_000 })) });
+  await settle();
+  assert.deepEqual(taskTitles(), initial);
+  calls.rerender({ agentProjectFilterEeId: "ee.project" });
+  await settle();
+  assert.deepEqual(taskTitles(), ["Task run-b", "Task run-a"]);
+  calls.rerender({ agentProjectFilterEeId: "" });
+  await settle();
+  assert.deepEqual(taskTitles(), initial);
+  assert.deepEqual([calls.order, calls.pinned, calls.projects], [[], [], []]);
+});
+
+test("saved attention sorting uses Last updated and the list offers only chronological or manual order", async () => {
+  await show({}, { sortMode: "attention", readBaselineAtMs: 100, readMarks: { "run-a": 3_000 } });
+  assert.deepEqual(taskTitles(), ["Task run-a", "Task run-b", "Task run-c"]);
+  sectionToggle("Tasks").dispatchEvent(new w.MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+  await settle();
+  const options = [...document.querySelectorAll('[role="menuitemradio"]')];
+  assert.deepEqual(options.map((option) => option.textContent), ["Last updated", "Manual order"]);
+  assert.equal(options[0].getAttribute("aria-checked"), "true");
+  options[0].click();
+  await settle();
+});
 
 test("the Agents section lists agents of known projects and the OS root with their task counts and opens each one for editing", { timeout: 20_000 }, async () => {
   const calls = await show();

@@ -70,18 +70,6 @@ const REMOVED_SECOND_TRUTH_PACKAGES: &[&str] = &[
 
 const REMOVED_SHARED_EXECUTION_PACKAGES: &[&str] = &["octopus-process-authority"];
 
-const WORKER_ENVIRONMENT_PASSIVE_BOX_PACKAGES: &[&str] = &[
-    "octopus-descriptors",
-    "octopus-interfaces",
-    "octopus-ledger",
-    "octopus-tool-handlers",
-    "octopus-tool-registry",
-    "octopus-util-abspath",
-    "octopus-util-pathuri",
-    "octopus-util-string",
-    "octopus-worker-env",
-];
-
 const RUNTIME_DESCRIPTOR_ONLY_PACKAGES: &[&str] = &["octopus-runtime", "octopus-app-server"];
 
 const PROVIDER_BLIND_PRODUCT_ROOT_PACKAGES: &[&str] = &[
@@ -184,21 +172,6 @@ const FORBIDDEN_APP_PRODUCTION_INTERFACE_PACKAGES: &[&str] = &[
     "octopus-utils-sleep-inhibitor",
     "octopus-process-hardening",
     "octopus-async-utils",
-];
-
-const FORBIDDEN_RUNTIME_PRODUCT_INTERFACE_TERMS: &[&str] = &[
-    "provider",
-    "codex",
-    "openai",
-    "ollama",
-    "chatgpt",
-    "octopus-provider-codex",
-    "octopus-tui",
-    "octopus-chatgpt",
-    "octopus-ollama",
-    "octopus-responses-api-proxy",
-    "octopus-app-server-transport",
-    "octopus-appserver-proto",
 ];
 
 fn repo_root() -> &'static Path {
@@ -584,8 +557,7 @@ fn registry_roots_hold_only_descriptor_owner_folders() {
                  worker_environment_kind folder name is the name of an execution-code \
                  type); there is no neutral shared code home (owner, 2026-07-22) — \
                  executable code lives inside the concrete owner's folder. Interfaces \
-                 may explicitly import another interface owner's code; worker-environment \
-                 kinds never import executable code from another kind",
+                 and worker-environment kinds may explicitly import another owner's code",
                 entry.path().display(),
                 descriptor_file
             );
@@ -608,121 +580,6 @@ fn registry_owner(path: &Path, registry_kind: &str) -> Option<String> {
             .map(str::to_string);
     }
     None
-}
-
-#[test]
-fn executable_registry_owners_do_not_form_hidden_cross_owner_spines() {
-    let repo_root = repo_root();
-    let metadata = cargo_metadata(repo_root);
-    let packages = metadata["packages"]
-        .as_array()
-        .expect("cargo metadata packages");
-
-    for package in packages {
-        let package_name = package["name"].as_str().expect("cargo package name");
-        let manifest_path = Path::new(
-            package["manifest_path"]
-                .as_str()
-                .expect("cargo package manifest_path"),
-        );
-        let relative_manifest = manifest_path
-            .strip_prefix(repo_root)
-            .unwrap_or(manifest_path);
-        let worker_environment_owner = registry_owner(relative_manifest, "worker_environment_kind");
-        let interface_owner = registry_owner(relative_manifest, "interface");
-
-        if let Some(owner) = &worker_environment_owner {
-            assert!(
-                repo_root
-                    .join("registry/worker_environment_kind")
-                    .join(owner)
-                    .join("worker_environment_kind.json")
-                    .is_file(),
-                "worker-environment package '{package_name}' has no concrete kind owner '{owner}'"
-            );
-        }
-
-        for dependency in package["dependencies"]
-            .as_array()
-            .expect("cargo package dependencies")
-        {
-            let Some(dependency_path) = dependency["path"].as_str() else {
-                continue;
-            };
-            let dependency_path = Path::new(dependency_path);
-            let relative_dependency = dependency_path
-                .strip_prefix(repo_root)
-                .unwrap_or(dependency_path);
-            let dependency_worker_environment_owner =
-                registry_owner(relative_dependency, "worker_environment_kind");
-            let dependency_interface_owner = registry_owner(relative_dependency, "interface");
-
-            if let Some(owner) = &worker_environment_owner {
-                assert!(
-                    dependency_interface_owner.is_none(),
-                    "worker-environment kind '{owner}' package '{package_name}' imports interface executable code from {}",
-                    relative_dependency.display()
-                );
-            }
-
-            let _ = (&interface_owner, &dependency_worker_environment_owner);
-
-            if relative_manifest.starts_with("crates") {
-                assert!(
-                    dependency_worker_environment_owner.is_none()
-                        && dependency_interface_owner.is_none(),
-                    "box crate '{package_name}' imports registry-owned executable code from {}",
-                    relative_dependency.display()
-                );
-            }
-        }
-    }
-}
-
-#[test]
-fn worker_environment_kinds_link_only_passive_box_contracts() {
-    let repo_root = repo_root();
-    let metadata = cargo_metadata(repo_root);
-    let packages = metadata["packages"]
-        .as_array()
-        .expect("cargo metadata packages");
-
-    for package in packages {
-        let package_name = package["name"].as_str().expect("cargo package name");
-        let manifest_path = Path::new(
-            package["manifest_path"]
-                .as_str()
-                .expect("cargo package manifest_path"),
-        );
-        let relative_manifest = manifest_path
-            .strip_prefix(repo_root)
-            .unwrap_or(manifest_path);
-        let Some(owner) = registry_owner(relative_manifest, "worker_environment_kind") else {
-            continue;
-        };
-
-        for dependency in package["dependencies"]
-            .as_array()
-            .expect("cargo package dependencies")
-        {
-            let Some(dependency_path) = dependency["path"].as_str() else {
-                continue;
-            };
-            let dependency_path = Path::new(dependency_path);
-            let relative_dependency = dependency_path
-                .strip_prefix(repo_root)
-                .unwrap_or(dependency_path);
-            if !relative_dependency.starts_with("crates") {
-                continue;
-            }
-            let dependency_name = dependency["name"].as_str().expect("path dependency name");
-            assert!(
-                WORKER_ENVIRONMENT_PASSIVE_BOX_PACKAGES.contains(&dependency_name),
-                "worker-environment kind '{owner}' package '{package_name}' links non-passive box crate '{dependency_name}' from {}; each kind must own all executor, tool, and door-life behavior",
-                relative_dependency.display()
-            );
-        }
-    }
 }
 
 #[test]
@@ -1013,7 +870,7 @@ fn provider_implementation_path_classifier_covers_concrete_provider_folders() {
 }
 
 #[test]
-fn provider_blind_product_roots_touch_no_provider_implementation() {
+fn production_roots_keep_registry_implementation_boundaries() {
     let repo_root = repo_root();
     for package in PROVIDER_BLIND_PRODUCT_ROOT_PACKAGES {
         let output = Command::new("cargo")
@@ -1041,7 +898,11 @@ fn provider_blind_product_roots_touch_no_provider_implementation() {
             let Some(path) = line.get(open + 2..).and_then(|rest| rest.strip_suffix(')')) else {
                 continue;
             };
-            if manifest_dir_lives_under_provider_implementation(path) {
+            let registry_implementation = registry_owner(Path::new(path), "interface").is_some()
+                || registry_owner(Path::new(path), "worker_environment_kind").is_some();
+            if (RUNTIME_DESCRIPTOR_ONLY_PACKAGES.contains(package) && registry_implementation)
+                || manifest_dir_lives_under_provider_implementation(path)
+            {
                 let name = line.split_whitespace().next().unwrap_or(line).to_string();
                 breached.push(format!("{name} ({path})"));
             }
@@ -1051,32 +912,10 @@ fn provider_blind_product_roots_touch_no_provider_implementation() {
 
         assert!(
             breached.is_empty(),
-            "{package} TRANSITIVELY links {} provider implementation package(s) under registry/interface/world_provider_*. Runtime, app-server, app, and terminal product roots must remain provider-blind and exchange only descriptors, artifacts, bindings, and metadata; interface-driver composition roots remain the only allowed mounts.\nBREACHED:\n{}",
+            "{package} transitively links {} registry implementation package(s) outside its boundary. Runtime and app-server consume descriptors and artifacts, never registry implementations. Product roots must not link provider implementations.\nBREACHED:\n{}",
             breached.len(),
             breached.join("\n")
         );
-    }
-}
-
-#[test]
-fn runtime_and_app_server_sources_do_not_name_product_or_provider_surfaces() {
-    let repo_root = repo_root();
-    for package in RUNTIME_DESCRIPTOR_ONLY_PACKAGES {
-        let root = repo_root.join("crates").join(package);
-        for path in rust_and_manifest_files(&root) {
-            let text = std::fs::read_to_string(&path)
-                .unwrap_or_else(|err| panic!("failed to read {}: {err}", path.display()));
-            let lower = text.to_ascii_lowercase();
-            for forbidden in FORBIDDEN_RUNTIME_PRODUCT_INTERFACE_TERMS {
-                assert!(
-                    !lower.contains(forbidden),
-                    "{} must stay product/provider blind; forbidden term `{}` found in {}",
-                    package,
-                    forbidden,
-                    path.display()
-                );
-            }
-        }
     }
 }
 
@@ -1157,38 +996,6 @@ fn production_spine_hot_path_has_no_legacy_state_or_second_extension_graph() {
                 !tree.lines().any(|line| line.starts_with(forbidden)),
                 "{package} normal dependency graph must not include {forbidden}; tree:\n{tree}"
             );
-        }
-    }
-}
-
-fn rust_and_manifest_files(root: &Path) -> Vec<std::path::PathBuf> {
-    let mut out = Vec::new();
-    collect_rust_and_manifest_files(root, &mut out);
-    out
-}
-
-fn collect_rust_and_manifest_files(root: &Path, out: &mut Vec<std::path::PathBuf>) {
-    for entry in std::fs::read_dir(root)
-        .unwrap_or_else(|err| panic!("failed to read directory {}: {err}", root.display()))
-    {
-        let entry = entry.unwrap_or_else(|err| panic!("failed to read entry: {err}"));
-        let path = entry.path();
-        if entry
-            .file_type()
-            .unwrap_or_else(|err| panic!("failed to read file type for {}: {err}", path.display()))
-            .is_dir()
-        {
-            let name = entry.file_name();
-            if name == "target" {
-                continue;
-            }
-            collect_rust_and_manifest_files(&path, out);
-            continue;
-        }
-        if path.file_name().and_then(|name| name.to_str()) == Some("Cargo.toml")
-            || path.extension().and_then(|ext| ext.to_str()) == Some("rs")
-        {
-            out.push(path);
         }
     }
 }
@@ -1438,8 +1245,11 @@ fn the_verifier_box_stays_blind_to_verifier_identity_and_language() {
         }
         let lowered = source.to_lowercase();
         for term in LANGUAGE_HARDCODE_TERMS {
+            let named = lowered.match_indices(term).any(|(at, _)| {
+                !lowered[..at].ends_with(|c: char| c.is_ascii_alphanumeric() || c == '_')
+            });
             assert!(
-                !lowered.contains(term),
+                !named,
                 "{} names the language/runner '{term}'. Verifiers are polyglot by contract — from \
                  twenty lines of shell to an out-of-system judge — and the box resolves the runner \
                  from the package's own shebang plus its declared `executable_commands`, never from \

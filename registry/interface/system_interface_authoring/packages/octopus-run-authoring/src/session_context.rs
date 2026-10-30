@@ -429,7 +429,7 @@ pub(crate) fn collect_bound_context_from_cache(
         )?;
         let covered_artifact_count = resolved_artifacts.len().saturating_sub(1);
         let covered_fingerprint =
-            session_artifacts_fingerprint(&resolved_artifacts[..covered_artifact_count])?;
+            session_snapshot_prefix_fingerprint(&resolved_artifacts[..covered_artifact_count])?;
         session_context.artifacts.extend(resolved_artifacts);
         *session_snapshot_head = Some(SessionSnapshotHead {
             artifact: artifact.clone(),
@@ -751,7 +751,7 @@ pub(crate) fn reconcile_session_context_order(
         } else {
             let admitted = publications.get(&artifact_ref_key(&candidate.source_artifact));
             if (omitted || last_shared.is_some_and(|index| existing_position <= index)) && admitted.is_none() {
-                return Err(mismatch("inserted artifact has no checked admission"));
+                return Err(mismatch(&format!("inserted artifact '{}' has no checked admission", candidate.source_artifact.id)));
             }
             if let Some(admitted) = admitted {
                 if candidate.source_movement_seq.is_some_and(|sequence| !admitted.contains(&sequence)) {
@@ -941,12 +941,27 @@ pub(crate) fn validate_session_snapshot(
     Ok(())
 }
 
+#[cfg(test)]
 pub(crate) fn session_artifacts_fingerprint(
     artifacts: &[SessionContextArtifact],
 ) -> Result<ContentHash, String> {
     serde_json::to_vec(artifacts)
         .map(|bytes| ContentHash::of_bytes(&bytes))
         .map_err(|error| format!("session context fingerprint could not be encoded: {error}"))
+}
+
+pub(crate) fn session_snapshot_prefix_fingerprint(
+    artifacts: &[SessionContextArtifact],
+) -> Result<ContentHash, String> {
+    // Movement coordinates are grounded independently against the ledger on
+    // every read. Filling an absent coordinate must not invalidate the immutable
+    // payload prefix and turn each incremental snapshot into a full-history copy.
+    let sources = artifacts.iter().map(|entry| {
+        (&entry.label, &entry.payload, &entry.source_artifact)
+    }).collect::<Vec<_>>();
+    serde_json::to_vec(&sources)
+        .map(|bytes| ContentHash::of_bytes(&bytes))
+        .map_err(|error| format!("session snapshot prefix could not be encoded: {error}"))
 }
 
 pub(crate) fn reconcile_resolved_session_snapshot_head(
@@ -970,7 +985,7 @@ pub(crate) fn reconcile_resolved_session_snapshot_head(
         );
     }
     let grounded_fingerprint =
-        session_artifacts_fingerprint(&session_context.artifacts[..head.covered_artifact_count])?;
+        session_snapshot_prefix_fingerprint(&session_context.artifacts[..head.covered_artifact_count])?;
     if grounded_fingerprint != head.covered_fingerprint {
         *session_snapshot_head = None;
     }
@@ -997,7 +1012,7 @@ pub(crate) fn session_snapshot_head_after_output(
     Ok(SessionSnapshotHead {
         artifact,
         covered_artifact_count,
-        covered_fingerprint: session_artifacts_fingerprint(
+        covered_fingerprint: session_snapshot_prefix_fingerprint(
             &session_context.artifacts[..covered_artifact_count],
         )?,
     })
@@ -1023,7 +1038,7 @@ pub(crate) fn session_snapshot_for_context(
         ));
     }
     if let Some(head) = session_snapshot_head {
-        if session_artifacts_fingerprint(&session_context.artifacts[..head.covered_artifact_count])?
+        if session_snapshot_prefix_fingerprint(&session_context.artifacts[..head.covered_artifact_count])?
             != head.covered_fingerprint
         {
             return Err(

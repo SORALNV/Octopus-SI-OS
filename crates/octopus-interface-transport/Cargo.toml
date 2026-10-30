@@ -21,6 +21,7 @@ tokio-util = { version = "0.7", features = ["rt"] }
 tracing = "0.1.44"
 notify.workspace = true
 octopus-descriptors = { path = "../octopus-descriptors" }
+octopus-file-storage = { path = "../octopus-file-storage" }
 octopus-interface-projection = { path = "../octopus-interface-projection" }
 octopus-interfaces = { path = "../octopus-interfaces" }
 octopus-ledger = { path = "../octopus-ledger" }

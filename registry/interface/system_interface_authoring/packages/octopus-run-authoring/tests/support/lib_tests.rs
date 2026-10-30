@@ -277,6 +277,115 @@
     }
 
     #[test]
+    fn writer_edge_candidates_keep_unattributed_rows_and_validate_ledger_bytes() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("movements.jsonl");
+        let index_path = dir.path().join("ledger-index.sqlite");
+        let source = InterfaceId::new("source");
+        let door = InterfaceId::new("door");
+        let mut rows: Vec<_> = (0..4).map(ledger_row).collect();
+        rows[1].kind = MovementKind::InterfaceOutbound;
+        rows[1].from = Endpoint::Interface(source.clone());
+        rows[1].to = Endpoint::Interface(door.clone());
+        rows[2].kind = MovementKind::InterfaceOutbound;
+        rows[2].to = Endpoint::Interface(door.clone());
+        let mut ledger = String::new();
+        let mut row_ranges = Vec::new();
+        for row in &rows {
+            let start = ledger.len() as u64;
+            ledger.push_str(&format!("{}\n", serde_json::to_string(row).unwrap()));
+            row_ranges.push((start, ledger.len() as u64));
+        }
+        std::fs::write(&path, &ledger).unwrap();
+        let mut index = LedgerSqliteIndex::open(&index_path).unwrap();
+        index.ingest_from(&SnapshotMovementLog { rows, durable_end_offset: ledger.len() as u64, row_ranges }).unwrap();
+        drop(index);
+        let blobs = dir.path().join("blobs");
+        let evidence = CheckedRunEvidence { movements_path: &path, ledger_index_path: &index_path, blobs_dir: &blobs,
+            max_control_frame_bytes: 4096, max_manifest_bytes: 4096, max_payload_bytes: 4096 };
+        let mut reader = FileCheckedRunReader::open(&evidence, None).unwrap();
+        let selected = reader.indexed_outbound_edges(&[(&source, &door)]).unwrap().unwrap();
+        assert_eq!(selected.iter().map(|row| row.seq).collect::<Vec<_>>(), [1, 3]);
+        reader.reader.seek(std::io::SeekFrom::Start(selected[0].start_offset)).unwrap();
+        reader.next_seq = selected[0].seq;
+        assert!(reader.movement(1).unwrap().unwrap().invocation_metadata.is_none());
+        let mut bytes = ledger.into_bytes();
+        bytes[selected[0].start_offset as usize] = b'!';
+        std::fs::write(&path, bytes).unwrap();
+        let mut reader = FileCheckedRunReader::open(&evidence, None).unwrap();
+        assert!(reader.indexed_outbound_edges(&[(&source, &door)]).unwrap().is_none());
+        reader.movement(0).unwrap();
+        assert!(reader.movement(1).is_err());
+        std::fs::remove_file(&index_path).unwrap();
+        let mut reader = FileCheckedRunReader::open(&evidence, None).unwrap();
+        assert!(reader.indexed_outbound_edges(&[(&source, &door)]).unwrap().is_none());
+    }
+
+    #[test]
+    fn selected_ledger_grants_preserve_authority_and_validate_unselected_content() {
+        let dir = tempfile::tempdir().unwrap();
+        let metadata = dir.path().join("metadata");
+        std::fs::create_dir(&metadata).unwrap();
+        let mut movement = ledger_row(0);
+        movement.invocation_metadata = Some(InvocationMetadata::new(GrantProjection {
+            tools: vec!["file.write".into()], interfaces: vec!["system_room".into()], ..Default::default()
+        }).into());
+        let row = octopus_ledger::encode_durable_movement_row(&movement, 0, |_, bytes| {
+            let hash = ContentHash::of_bytes(bytes);
+            std::fs::write(metadata.join(hash.to_hex()), bytes).unwrap(); Ok(hash)
+        }).unwrap();
+        let rows = ledger_rows::LedgerRows::detached(&dir.path().join("movements.jsonl"));
+        assert_eq!(rows.decode_with_grant_if(row.as_bytes(), 0, |_| true).unwrap(), movement);
+        let projected = rows.decode_with_grant_if(row.as_bytes(), 0, |_| false).unwrap();
+        let grant = &projected.invocation_metadata.as_ref().unwrap().invocation().unwrap().grant;
+        assert!(grant.tools.is_empty());
+        assert_eq!(grant.interfaces, ["system_room"]);
+        let blob = std::fs::read_dir(&metadata).unwrap().next().unwrap().unwrap().path();
+        std::fs::remove_file(blob).unwrap();
+        assert!(rows.decode_with_grant_if(row.as_bytes(), 0, |_| false).is_err());
+    }
+
+    #[test]
+    fn retained_delivery_reads_own_grants_and_checks_the_global_sequence() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("movements.jsonl");
+        let metadata = dir.path().join("metadata");
+        std::fs::create_dir(&metadata).unwrap();
+        let source = InterfaceId::new("own");
+        let mut foreign = ledger_row(0);
+        foreign.from = Endpoint::Interface("other".into());
+        foreign.invocation_metadata = Some(InvocationMetadata::new(Default::default()).into());
+        let foreign_row = octopus_ledger::encode_durable_movement_row(&foreign, 0,
+            |_, bytes| Ok(ContentHash::of_bytes(bytes))).unwrap();
+        let mut own = ledger_row(1);
+        own.from = Endpoint::Interface(source.clone());
+        own.invocation_metadata = Some(InvocationMetadata::new(GrantProjection {
+            tools: vec!["file.write".into()], ..Default::default()
+        }).into());
+        let own_row = octopus_ledger::encode_durable_movement_row(&own, 1, |_, bytes| {
+            let hash = ContentHash::of_bytes(bytes);
+            std::fs::write(metadata.join(hash.to_hex()), bytes).unwrap(); Ok(hash)
+        }).unwrap();
+        std::fs::write(&path, format!("{foreign_row}\n{own_row}\n")).unwrap();
+        let mut projection = pending_delivery::Ledger::new(source.clone(), path.clone(), 1_048_576);
+        assert_eq!(projection.watermark().unwrap(), 2);
+        assert_eq!(projection.watermark().unwrap(), 2);
+        let mut sparse = octopus_ledger_index::InterfaceArrivalProjection::new(source.clone());
+        assert!(sparse.observe(&foreign).is_err());
+        sparse.observe(&own).unwrap();
+        assert!(sparse.observe(&own).is_err());
+        let mut gap = serde_json::from_str::<serde_json::Value>(&foreign_row).unwrap();
+        gap["seq"] = serde_json::json!(3);
+        use std::io::Write as _;
+        writeln!(std::fs::OpenOptions::new().append(true).open(&path).unwrap(), "{gap}").unwrap();
+        assert!(projection.watermark().unwrap_err().contains("not contiguous"));
+        std::fs::write(&path, format!("{foreign_row}\n{own_row}\n")).unwrap();
+        let blob = std::fs::read_dir(metadata).unwrap().next().unwrap().unwrap().path();
+        std::fs::write(blob, b"corrupt").unwrap();
+        assert!(pending_delivery::Ledger::new(source, path, 1_048_576).watermark().is_err());
+    }
+
+    #[test]
     fn ledger_index_advances_only_complete_delta_and_poison_is_permanent() {
         use std::io::Write as _;
 
@@ -1538,7 +1647,7 @@
         );
 
         let mut changed_prefix = restored.clone();
-        changed_prefix.artifacts[0].source_movement_seq = Some(99);
+        changed_prefix.artifacts[0].payload = serde_json::json!({"text": "changed payload"});
         let rejected_output = InterfaceArtifactFile::write(
             dir.path().join("rejected"),
             "interface.artifact.output",
@@ -1559,7 +1668,7 @@
             artifact.source_movement_seq = Some(index as u64 + 1);
         }
         reconcile_resolved_session_snapshot_head(&normalized, &mut normalized_head).unwrap();
-        assert!(normalized_head.is_none());
+        assert!(normalized_head.is_some());
         let rebased_output = InterfaceArtifactFile::write(
             dir.path().join("rebased"),
             "interface.artifact.output",
@@ -1571,13 +1680,16 @@
                 .unwrap();
         let rebased_payload = rebased_snapshot.read_payload_bytes().unwrap();
         let rebased_value: serde_json::Value = serde_json::from_slice(&rebased_payload).unwrap();
-        assert!(rebased_value[SESSION_CONTEXT_FIELD]["parent"].is_null());
+        assert_eq!(
+            serde_json::from_value::<ArtifactRef>(rebased_value[SESSION_CONTEXT_FIELD]["parent"].clone()).unwrap(),
+            snapshot_ref
+        );
         assert_eq!(
             rebased_value[SESSION_CONTEXT_FIELD]["artifacts"]
                 .as_array()
                 .unwrap()
                 .len(),
-            normalized.artifacts.len()
+            normalized.artifacts.len() - normalized_head.as_ref().unwrap().covered_artifact_count
         );
 
         restored.artifacts.push(session_entry(
@@ -3263,9 +3375,13 @@
         let rejected: ToolResultArtifact = serde_json::from_slice(&rejected_envelope.read_artifact_payload().unwrap()).unwrap();
         authoring_retry::validate_rejected_result(&rejection_ctx, &handoff.config, &rejected_movement, &rejected_envelope, &original, &rejected).unwrap();
         let consumed = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(
-            result_identity.consume_if_matches(&rejection_ctx, &rejected_movement, &rejected_envelope, "file.write.result")
+            result_identity.consume_if_matches(&rejection_ctx, &ProviderHandoffSession::new(&rejection_ctx).unwrap(), &rejected_movement, &rejected_envelope, "file.write.result")
         ).unwrap();
         assert!(consumed);
+        let wrong_ledger = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap().block_on(
+            result_identity.consume_if_matches(&rejection_ctx, &ProviderHandoffSession::new(&ctx).unwrap(), &rejected_movement, &rejected_envelope, "file.write.result")
+        ).unwrap_err();
+        assert!(wrong_ledger.contains("handoff session belongs to interface"));
         assert_eq!(std::fs::read_to_string(&rejection_ctx.movements_path).unwrap(), journal);
         {
             let mut concurrent: serde_json::Value = serde_json::from_slice(&run_bytes).unwrap();
@@ -5891,3 +6007,35 @@
             }
         }
     }
+
+#[test]
+#[ignore = "requires explicitly selected read-only ledger performance evidence"]
+fn selected_retained_delivery_cost() {
+    let home = PathBuf::from(std::env::var("OCTOPUS_BENCH_HOME").unwrap());
+    let interface = InterfaceId::new(std::env::var("OCTOPUS_BENCH_INTERFACE").unwrap());
+    let path = home.join("ledger/movements.jsonl");
+    let started = std::time::Instant::now();
+    let count = if std::env::var_os("OCTOPUS_BENCH_FULL_LEDGER").is_some() {
+        let ledger = ledger_rows::LedgerRows::detached(&path);
+        let mut index = octopus_ledger_index::ArrivalDedupIndex::new();
+        let mut reader = std::io::BufReader::new(std::fs::File::open(&path).unwrap());
+        loop {
+            match read_bounded_ledger_row(&mut reader, 16_777_216).unwrap() {
+                BoundedLedgerRow::Complete(row) => {
+                    let movement = ledger.decode_with_grant_if(&row, index.watermark(), |movement| {
+                        movement.kind == MovementKind::InterfaceArrival && movement.invocation_metadata
+                            .as_ref().and_then(|metadata| metadata.invocation())
+                            .is_some_and(|metadata| !metadata.required_verified_artifacts.is_empty())
+                    }).unwrap();
+                    index.catch_up_movements([movement]).unwrap();
+                }
+                BoundedLedgerRow::Eof => break,
+                BoundedLedgerRow::Partial => panic!("incomplete ledger"),
+            }
+        }
+        index.watermark()
+    } else {
+        pending_delivery::Ledger::new(interface, path, 16_777_216).watermark().unwrap()
+    };
+    println!("retained delivery: {count} rows in {} ms", started.elapsed().as_millis());
+}

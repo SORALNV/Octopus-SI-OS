@@ -118,6 +118,22 @@ test("page loaders show only the centered logo until the catalog settles", async
     assert.ok(container.querySelector("header, input, h1") === null);
   };
   try { expectLogo(fallback.container, "surface-loading-state"); } finally { await fallback.close(); }
+  const topology = loader({
+    "./ArtifactTransferAnimation": { useArtifactTransferFeed: () => ({ feed: {}, error: "" }) },
+    "../toasts": { useAppErrorToast: noop },
+  });
+  const { TopologyStage } = topology("src/components/TopologyStage.tsx");
+  const snapshot = topology("src/data/topology.ts").emptySnapshot({ mode: "connecting", label: "Loading topology", detail: "" });
+  const props = { snapshot, query: "", scope: "World", viewMode: "zones", filters: { statuses: {} }, selected: null, onSelect: noop };
+  const stage = await mount(TopologyStage, props);
+  try {
+    expectLogo(stage.container);
+    await stage.render({ ...props, scope: "System" });
+    expectLogo(stage.container);
+    await stage.render({ ...props, snapshot: { ...snapshot, projection: { mode: "error", label: "Read failed", detail: "Unavailable" } } });
+    assert.equal(stage.container.querySelector(".octopus-loading-logo"), null);
+    assert.match(stage.container.textContent, /Read failed/);
+  } finally { await stage.close(); }
   const incidents = [];
   for (const name of ["ApplicationsView", "DriversView"]) {
     const pending = new Map();
@@ -255,6 +271,15 @@ test("call controls show provider captions, selectable transcript history, and a
     assert.equal(view.container.querySelector(".home-call__devices"), null);
     await view.render({ ...props, session: { ...props.session, transcript: [{ id: "c", role: "user", text: "One more thing", final: false }] } });
     assert.equal(view.container.querySelector(".home-call__caption").textContent, "You: One more thing");
+    const longReply = `${"A long spoken explanation. ".repeat(30)}Последние слова 🐙`;
+    await view.render({ ...props, session: { ...props.session, transcript: [{ id: "d", role: "assistant", text: longReply, final: false }] } });
+    const caption = view.container.querySelector(".home-call__caption");
+    assert.equal(caption.textContent, `Home: ${longReply}`);
+    const styles = stylesheetCascade(["src/foundation.css", "src/styles.css", "src/shell.css", "src/components/voice/voice.css"]);
+    assert.equal(styles.value(caption, "justify-content"), "flex-end");
+    assert.equal(styles.value(caption, "max-height"), "44px");
+    assert.equal(styles.value(caption, "-webkit-line-clamp"), undefined);
+    assert.equal(styles.value(caption.firstElementChild, "flex-shrink"), "0");
     await view.render({ ...props, session: session("connecting") });
     assert.equal(view.container.querySelector(".home-call__caption"), null);
     assert.equal(button(view.container, "Show call transcript"), undefined);
@@ -377,7 +402,6 @@ test("Home sequences reply fade before the call scene and preserves drafts, repl
     "../CadencedShimmerText": { CadencedShimmerText: ({ children, active }) => React.createElement("span", { "data-active": active }, children), ShimmerActivityScope: ({ children }) => children },
     "../chat/ChatComposer": { ChatComposer: composer },
     "../chat/QueuedMessageList": { QueuedMessageList: () => null },
-    "./AirHandVoiceController": { AirHandVoiceController: () => null },
     "./VoiceOrbScene": { VoiceOrbScene: props => { orbProps = props; return null; } },
     "./voiceWidgetDocuments": { buildVoiceWidgetDocuments: () => [] },
     "../chat/chatProductError": { chatProductError: () => "" },

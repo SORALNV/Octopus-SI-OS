@@ -3,6 +3,27 @@
 Memory, skills, and persona are artifacts bound to runs. Updating one is an
 ordinary run under policy.
 
+The shared worker-role artifact identifies the installed system with the agent:
+its goals, runs, interfaces, triggers, worker environments and their connections
+are Octopus, and a run is one part of its work. Maintaining and improving that
+system is part of the role. Home and Task role artifacts specialize it; provider
+choice does not change the identity. This guidance is bound context, not
+additional authority or evidence of work elsewhere. The realtime provider's
+session instructions present the same identity through voice.
+
+The system library's `self-improvement` skill carries the detailed guidance.
+Its catalogue applicability covers substantial or long-running work, continuing
+intentions, dependencies, recurring work and observed friction. The model reads
+the entry through the ordinary context collection tools when relevant. It builds
+and maintains a bounded picture of current goals, runs, connections, capabilities
+and results; questions the organization of the work; and maintains, repairs or
+extends the system within its grant. Improvements include adding missing
+capabilities and connecting them to their consumers. The shared role keeps a
+short responsibility statement and pointer instead of repeating this procedure.
+Skill selection remains a model decision; no task classifier or execution loop
+is added. Working state summaries remain observations over owning records and
+recorded effects, carried through declared artifact routes when needed.
+
 ## Memory is an artifact
 
 Memory **state** is an artifact made visible through bindings. A memory
@@ -30,12 +51,19 @@ Memory is written in two ways:
    trigger (recommended in the Codex pack, armed by setup with a three-hour
    quiet period) starts an ordinary task in
    Home's environment: it lists the notes with their usage, merges duplicates,
-   settles contradictions in favour of the newer note and folds stale, unused
-   notes into what is still true. Both are ordinary runs started by
+   settles contradictions using their sources and the user's latest applicable
+   decisions, and folds stale, unused notes into what is still true. A newer
+   note is not automatically stronger evidence. Both are ordinary runs started by
    interfaces.
 
 The resulting entries become visible only to runs whose bindings and formed
 policy admit them.
+
+Knowledge entries retain their sources and distinguish observations, proposals
+and inference. Descriptions include conditions or unresolved dependencies that
+affect whether the knowledge is usable. Useful failures and partial results can
+also be retained. Capture and consolidation preserve these distinctions and the
+entry's audience.
 
 The projection's byte limit covers the complete artifact, including its model
 text and any original input attached after source verification. When it is too
@@ -123,6 +151,18 @@ added - and update the relevant skill so the next run sees the new reality.
 That update is an ordinary worker run editing an artifact. It is not a skill
 subsystem.
 
+Role and skill artifacts explain their purpose, the relevant entry points and
+where to read exact contracts. The model follows the affected producers,
+consumers and related state, adapting its investigation and verification to the
+task. Schemas and detailed operation examples remain available on demand;
+general instructions do not repeat them or prescribe a universal checklist.
+
+The system library's `framework-authoring` entry carries portable Octopus
+development guidance: architecture principles, the four development axes and
+engineering discipline. The system-review trigger binds that library, and its
+role directs the run to read the entry before changing Octopus. The guide does
+not depend on a maintainer's private skill files or grant additional authority.
+
 The registry ships `skill.capture`, `skill.upsert`, `skill.search`,
 `skill.list`, and `skill.get` as **ordinary tools** behind the system room's
 door. A concept-named tool is fine. A concept-named runtime primitive is not.
@@ -157,8 +197,9 @@ policy, that edits the artifact like any other.
 
 ## The two-layer rule
 
-**The registries the system may change. The runtime it may not - but the
-runtime must support any registry change.**
+Memory and skill behavior belongs in registries and owner packages. Authorized
+runs may repair runtime source under the workspace grant and development rules,
+preserving the kernel's generic contracts.
 
 - Skill-named or memory-named **registry objects are fine**: tool descriptors,
   artifact descriptors, EE templates that allow those tools.

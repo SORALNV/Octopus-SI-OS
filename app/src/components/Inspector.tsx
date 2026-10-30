@@ -13,6 +13,7 @@ import type {
   WorkerEnvironmentProjection,
 } from "../data/topology";
 import { Glyph } from "./IconGlyphs";
+import { OctopusLoadingState } from "./OctopusLoadingLogo";
 import { JsonPanel } from "./JsonPanel";
 import { WorkerEnvironmentPreview } from "./worker-environment/WorkerEnvironmentPreview";
 import { defaultWorkerEnvironmentPaneTarget, dispatchOpenWorkerEnvironmentPane } from "./worker-environment/workerEnvironmentPane";
@@ -68,6 +69,8 @@ export function Inspector({ snapshot, selection, onSelect, onClose, surfaces = [
           </>
           )}
         </>
+      ) : snapshot.projection.mode === "connecting" ? (
+        <OctopusLoadingState className="surface-content-loading-state" label="構成図を読み込んでいます" />
       ) : (
         <EmptyInspector projectionLabel={snapshot.projection.label} projectionDetail={snapshot.projection.detail} />
       )}
@@ -204,7 +207,7 @@ function EnvironmentOverview({
                 <Glyph name="ee" size={13} />
                 <span>
                   <strong>{child.name}</strong>
-                  <small> · {child.runs.length} 実行{child.runs.length === 1 ? "" : "s"}</small>
+                  <small> · {child.runs.length} 実行{child.runs.length === 1 ? "" : " 秒"}</small>
                 </span>
                 <i className="chevron">›</i>
               </button>
@@ -398,7 +401,7 @@ function RunList({ runs, onSelect }: { runs: RunProjection[]; onSelect: (selecti
             <strong>{run.worker}</strong>
             <small>{run.goal}</small>
             <small className="run-counts">
-              {run.checkpoints.length} チェックポイント{run.checkpoints.length === 1 ? "" : "s"} · {run.bindings.length} インターフェースの紐付け{run.bindings.length === 1 ? "" : "s"} · {run.artifacts.length} 成果物{run.artifacts.length === 1 ? "" : "s"}
+              {run.checkpoints.length} チェックポイント{run.checkpoints.length === 1 ? "" : " 秒"} · {run.bindings.length} インターフェースの紐付け{run.bindings.length === 1 ? "" : " 秒"} · {run.artifacts.length} 成果物{run.artifacts.length === 1 ? "" : " 秒"}
             </small>
           </span>
           <em>{run.statusLabel.toLowerCase()} {run.runningFor}</em>

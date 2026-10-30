@@ -107,6 +107,8 @@ async function showApp(access, state) {
 
 test("the launch terminal gates a stopped runtime before the password screen and leaves once the runtime is ready", async () => {
   const bridge = await showApp({ configured: false, authenticated: false, profile: null }, runtime("unmanaged"));
+  const deadline = Date.now() + 2000;
+  while (!shown(".stub-launch") && Date.now() < deadline) await settle();
   assert.ok(shown(".stub-launch"));
   assert.equal(shown(".stub-password-gate"), false, "the launch gate precedes setting a password");
   assert.deepEqual([boot.launchProps.greeting, boot.launchProps.leaving], [true, false]);

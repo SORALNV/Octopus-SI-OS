@@ -4,7 +4,6 @@ import { OcButton, OcCard, OcGroup, OcSettingsRow, OcStatus } from "../../design
 import type { OctopusAppInfo, OctopusClientDoctorReport, OctopusTransportDefaults } from "../../electron";
 import { useProjectionGeneration } from "../../projectionLive";
 import { useAppErrorToast } from "../../toasts";
-import { copyText } from "../../runtimeFormat";
 import { resetOnboardingState } from "../../onboarding/onboardingStorage";
 import { SettingsHeading } from "./SettingsHeading";
 import { OpenSourceLicensesDialog } from "./OpenSourceLicensesDialog";
@@ -15,7 +14,7 @@ export function AboutSection() {
   const generation = useProjectionGeneration();
   const [info, setInfo] = useState<OctopusAppInfo | null>(null);
   const [defaults, setDefaults] = useState<OctopusTransportDefaults | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [reportError, setReportError] = useState("");
   const [licensesOpen, setLicensesOpen] = useState(false);
   const [logsState, setLogsState] = useState<"idle" | "opening" | "opened" | "error">("idle");
   const [doctorReport, setDoctorReport] = useState<OctopusClientDoctorReport | null>(null);
@@ -24,6 +23,7 @@ export function AboutSection() {
   useAppErrorToast(welcomeState === "error" ? "Could not reset the welcome screen." : "");
   useAppErrorToast(logsState === "error" ? "Could not open the client logs directory." : "");
   useAppErrorToast(doctorState === "error" ? "Doctor could not inspect the current Octopus Home." : "");
+  useAppErrorToast(reportError);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,19 +42,12 @@ export function AboutSection() {
     };
   }, []);
 
-  async function copyDiagnostics() {
-    const report = {
-      application: info,
-      defaults,
-      projectionGeneration: generation,
-      providerInterfaces: providerState.providers.map((provider) => provider.id),
-      registryRoot: defaults?.registryRoot || providerState.registryRoot || null,
-      repoRoot: defaults?.repoRoot || providerState.repoRoot || null,
-      doctor: doctorReport,
-    };
-    const copiedNow = await copyText(JSON.stringify(report, null, 2));
-    setCopied(copiedNow);
-    if (copiedNow) window.setTimeout(() => setCopied(false), 1_500);
+  async function openReport() {
+    setReportError("");
+    try {
+      if (!window.octopusTransport?.openProblemReport) throw new Error("不具合の報告はデスクトップアプリで利用できます。");
+      await window.octopusTransport.openProblemReport();
+    } catch (error) { setReportError(error instanceof Error ? error.message : String(error)); }
   }
 
   async function runDoctor() {
@@ -122,19 +115,14 @@ export function AboutSection() {
       <OcGroup title="診断" description="サポートやデバッグに使う現在の情報です。">
         <OcCard>
           <OcSettingsRow {...settingsTargetProps("about.diagnostics")}
-            control={(
-              <div className="settings-inline-actions">
-                {copied ? <OcStatus label="コピーしました" tone="success" /> : null}
-                <OcButton onClick={() => void copyDiagnostics()}>診断情報をコピー</OcButton>
-              </div>
-            )}
-            description="アプリの情報と表示用データの状態を JSON でコピーします。"
+            control={<OcButton onClick={() => void openReport()}>不具合を報告…</OcButton>}
+            description="診断情報を確認して保存またはコピーし、GitHub の Issue の下書きを開きます。"
             label="診断レポート"
           />
           <OcSettingsRow
             control={(
               <div className="settings-inline-actions">
-                {doctorState === "complete" ? <OcStatus label={doctorReport?.findings.length ? `${doctorReport.findings.length} finding${doctorReport.findings.length === 1 ? "" : "s"}` : "合格"} tone={doctorReport?.findings.length ? "warning" : "success"} /> : null}
+                {doctorState === "complete" ? <OcStatus label={doctorReport?.findings.length ? `${doctorReport.findings.length} finding${doctorReport.findings.length === 1 ? "" : " 秒"}` : "合格"} tone={doctorReport?.findings.length ? "warning" : "success"} /> : null}
                 <OcButton disabled={doctorState === "running"} onClick={() => void runDoctor()}>
                   {doctorState === "running" ? "確認しています…" : "診断を実行"}
                 </OcButton>

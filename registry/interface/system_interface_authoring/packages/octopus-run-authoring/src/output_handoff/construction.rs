@@ -382,7 +382,9 @@ impl ProviderOutputHandoff {
             if consumes_context && consumed_templates[0].role != RunAuthoringCheckpointRole::ResultInput {
                 append_artifact(&mut context_artifacts, bound.artifact.id.clone());
             }
-            if instruction_sources.contains(&bound.artifact.id)
+            if input.metadata().map_err(|error| error.to_string())?.grant.role_artifacts.iter()
+                .any(|id| id == bound.artifact.id.as_str())
+                || instruction_sources.contains(&bound.artifact.id)
                 || consumed_templates[0].static_artifact_bindings.contains(&bound.artifact.id) {
                 append_artifact(&mut static_context_artifacts, bound.artifact.id.clone());
                 continue;

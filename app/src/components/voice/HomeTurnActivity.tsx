@@ -75,19 +75,21 @@ export function homeTurnAwaitsFinalReply(activities: ChatRenderMessage[]): boole
   return false;
 }
 
-export function HomeTurnActivity({ activities, startedAtMs, toolPresentations, turnInProgress, terminalNotice }: {
+export function HomeTurnActivity({ activities, blockingReason = "", startedAtMs, toolPresentations, turnInProgress, terminalNotice }: {
   activities: ChatRenderMessage[];
   startedAtMs: number;
   toolPresentations: ChatToolPresentationIndex;
   turnInProgress: boolean;
   terminalNotice: string | null;
+  blockingReason?: string;
 }) {
   const hasActivity = activities.some((message) => conversationTraceAdmission(message, toolPresentations) === "visible");
-  if (!hasActivity && turnInProgress) return <span role="status"><CadencedShimmerText active>Octopus が作業しています</CadencedShimmerText></span>;
+  if (!hasActivity && turnInProgress && !blockingReason) return <span role="status"><CadencedShimmerText active>Octopus が作業しています</CadencedShimmerText></span>;
   return (
     <section aria-label="現在の実行のアクティビティ" className="home-live-activity">
-      {hasActivity ? <TurnActivity
+      {hasActivity || blockingReason ? <TurnActivity
         activities={activities}
+        blockingReason={blockingReason}
         activityWindow="latest-context"
         presentation="conversation"
         renderActivity={(message) => <HomeActivityDetail message={message} toolPresentations={toolPresentations} turnInProgress={turnInProgress} />}
@@ -175,7 +177,7 @@ function projectHomeLiveActions(
     const command = homeEventText(data.command, data.tool);
     const status = homeEventText(data.status).toLocaleLowerCase();
     const active = status === "started" || status === "running" || status === "in_progress";
-    const label = summary || (command ? `${active ? "Running" : "Ran"} ${command}` : active ? "Running a tool" : "Completed a tool action");
+    const label = summary || (command ? `${active ? "実行中" : "Ran"} ${command}` : active ? "Running a tool" : "Completed a tool action");
     return [{ glyph: "terminal", id: `${identity}:tool`, label }];
   }
   if (kind === "web_search") {

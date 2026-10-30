@@ -28,6 +28,7 @@ import { PanelResizeHandle, useAnimatedPanelSize } from "../shell/PanelResizeHan
 import { FilesCodeEditor } from "./FilesCodeEditor";
 import { FilesBreadcrumb } from "./FilesBreadcrumb";
 import type { FilesOpenTarget } from "./types";
+import { resolveFileTarget } from "./fileTarget";
 import { ensureFilesPane, hasFilesPane, readFilesPane, registerFilesPaneFlush, saveFilesPane, subscribeFilesPane, updateFilesPane } from "./filesPaneLifecycle";
 import { filesRootMatches, type FilesEditorViewState, type FilesPaneSnapshot } from "./filesPaneSnapshot";
 import "../artifacts/artifact-workbench.css";
@@ -72,7 +73,7 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
   const activeTargetKey = filesOpenTargetKey(activeTarget);
   const artifactTarget = activeTarget?.kind === "artifact" ? activeTarget : null;
   const artifactTargetKey = artifactTarget
-    ? JSON.stringify([artifactTarget.artifactId, artifactTarget.runId, artifactTarget.interfaceId])
+    ? JSON.stringify([artifactTarget.artifactId, artifactTarget.runId, artifactTarget.interfaceId, ...(artifactTarget.previewText === undefined ? [] : ["read"])])
     : "";
   const [roots, setRoots] = useState<OctopusOsFileRoot[]>([]);
   const [directories, setDirectories] = useState<DirectoryCache>({});
@@ -232,6 +233,7 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
       label: artifactTarget.label,
       runId: artifactTarget.runId,
       source: "ledger",
+      inlinePayload: artifactTarget.previewText,
     }).then((resolved) => {
       if (!cancelled) setArtifactResolution({ error: "", loading: false, preview: resolved, targetKey: artifactTargetKey });
     }).catch((error) => {
@@ -246,6 +248,7 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
     artifactTarget?.interfaceId,
     artifactTarget?.label,
     artifactTarget?.runId,
+    artifactTarget?.previewText,
     locked,
   ]);
 
@@ -293,7 +296,7 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
     hydratedTargetRef.current = activeTargetKey;
     const location = resolveFileTarget(activeTarget, roots);
     if (!location) {
-      setFileError("The selected file is outside the admitted Files roots.");
+      setFileError("選択したファイルは、表示を許可されたフォルダーの範囲外です。");
       return;
     }
     if (location.rootId !== rootId) {
@@ -748,32 +751,10 @@ export function FilesView({ accessProfile, active, paneKey, snapshot: initialSna
   );
 }
 
-function resolveFileTarget(
-  target: Extract<FilesOpenTarget, { kind: "file" }>,
-  roots: OctopusOsFileRoot[],
-): { path: string; rootId: string } | null {
-  if (target.rootId && target.path !== undefined) {
-    return roots.some((root) => root.id === target.rootId)
-      ? { path: target.path, rootId: target.rootId }
-      : null;
-  }
-  const absolutePath = target.absolutePath?.replaceAll("\\", "/");
-  if (!absolutePath) return null;
-  const root = roots
-    .map((candidate) => ({ candidate, path: candidate.path.replaceAll("\\", "/").replace(/\/+$/, "") }))
-    .filter(({ path }) => absolutePath === path || absolutePath.startsWith(`${path}/`))
-    .sort((left, right) => right.path.length - left.path.length)[0];
-  if (!root) return null;
-  return {
-    path: absolutePath === root.path ? "" : absolutePath.slice(root.path.length + 1),
-    rootId: root.candidate.id,
-  };
-}
-
 function filesOpenTargetKey(target: FilesOpenTarget | undefined): string {
   if (!target) return "none";
   return target.kind === "artifact"
-    ? JSON.stringify(["artifact", target.artifactId, target.runId, target.interfaceId, target.label, target.createdAtMs ?? null])
+    ? JSON.stringify(["artifact", target.artifactId, target.runId, target.interfaceId, target.label, target.createdAtMs ?? null, target.previewText ?? null])
     : JSON.stringify(["file", target.rootId ?? null, target.path ?? null, target.absolutePath ?? null]);
 }
 

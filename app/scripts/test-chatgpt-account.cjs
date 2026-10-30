@@ -16,7 +16,7 @@ function loadTs(relative, imports = {}, extraSource = "") {
   const module = { exports: {} };
   const source = fs.readFileSync(path.join(__dirname, "../src", relative), "utf8") + extraSource;
   const output = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
-  new Function("module", "exports", "require", output)(module, module.exports, (name) => imports[name] ?? imports.$fallback?.(name) ?? (name.endsWith(".css") ? {} : require(name)));
+  new Function("module", "exports", "require", output)(module, module.exports, (name) => imports[name] ?? imports.$fallback?.(name) ?? (name.endsWith("/locale") ? loadTs("locale.ts") : name.endsWith(".css") ? {} : require(name)));
   return module.exports;
 }
 
@@ -71,7 +71,7 @@ function nativeFixture(env = {}) {
       }
       if (request.method === "account/login/start") result = { type: "chatgpt", loginId: `login-${children.length}`, authUrl: "https://example.test/login" };
       if (request.method === "account/login/cancel") result = { status: "canceled" };
-      if (request.method === "model/list") result = { data: [{ model: "model", displayName: "Model", defaultReasoningEffort: "high", supportedReasoningEfforts: [{ reasoningEffort: "high" }] }], nextCursor: null };
+      if (request.method === "model/list") result = { data: control.modelRows ?? [{ model: "model", displayName: "Model", defaultReasoningEffort: "high", supportedReasoningEfforts: [{ reasoningEffort: "high" }] }], nextCursor: null };
       if (request.method === "account/logout" && !control.refuseLogout) { persisted = child.cachedAccount = null; stamp += 1n; }
       const reply = () => child.stdout.emit("data", JSON.stringify({ id: request.id, ...(error ? { error } : { result }) }) + "\n");
       if (request.method === "account/read" && control.accountReply) control.accountReply(reply);
@@ -109,6 +109,24 @@ test("native account discovery owns its client identity and credential Home", as
     assert.equal(inherited.CODEX_INTERNAL_ORIGINATOR_OVERRIDE, "other-client");
     assert.equal(fixture.calls.find((call) => call.method === "initialize").params.clientInfo.name, env.CODEX_INTERNAL_ORIGINATOR_OVERRIDE);
   } finally { fixture.client.dispose(); }
+});
+
+test("models without reasoning controls are normalized while malformed catalogues still fail closed", async () => {
+  const row = { model: "model", displayName: "Model", defaultReasoningEffort: "none", supportedReasoningEfforts: [] };
+  for (const rows of [[row], [{ ...row, defaultReasoningEffort: "high" }], [row, row],
+    [{ ...row, supportedReasoningEfforts: [{ reasoningEffort: "none" }, { reasoningEffort: "none" }] }]]) {
+    const fixture = nativeFixture();
+    fixture.control.modelRows = rows;
+    try {
+      if (rows.length === 1 && rows[0] === row) {
+        const [model] = await fixture.client.models();
+        assert.equal(model.defaultReasoningEffort, "");
+        assert.equal(model.supportedReasoningEfforts.length, 0);
+      } else {
+        await assert.rejects(fixture.client.models(), /invalid or repeated model/);
+      }
+    } finally { fixture.client.dispose(); }
+  }
 });
 
 test("simultaneous catalogue reads share discovery and account changes invalidate pending results", async () => {
@@ -294,9 +312,9 @@ test("client clears native signed-out identity and rejects stale reads and stale
     "../account/AccountLogoutDialog": logoutView,
     "./SettingsHeading": { SettingsHeading: () => null }, "./settingsCatalog": { settingsTargetProps: () => ({}) },
   });
-  assert.match(renderToStaticMarkup(React.createElement(ChatGptSignInGate)), /Retry sign-in check/);
-  assert.match(renderToStaticMarkup(React.createElement(ChatGptSignInGate)), /Cancel sign-in/);
-  assert.match(renderToStaticMarkup(React.createElement(ChatGptSignInGate)), /Copy sign-in link/);
+  assert.match(renderToStaticMarkup(React.createElement(ChatGptSignInGate)), /ログインの確認を再試行/);
+  assert.match(renderToStaticMarkup(React.createElement(ChatGptSignInGate)), /ログインをキャンセル/);
+  assert.match(renderToStaticMarkup(React.createElement(ChatGptSignInGate)), /ログイン用リンクをコピー/);
   assert.doesNotMatch(renderToStaticMarkup(React.createElement(ChatGptSignInGate)), /Waiting for browser/);
   assert.doesNotMatch(renderToStaticMarkup(React.createElement(ChatGptSignInGate)), /Shared sign-in|Account and Home|\/native/);
   await new Promise((resolve) => setTimeout(resolve, 1050));
@@ -304,7 +322,7 @@ test("client clears native signed-out identity and rejects stale reads and stale
   bridge.chatgptSignInStatus = async (loginId) => { assert.equal(loginId, "same-attempt"); statusChecks += 1; return { state: "completed", error: "" }; };
   account = signedIn; await controller.refresh();
   const settingsMarkup = renderToStaticMarkup(React.createElement(AccountSettingsSection));
-  assert.match(settingsMarkup, /Retry sign-in check/);
+  assert.match(settingsMarkup, /ログインの確認を再試行/);
   assert.doesNotMatch(settingsMarkup, /Account and Home|Native credential location|Signed in with ChatGPT|\/native/);
   await Promise.all([controller.retrySignInStatus(), controller.retrySignInStatus()]);
   assert.equal(statusChecks, 2); assert.equal(starts, 1);
@@ -322,12 +340,12 @@ test("client clears native signed-out identity and rejects stale reads and stale
   assert.equal(controller.getSnapshot().account, null);
   assert.match(controller.getSnapshot().error, /Native unavailable/);
   const unavailableMarkup = renderToStaticMarkup(React.createElement(AccountSettingsSection));
-  assert.match(unavailableMarkup, /Unavailable/); assert.doesNotMatch(unavailableMarkup, /Signed out/);
-  assert.match(renderToStaticMarkup(React.createElement(ChatGptSignInGate)), /ChatGPT account unavailable/);
+  assert.match(unavailableMarkup, /利用できません/); assert.doesNotMatch(unavailableMarkup, /未ログイン/);
+  assert.match(renderToStaticMarkup(React.createElement(ChatGptSignInGate)), /ChatGPT アカウントを利用できません/);
   bridge.chatgptAccount = async () => signedOut; await controller.refresh();
-  assert.match(renderToStaticMarkup(React.createElement(AccountSettingsSection)), /Signed out/);
-  assert.match(renderToStaticMarkup(React.createElement(ChatGptSignInGate)), /Sign in to ChatGPT/);
-  assert.doesNotMatch(renderToStaticMarkup(React.createElement(ChatGptSignInGate)), /ChatGPT account unavailable/);
+  assert.match(renderToStaticMarkup(React.createElement(AccountSettingsSection)), /未ログイン/);
+  assert.match(renderToStaticMarkup(React.createElement(ChatGptSignInGate)), /ChatGPT にログイン/);
+  assert.doesNotMatch(renderToStaticMarkup(React.createElement(ChatGptSignInGate)), /ChatGPT アカウントを利用できません/);
   const onboarding = loadTs("onboarding/chatgptSignIn.ts");
   assert.equal(onboarding.chatgptSignInCompleted(), false);
   onboarding.recordChatgptSignIn(); assert.equal(onboarding.chatgptSignInCompleted(), true);
@@ -340,16 +358,16 @@ test("usage preserves multiple buckets, unknown windows, zero remaining and rese
   const groups = accountUsageGroups(usage);
   assert.equal(groups.length, 2); assert.equal(groups[0].windows[0].remaining, 75);
   assert.equal(groups[0].windows[1].remaining, null); assert.equal(groups[1].windows[0].remaining, 0);
-  assert.equal(groups[1].windows[0].label, "Weekly usage limit");
-  assert.equal(groups[0].windows[0].label, "5 hour usage limit");
+  assert.equal(groups[1].windows[0].label, "週間の使用上限");
+  assert.equal(groups[0].windows[0].label, "5 時間の使用上限");
   assert.equal(groups[0].windows[1].reported, false);
-  assert.equal(accountRemainingLabel(75.3), "75% left");
-  assert.equal(accountRemainingLabel(null), "Unavailable");
+  assert.equal(accountRemainingLabel(75.3), "75% 残り");
+  assert.equal(accountRemainingLabel(null), "利用できません");
   assert.equal(usageModel.accountPlanLabel("promax"), "Pro Max");
-  assert.equal(accountResetTime(null), "Reset time unavailable");
+  assert.equal(accountResetTime(null), "リセット時刻を取得できません");
   const date = new Date(2000000000000), now = date.getTime() - 3_600_000;
-  assert.equal(accountResetTime(2000000000, 300, now), `Resets ${new Intl.DateTimeFormat(undefined, { timeStyle: "short" }).format(date)}`);
-  assert.equal(accountResetTime(2000000000, 10080, now), `Resets ${new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(date)}`);
+  assert.equal(accountResetTime(2000000000, 300, now), `${new Intl.DateTimeFormat("ja-JP", { timeStyle: "short" }).format(date)} にリセット`);
+  assert.equal(accountResetTime(2000000000, 10080, now), `${new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium", timeStyle: "short" }).format(date)} にリセット`);
   assert.equal(accountUsageGroups({ ...usage, rateLimitsByLimitId: {} }).length, 0);
   assert.equal(accountUsageGroups({ ...usage, rateLimitsByLimitId: null }).length, 1);
 });
@@ -370,12 +388,12 @@ test("usage projection fences account changes, clears unavailable values and ret
   bridge.chatgptRateLimits = async () => { calls += 1; return value; };
   await Promise.all([controller.refresh(), controller.refresh()]); assert.equal(calls, count + 1);
   const full = renderToStaticMarkup(React.createElement(usageViews.AccountUsageSections, { state: controller.getSnapshot(), signedIn: true }));
-  assert.match(full, /5 hour usage limit/); assert.match(full, /value="75"/); assert.match(full, /75% left/);
+  assert.match(full, /5 時間の使用上限/); assert.match(full, /value="75"/); assert.match(full, /75% 残り/);
   assert.doesNotMatch(full, /Secondary limit/);
   const unavailable = renderToStaticMarkup(React.createElement(usageViews.AccountRemainingProgress, { remaining: null, label: "Unknown" }));
-  assert.match(unavailable, /Unavailable/); assert.doesNotMatch(unavailable, /<progress\b/);
+  assert.match(unavailable, /利用できません/); assert.doesNotMatch(unavailable, /<progress\b/);
   const exhausted = renderToStaticMarkup(React.createElement(usageViews.AccountRemainingProgress, { remaining: 0, label: "Exhausted" }));
-  assert.match(exhausted, /value="0"/); assert.match(exhausted, /0% left/);
+  assert.match(exhausted, /value="0"/); assert.match(exhausted, /0% 残り/);
   await controller.observe(null); assert.equal(controller.getSnapshot().value, null);
 });
 
@@ -388,8 +406,8 @@ test("shared logout confirmation never calls auth on open or cancel and binds th
   const view = AccountLogoutDialog(props);
   assert.equal(view.props.size, "narrow"); assert.equal(confirmed, 0);
   const markup = renderToStaticMarkup(view);
-  assert.match(markup, /Log out\?/); assert.match(markup, /first@example.test/); assert.match(markup, /\/native/);
-  assert.match(markup, /Administrator access are kept/);
+  assert.match(markup, /ログアウトしますか？/); assert.match(markup, /first@example.test/); assert.match(markup, /\/native/);
+  assert.match(markup, /管理者アクセスは保持されます/);
   view.props.onClose(); assert.equal(closed, 1); assert.equal(confirmed, 0);
   const submit = { preventDefault() {} };
   AccountLogoutDialog({ ...props, busy: true }).props.children.props.onSubmit(submit); assert.equal(confirmed, 0);
@@ -423,7 +441,7 @@ test("sign-in copy completion belongs to the current URL and mounted attempt", a
   const copy = async () => React.act(async () => document.querySelector(".chatgpt-signin-copy").dispatchEvent(new window.MouseEvent("click", { bubbles: true })));
   const settle = async (callback) => React.act(async () => { callback(); await tick(); });
   const assertUnchanged = () => {
-    assert.equal(document.querySelector(".chatgpt-signin-copy").textContent, "Copy sign-in link");
+    assert.equal(document.querySelector(".chatgpt-signin-copy").textContent, "ログイン用リンクをコピー");
     assert.ok(document.querySelector('[role="alert"]') === null);
   };
   try {
@@ -437,7 +455,7 @@ test("sign-in copy completion belongs to the current URL and mounted attempt", a
     await copy(); await settle(() => pending[3].reject(new Error("Current clipboard failed")));
     assert.match(document.querySelector('[role="alert"]').textContent, /Current clipboard failed/);
     await copy(); await settle(() => pending[4].resolve());
-    assert.equal(document.querySelector(".chatgpt-signin-copy").textContent, "Copied");
+    assert.equal(document.querySelector(".chatgpt-signin-copy").textContent, "コピーしました");
     assert.ok(document.querySelector('[role="alert"]') === null);
     await copy(); await React.act(async () => root.unmount()); mounted = false;
     await settle(() => pending[5].reject(new Error("Unmounted clipboard failed")));
@@ -453,6 +471,63 @@ test("sign-in copy completion belongs to the current URL and mounted attempt", a
   }
 });
 
+test("reopened setup displays committed progress before workspace discovery and follows the running operation", async () => {
+  const dom = new (require("jsdom").JSDOM)('<div id="root"></div>', { url: "https://client.test" });
+  const previous = new Map();
+  for (const [key, value] of Object.entries({ window: dom.window, document: dom.window.document, navigator: dom.window.navigator, IS_REACT_ACT_ENVIRONMENT: true })) {
+    previous.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
+    Object.defineProperty(globalThis, key, { configurable: true, writable: true, value });
+  }
+  const setup = { status: "in_progress", operationId: "setup_progress_001", steps: ["packages", "extensions", "workspace", "provider"].map((step, i) => ({ step, state: i < 2 ? "complete" : "pending" })) };
+  let releaseWorkspace, notify, resumeCalls = 0;
+  let workspace = new Promise(resolve => { releaseWorkspace = resolve; });
+  const progressView = ({ applyState }) => React.createElement("div", { "data-progress": applyState.percent }, applyState.label);
+  const { WorkspaceSetupGate } = loadTs("components/onboarding/WorkspaceSetupGate.tsx", {
+    "../../account/useChatgptAccount": { useChatgptAccount: () => ({ account: null, loading: true }) },
+    "./ChatGptSignInGate": { ChatGptSignInGate: () => "Sign in" },
+    "../chat/chatWorkspaceCapabilities": {}, "../../onboarding/chatgptSignIn": { chatgptSignInCompleted: () => false },
+    "../../extensions/useClientExtensions": { useClientExtensions: () => ({ loading: true, extensions: [], errors: [] }) },
+    "../../onboarding/workspaceSetup": { readWorkspaceSetupDraft: () => null },
+    "../../projectionClient": {
+      readCurrentClientSetup: async () => setup,
+      readWorkspaceSetupState: () => workspace,
+      readProjection: async method => method.endsWith("local_packages") ? { packs: [], packages: [], errors: [] }
+        : { status: "unbound", root_ee_id: "", home_run_id: "", home_interface_id: "", root_environment: null, projects: [], errors: [] },
+      onClientSetupProgress: listener => { notify = listener; return () => { notify = null; }; },
+      resumeClientSetup: () => { resumeCalls++; return new Promise(() => {}); },
+    },
+    "../../projectionLive": { useProjectionStructureGeneration: () => 0 }, "../../design-system/components": ui,
+    "../OctopusLoadingLogo": { OctopusLoadingState: () => "Opening Octopus", OctopusLoadingLogo: () => null },
+    "./WorkspaceSetupOverlay": { WorkspaceSetupProgress: progressView, WorkspaceSetupOverlay: progressView, createDefaultWorkspaceSetupDraft: () => ({}) },
+  });
+  const root = require("react-dom/client").createRoot(document.getElementById("root"));
+  const act = callback => React.act(async () => { await callback(); await tick(); });
+  const show = () => act(() => root.render(React.createElement(WorkspaceSetupGate, { accessProfile: "live", runtimeHome: "/home" }, "Shell")));
+  try {
+    await show();
+    assert.equal(document.querySelector("[data-progress]").dataset.progress, "45");
+    assert.match(document.body.textContent, /Checking Home and projects/);
+    assert.doesNotMatch(document.body.textContent, /Opening Octopus|Sign in|Shell/);
+    workspace = { status: "not_configured", errors: [], receipt: null };
+    await act(() => releaseWorkspace(workspace));
+    assert.equal(resumeCalls, 1);
+    assert.match(document.body.textContent, /Checking Home and projects/);
+    await act(() => notify({ operationId: setup.operationId, step: "provider", phase: "verifying", percent: 68 }));
+    assert.match(document.body.textContent, /Checking provider sign-in/);
+    await act(() => notify({ operationId: "other_operation", step: "packages", phase: "applying", percent: 0 }));
+    assert.match(document.body.textContent, /Checking provider sign-in/);
+    await act(() => root.render(null));
+    setup.steps[2].state = "complete";
+    workspace = new Promise(() => {});
+    await show();
+    assert.equal(document.querySelector("[data-progress]").dataset.progress, "68");
+    assert.match(document.body.textContent, /Checking provider sign-in/);
+  } finally {
+    await act(() => root.unmount()); dom.window.close();
+    for (const [key, descriptor] of previous) { if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key]; }
+  }
+});
+
 test("account menu prefers top placement and retains viewport collision handling", () => {
   let account = { ...signedIn, planType: "promax" };
   const { AccountRailButton } = loadTs("components/shell/AccountRailButton.tsx", {
@@ -464,10 +539,10 @@ test("account menu prefers top placement and retains viewport collision handling
         "../chat/MessageTooltip": { MessageTooltip: ({ children }) => children },
   });
   const menu = () => renderToStaticMarkup(React.createElement(AccountRailButton, { accessProfile: "live", runtimeHost: {}, onLogOut() {}, onOpenSettings() {} }));
-  assert.match(menu(), /Account: Administrator/); assert.match(menu(), /<small>ChatGPT Pro Max<\/small>/);
-  assert.doesNotMatch(menu(), /first@example.test/); assert.ok(menu().indexOf("Settings") < menu().indexOf("Usage"));
+  assert.match(menu(), /アカウント： 管理者/); assert.match(menu(), /<small>ChatGPT Pro Max<\/small>/);
+  assert.doesNotMatch(menu(), /first@example.test/); assert.ok(menu().indexOf("設定") < menu().indexOf("使用状況"));
   assert.doesNotMatch(menu(), /Log out of ChatGPT|Usage remaining|Using ChatGPT/);
-  account = null; assert.match(menu(), /Administrator/); assert.match(menu(), /ChatGPT unavailable/);
+  account = null; assert.match(menu(), /管理者/); assert.match(menu(), /ChatGPT を利用できません/);
   const { dropdownPlacement } = loadTs("design-system/OcDropdown.tsx", { "./components": ui, "./modalFocus": {} }, "\nexport { dropdownPlacement };\n");
   const anchor = { left: 24, right: 64, top: 350, bottom: 390 };
   const top = dropdownPlacement(anchor, 240, 120, 1000, 800, "start", 6, 0, "top");
@@ -620,11 +695,11 @@ test("completed Home uses checked local receipts offline and cancels proof acros
     await show(); await waitFor(shell);
     assert.equal(catalogReads, 0);
     await act(() => releaseInitialAccount(new Error("workspace routing discovery timed out")));
-    await waitFor(() => shell() && document.body.textContent.includes("Unavailable"));
+    await waitFor(() => shell() && document.body.textContent.includes("利用できません"));
     assert.match(document.body.textContent, /workspace routing discovery timed out/);
     assert.equal(catalogReads, 0); assert.equal(onboarding.chatgptSignInCompleted(), false);
     accountResult = signedOut; await act(() => accountChanged());
-    assert.ok(shell()); assert.match(document.body.textContent, /Signed out/);
+    assert.ok(shell()); assert.match(document.body.textContent, /未ログイン/);
     let releaseOldAccount;
     accountResult = new Promise(resolve => { releaseOldAccount = resolve; }); await act(() => accountChanged());
     home = "/second-complete"; accountResult = new Error("second Home account unavailable"); await show();
@@ -636,11 +711,11 @@ test("completed Home uses checked local receipts offline and cancels proof acros
     await fsp.writeFile(receiptFile, JSON.stringify(invalid)); home = "/corrupt"; await show();
     await waitFor(() => document.body.textContent.includes("plan digest is invalid")); assert.equal(shell(), null);
     await fsp.writeFile(receiptFile, receiptBytes); scopeHome = "another_run"; home = "/mismatch"; await show();
-    await waitFor(() => document.body.textContent.includes("Completed setup does not match Home")); assert.equal(shell(), null);
+    await waitFor(() => document.body.textContent.includes("完了した設定とホームが一致しません")); assert.equal(shell(), null);
     scopeHome = "home_run";
     workspaceError = "Workspace Home run identity is no longer valid"; home = "/degraded"; await show();
     await waitFor(() => document.body.textContent.includes(workspaceError)); assert.equal(shell(), null);
-    assert.doesNotMatch(document.body.textContent, /Completed setup does not match Home/);
+    assert.doesNotMatch(document.body.textContent, /完了した設定とホームが一致しません/);
     workspaceError = "";
     let releaseOld, releaseNew;
     currentSetup = () => new Promise(resolve => { releaseOld = resolve; }); home = "/old-pending"; await show();
@@ -648,16 +723,16 @@ test("completed Home uses checked local receipts offline and cancels proof acros
     currentSetup = () => new Promise(resolve => { releaseNew = resolve; }); home = "/new-pending"; configured = false; await show();
     await act(async () => releaseOld(await store.readCurrent())); assert.equal(shell(), null);
     accountResult = new Error("workspace routing discovery timed out"); currentSetup = async () => null;
-    await act(() => releaseNew(null)); await waitFor(() => document.body.textContent.includes("ChatGPT account unavailable"));
+    await act(() => releaseNew(null)); await waitFor(() => document.body.textContent.includes("ChatGPT アカウントを利用できません"));
     assert.equal(catalogReads, 0); assert.equal(shell(), null);
     accountResult = { ...signedOut, octopusHome: home }; await act(() => accountChanged());
-    assert.match(document.body.textContent, /Sign in to ChatGPT/); assert.doesNotMatch(document.body.textContent, /ChatGPT account unavailable/);
+    assert.match(document.body.textContent, /ChatGPT にログイン/); assert.doesNotMatch(document.body.textContent, /ChatGPT アカウントを利用できません/);
     accountResult = signedIn; await act(() => accountChanged());
     assert.match(document.body.textContent, /observation belongs to another Home/); assert.equal(catalogReads, 0);
     accountResult = { ...signedIn, octopusHome: home }; await act(() => accountChanged());
     await waitFor(() => document.body.textContent.includes("Review setup")); assert.equal(shell(), null); assert.equal(catalogReads, 1);
     configured = true; home = "/missing-aggregate"; accountResult = { ...signedIn, octopusHome: home }; await show();
-    await waitFor(() => document.body.textContent.includes("Workspace verification is incomplete")); assert.equal(shell(), null);
+    await waitFor(() => document.body.textContent.includes("ワークスペースの確認が未完了です")); assert.equal(shell(), null);
     assert.equal(setupWrites, 0);
   } finally {
     await act(() => root.unmount()); dom.window.close(); await fsp.rm(temporary, { recursive: true, force: true });

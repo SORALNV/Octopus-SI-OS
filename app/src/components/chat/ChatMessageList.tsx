@@ -27,6 +27,7 @@ import { commandActivityModel, commandOutcomeLabel, commandResultBody } from "./
 import { readProjection } from "../../projectionClient";
 import { appToast } from "../../toasts";
 import type { ArtifactReference } from "../artifacts/types";
+import { useOpenArtifactFiles } from "../files/FilesPaneNavigation";
 import { AssistantDirectiveSurfaces } from "./AssistantDirectiveSurfaces";
 import { projectAssistantDirectives, type AssistantVisualizationTarget } from "./assistantDirectives";
 import {
@@ -38,7 +39,6 @@ import {
 } from "./threadVirtualizer";
 
 const WorkingPatchDiff = lazy(() => import("./WorkingPatchDiff"));
-const TraceArtifactWorkbench = lazy(() => import("../artifacts/ArtifactWorkbench").then((module) => ({ default: module.ArtifactWorkbench })));
 
 type Props = {
   activityPresentation?: "conversation" | "ledger";
@@ -77,6 +77,7 @@ type Props = {
   steerableMessageId: string;
   revealPinnedContext: ChatPinnedContextItem | null;
   responseStreaming: boolean;
+  blockingReason?: string;
   onPinnedContextRevealed: () => void;
 };
 
@@ -188,6 +189,7 @@ export function ChatMessageList({
   steerableMessageId,
   revealPinnedContext,
   responseStreaming,
+  blockingReason = "",
   onPinnedContextRevealed,
 }: Props) {
   const stableContinueInNewTask = useStableCallback(onContinueInNewTask);
@@ -833,6 +835,7 @@ export function ChatMessageList({
                       pinnedArtifactIds={pinnedArtifactIds}
                       pinningArtifactIds={pinningArtifactIds}
                       responseStreaming={responseStreaming && turnIndex === turns.length - 1}
+                      blockingReason={turnIndex === turns.length - 1 && responseStreaming ? blockingReason : ""}
                       resolveAssistantVisualization={stableResolveAssistantVisualization}
                       taskActionsEnabled={taskActionsEnabled}
                       toolPresentations={toolPresentations}
@@ -1474,6 +1477,7 @@ function ChatTurn({
   pinnedArtifactIds,
   pinningArtifactIds,
   responseStreaming,
+  blockingReason,
   resolveAssistantVisualization,
   taskActionsEnabled,
   toolPresentations,
@@ -1496,6 +1500,7 @@ function ChatTurn({
   pinnedArtifactIds: string[];
   pinningArtifactIds: string[];
   responseStreaming: boolean;
+  blockingReason: string;
   resolveAssistantVisualization: Props["resolveAssistantVisualization"];
   taskActionsEnabled: boolean;
   toolPresentations: ChatToolPresentationIndex;
@@ -1570,14 +1575,14 @@ function ChatTurn({
       onTogglePinnedMessage={onTogglePinnedMessage}
       pinned={Boolean(message.artifactId && pinnedArtifactIds.includes(message.artifactId))}
       pinning={Boolean(message.artifactId && pinningArtifactIds.includes(message.artifactId))}
-      streaming={responseStreaming && isLatestTurn && message === response}
+      streaming={!blockingReason && responseStreaming && isLatestTurn && message === response}
       resolveAssistantVisualization={resolveAssistantVisualization}
       taskActionsEnabled={taskActionsEnabled}
       toolPresentations={toolPresentations}
     />
   ) : (
     <SelectableMessageText message={message} onPinMessageExcerpt={onPinMessageExcerpt} taskActionsEnabled={taskActionsEnabled}>
-      <AssistantEventContent find={findOf(message)} message={message} onOpenAssistantReview={onOpenAssistantReview} onOpenAssistantVisualization={onOpenAssistantVisualization} onOpenFile={onOpenFile} onOperatorRequestResponse={onOperatorRequestResponse} resolveAssistantVisualization={resolveAssistantVisualization} streaming={responseStreaming && isLatestTurn && (message === response || message.eventKind === "message_delta")} toolPresentations={toolPresentations} />
+      <AssistantEventContent find={findOf(message)} message={message} onOpenAssistantReview={onOpenAssistantReview} onOpenAssistantVisualization={onOpenAssistantVisualization} onOpenFile={onOpenFile} onOperatorRequestResponse={onOperatorRequestResponse} resolveAssistantVisualization={resolveAssistantVisualization} streaming={!blockingReason && responseStreaming && isLatestTurn && (message === response || message.eventKind === "message_delta")} toolPresentations={toolPresentations} />
     </SelectableMessageText>
   );
 
@@ -1605,6 +1610,7 @@ function ChatTurn({
       {visibleUser && turn.length > 1 ? <div aria-hidden="true" className="w-full" style={{ height: "var(--conversation-item-gap, 16px)" }} /> : null}
       <TurnActivity
         activities={activities}
+        blockingReason={blockingReason}
         turnInProgress={responseStreaming && isLatestTurn}
         finalStartedAtMs={finalStartedAtMs}
         presentation={activityPresentation}
@@ -1707,6 +1713,7 @@ function chatTurnPropsEqual(
     && stringListsEqual(previous.pinnedArtifactIds, next.pinnedArtifactIds)
     && stringListsEqual(previous.pinningArtifactIds, next.pinningArtifactIds)
     && previous.responseStreaming === next.responseStreaming
+    && previous.blockingReason === next.blockingReason
     && previous.resolveAssistantVisualization === next.resolveAssistantVisualization
     && previous.taskActionsEnabled === next.taskActionsEnabled
     && previous.toolPresentations === next.toolPresentations
@@ -1837,7 +1844,7 @@ function UserMessage({ find, message, onEditUserMessage, onSteerUserMessage, ste
           <div className="flex flex-col items-end gap-1">
             <div className="chat-user-message-content text-size-chat relative w-full min-w-0">
               <SelectableMessageText message={message} onPinMessageExcerpt={onPinMessageExcerpt} taskActionsEnabled={taskActionsEnabled}>
-                <CollapsibleMessageBody>
+                <CollapsibleMessageBody collapseIndicator="fade" text={message.text}>
                   <div className="text-size-chat whitespace-pre-wrap">
                     {message.text ? <MessageContent find={find} text={message.text} variant="user" /> : null}
                   </div>
@@ -2325,11 +2332,10 @@ function TraceReadTarget({ message, presentation, onOpenFile }: {
   presentation: DynamicToolPresentation;
   onOpenFile: Props["onOpenFile"];
 }) {
-  const [reference, setReference] = useState<ArtifactReference | null>(null);
+  const openArtifactFiles = useOpenArtifactFiles();
   const [pending, setPending] = useState(false);
   const attempt = useRef(0);
   useEffect(() => {
-    setReference(null);
     setPending(false);
     return () => { attempt.current += 1; };
   }, [message.eventData?.call_id, message.runId, presentation.target]);
@@ -2346,7 +2352,7 @@ function TraceReadTarget({ message, presentation, onOpenFile }: {
         run_id: message.runId,
       });
       if (request !== attempt.current) return;
-      setReference(traceReadArtifactReference(message, presentation, response));
+      openArtifactFiles(traceReadArtifactReference(message, presentation, response));
     } catch (error) {
       if (request === attempt.current) appToast.warning(error instanceof Error ? error.message : String(error));
     } finally {
@@ -2360,7 +2366,6 @@ function TraceReadTarget({ message, presentation, onOpenFile }: {
       : presentation.path ? () => onOpenFile(presentation.path, presentation.exactToolId) : undefined} variant="activity-target">
       <span aria-busy={pending || undefined} className="octopus-activity-detail octopus-activity-file-target">{presentation.pathLabel}</span>
     </MessageTooltip>
-    {reference ? <Suspense fallback={null}><TraceArtifactWorkbench reference={reference} presentation="overlay" onClose={() => setReference(null)} /></Suspense> : null}
   </>;
 }
 
@@ -2447,7 +2452,7 @@ function ExecActivity({ message, onOpenFile }: { message: ChatRenderMessage; onO
         ? query
           ? `${action} 対象 ${query}${target ? ` in ${target}` : ""}`
           : active && target
-            ? `${action} files in ${activityPathLabel(target)} folder`
+            ? `${action} files in ${activityPathLabel(target)} 内のフォルダー`
             : `${action} for files`
         : `${action} ファイル${target ? ` in ${target}` : ""}`;
     const detail = label.slice(action.length).trim();
@@ -3741,7 +3746,7 @@ function formatMessageTime(value: number): string {
 function formatLatency(value: number): string {
   if (!Number.isFinite(value) || value <= 0) return "";
   if (value < 1_000) return `${Math.round(value)} ms`;
-  return `${(value / 1_000).toFixed(value < 10_000 ? 2 : 1)} s`;
+  return `${(value / 1_000).toFixed(value < 10_000 ? 2 : 1)}  秒`;
 }
 
 function formatActivityElapsed(value: number): string {
@@ -3749,7 +3754,7 @@ function formatActivityElapsed(value: number): string {
   if (seconds < 60) return `${seconds}s`;
   const minutes = Math.floor(seconds / 60);
   const remainder = seconds % 60;
-  return remainder ? `${minutes}m ${remainder}s` : `${minutes}m`;
+  return remainder ? `${minutes} 分 ${remainder}s` : `${minutes}m`;
 }
 
 function searchableMessageText(value: string): string {

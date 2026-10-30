@@ -9,7 +9,7 @@ pub mod process_authority;
 
 pub use process_authority::{
     ProcessArgumentPathSpec, ProcessAuthoritySpec, ProcessEnvironmentSubpathSpec,
-    ProcessRootSubpathSpec, ProcessSandboxMode,
+    ProcessExecutableRelativePathSpec, ProcessRootSubpathSpec, ProcessSandboxMode,
 };
 
 #[derive(Debug, Error)]

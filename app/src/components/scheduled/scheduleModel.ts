@@ -19,6 +19,15 @@ export function normalizeScheduledInterface(value: unknown): ScheduledInterfaceP
           ? { type: "inactivity" as const, seconds: rawSchedule.seconds, interfaceMatch: rawSchedule.interface_match as Record<string, string>, excludeInterfaceMatch: objectValue(rawSchedule.exclude_interface_match) as Record<string, string> | null, withinEe: stringValue(rawSchedule.within_ee) }
           : null;
   const rawTemplate = objectValue(row.run_template);
+  const rawEvent = objectValue(row.event_source);
+  const eventSource = rawEvent ? {
+    sources: stringArray(rawEvent.sources),
+    targets: Array.isArray(rawEvent.targets) ? rawEvent.targets.flatMap((value) => {
+      const target = objectValue(value);
+      const runId = stringValue(target?.run_id);
+      return runId ? [{ runId, chatInterfaceId: stringValue(target?.chat_interface_id), title: stringValue(target?.title) || runId }] : [];
+    }) : [],
+  } : null;
   const runTemplate = rawTemplate ? {
     runId: stringValue(rawTemplate.run_id),
     eeId: stringValue(rawTemplate.ee_id),
@@ -29,9 +38,9 @@ export function normalizeScheduledInterface(value: unknown): ScheduledInterfaceP
   } : null;
   const valid = row.valid === true
     && status !== "invalid"
-    && Boolean(schedule)
-    && Boolean(runTemplate?.runId && runTemplate.eeId && runTemplate.workerInterfaceId)
-    && /^[0-9a-f]{64}$/.test(stringValue(row.activation_digest));
+    && (eventSource ? eventSource.targets.length > 0 && status === "enabled"
+      : Boolean(schedule) && Boolean(runTemplate?.runId && runTemplate.eeId && runTemplate.workerInterfaceId)
+        && /^[0-9a-f]{64}$/.test(stringValue(row.activation_digest)));
   return {
     interfaceId,
     displayName: stringValue(row.display_name) || interfaceId,
@@ -40,13 +49,14 @@ export function normalizeScheduledInterface(value: unknown): ScheduledInterfaceP
     activationDigest: stringValue(row.activation_digest),
     activationPath: stringValue(row.activation_path),
     descriptorPath: stringValue(row.descriptor_path),
+    eventSource,
     schedule,
     timezone: stringValue(row.timezone),
     fireOnStart: row.fire_on_start === true,
     instructions: typeof row.instructions === "string" ? row.instructions : "",
     reminderEnv: stringValue(row.reminder_env),
     runTemplate,
-    cloneEligible: valid && row.clone_eligible === true,
+    cloneEligible: valid && !eventSource && row.clone_eligible === true,
     template: row.template === true,
     inactivityState: normalizeInactivityState(row.inactivity_state),
     deliveries: Array.isArray(row.deliveries) ? row.deliveries.map(normalizeDelivery).filter((delivery): delivery is ScheduledDelivery => Boolean(delivery)) : [],
@@ -54,7 +64,7 @@ export function normalizeScheduledInterface(value: unknown): ScheduledInterfaceP
     lastMovementSeq: nullableInteger(row.last_movement_seq),
     nextRunAtMs: nullableTimestamp(row.next_run_at_ms),
     nextRunSource: row.next_run_source === "driver_state" || row.next_run_source === "schedule" ? row.next_run_source : "",
-    error: stringValue(row.error) || (valid ? "" : "The activation does not satisfy the cron_life contract."),
+    error: stringValue(row.error) || (valid ? "" : eventSource ? "このイベントの接続先には、受信中のタスクがありません。" : "The activation does not satisfy the cron_life contract."),
   };
 }
 
@@ -307,7 +317,8 @@ export function timezoneName(timezone: string, at: number = Date.now()): string 
   }
 }
 
-export function shortScheduleLabel(task: Pick<ScheduledInterfaceProjection, "schedule">): string {
+export function shortScheduleLabel(task: Pick<ScheduledInterfaceProjection, "schedule" | "eventSource">): string {
+  if (task.eventSource) return "イベント受信時";
   const schedule = task.schedule;
   if (!schedule || schedule.type === "once") return "";
   if (schedule.type === "interval") return formatInterval(schedule.intervalSeconds);
@@ -322,7 +333,8 @@ export function formatSchedule(task: Pick<ScheduledInterfaceProjection, "schedul
   return timezone ? `${describeSchedule(task)} · ${timezone}` : describeSchedule(task);
 }
 
-export function describeSchedule(task: Pick<ScheduledInterfaceProjection, "schedule">): string {
+export function describeSchedule(task: Pick<ScheduledInterfaceProjection, "schedule" | "eventSource">): string {
+  if (task.eventSource) return "イベント受信時";
   if (!task.schedule) return "Invalid schedule";
   if (task.schedule.type === "interval") return formatInterval(task.schedule.intervalSeconds);
   if (task.schedule.type === "inactivity") return `After ${formatInterval(task.schedule.seconds).replace(/^Every /, "")} without activity`;

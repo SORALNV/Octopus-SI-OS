@@ -34,7 +34,7 @@ export function SurfaceCopyButton({ value, label, className }: SurfaceCopyButton
     }
   }
 
-  const title = copied ? "Copied" : label;
+  const title = copied ? "コピーしました" : label;
 
   return (
     <button

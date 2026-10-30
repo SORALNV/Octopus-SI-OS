@@ -398,7 +398,7 @@ export function requestPresentation(kind: "approval" | "elicitation" | "user_inp
     if (history.from) context.push({ label: "開始", value: history.from });
     if (history.to) context.push({ label: "終了", value: history.to });
     if (history.limit !== undefined) context.push({ label: "取得件数の上限", value: String(history.limit) });
-    return { glyph: "lock", kicker: "Browsing history", title: "閲覧履歴へのアクセスを許可しますか？", detail: "", context };
+    return { glyph: "lock", kicker: "閲覧履歴", title: "閲覧履歴へのアクセスを許可しますか？", detail: "", context };
   }
   if (kind === "approval" && requestKind === "application") {
     const application = recordValue(detail.application);

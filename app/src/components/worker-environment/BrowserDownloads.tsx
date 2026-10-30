@@ -18,7 +18,7 @@ export function browserDownloadIndicator(snapshot: OctopusBrowserDownloadSnapsho
   const paused = active.length > 0 && active.every(record => record.status === "paused");
   const unseen = records.filter(record => snapshot?.unacknowledgedIds.includes(record.id));
   const failed = unseen.filter(record => record.status === "failed").length, complete = unseen.filter(record => record.status === "complete").length;
-  let label = active.length ? `Downloads, ${active.length} ${paused ? "paused" : "active"} download${active.length === 1 ? "" : "s"}${percent === null || paused ? "" : `, ${percent}% complete`}` : "Downloads";
+  let label = active.length ? `Downloads, ${active.length} ${paused ? "paused" : "active"} download${active.length === 1 ? "" : " 秒"}${percent === null || paused ? "" : `, ${percent}% complete`}` : "ダウンロード";
   if (failed) label += `, ${failed} failed download${failed === 1 ? "" : "s"} need attention`;
   else if (complete) label += `, ${complete} completed download${complete === 1 ? "" : "s"}`;
   return { active: active.length, paused, percent, attention: failed || complete, label };
@@ -33,7 +33,7 @@ function statusText(record: OctopusBrowserDownload) {
     const remaining = record.receivedBytes <= 0 ? "starting" : record.totalBytes <= record.receivedBytes ? "now" : seconds < 60 ? `${seconds}s` : seconds < 3600 ? `${Math.ceil(seconds / 60)}m` : `${Math.ceil(seconds / 3600)}h`;
     return [`${formatBytes(speed)}/s`, bytes, ...(record.totalBytes > 0 ? [remaining] : [])].join(" · ");
   }
-  const text = record.status === "complete" ? record.artifactPending ? "Collecting downloaded file" : record.fileExists ? "Downloaded" : "File moved or deleted" : record.status === "started" ? "Starting" : record.status === "paused" ? "Paused" : record.status === "failed" ? "Download failed" : record.status === "canceled" ? "Stopped" : "Native download no longer available";
+  const text = record.status === "complete" ? record.artifactPending ? "Collecting downloaded file" : record.fileExists ? "Downloaded" : "File moved or deleted" : record.status === "started" ? "Starting" : record.status === "paused" ? "一時停止中" : record.status === "failed" ? "Download failed" : record.status === "canceled" ? "Stopped" : "Native download no longer available";
   const time = activeStatuses.has(record.status) ? [] : [new Intl.DateTimeFormat(APP_LOCALE, { hour: "numeric", minute: "2-digit" }).format(record.updatedAtMs)];
   return [text, ...(record.status === "canceled" && !record.receivedBytes ? [] : [bytes]), ...time].join(" · ");
 }

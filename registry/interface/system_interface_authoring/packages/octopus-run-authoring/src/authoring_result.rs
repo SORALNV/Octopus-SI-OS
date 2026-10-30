@@ -4,7 +4,6 @@ use super::*;
 pub struct RunAuthoringResultIdentity {
     pub(crate) provider_interface: InterfaceId,
     pub(crate) profile: RunAuthoringProfile,
-    pub(crate) writer_history: Arc<Mutex<BTreeMap<RunId,writer_run::WriterHistory>>>,
     pub(crate) context_output_labels: BTreeSet<String>,
     pub(crate) session_snapshot_labels: BTreeSet<String>,
 }
@@ -18,7 +17,6 @@ impl RunAuthoringResultIdentity {
         Ok(Self {
             provider_interface: descriptor.id.clone(),
             profile,
-            writer_history: Arc::new(Mutex::new(BTreeMap::new())),
             context_output_labels,
             session_snapshot_labels,
         })
@@ -31,6 +29,7 @@ impl RunAuthoringResultIdentity {
     pub async fn consume_if_matches(
         &self,
         ctx: &InterfaceLiftContext,
+        session: &ProviderHandoffSession,
         movement: &Movement,
         envelope: &InterfaceInvocationEnvelope,
         artifact_label: &str,
@@ -43,6 +42,7 @@ impl RunAuthoringResultIdentity {
             ));
         }
         if artifact_label == self.artifact_label() {
+            session.validate_context(ctx)?;
             let payload = envelope.read_artifact_payload().map_err(|error| {
                 format!(
                     "provider movement {} authoring-result payload cannot be read: {error}",
@@ -54,7 +54,7 @@ impl RunAuthoringResultIdentity {
                 let record = RunRecord::from_bytes(&pinned_run_record).map_err(|error| {
                     format!("provider authoring result pinned run record is malformed: {error}")
                 })?;
-                if writer_run::consume_result(ctx, &self.writer_history, &self.profile, movement, &record)? { return Ok(()); }
+                if writer_run::consume_result(ctx, &session.writer_history, &self.profile, movement, &record)? { return Ok(()); }
                 let config = self.config_for_record(&record)?;
                 let result: FileWriteResultEnvelope =
                     serde_json::from_slice(&payload).map_err(|error| {

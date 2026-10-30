@@ -54,7 +54,7 @@ pub const SPAWN_ISOLATED_CWD: &str = "codex-cwd";
 pub const SPAWN_ISOLATION_CONFIG_OVERRIDES: &[&str] = &[
     "project_doc_max_bytes=0",
     "suppress_unstable_features_warning=true",
-    "model_context_window=371851",
+    "model_context_window=400000",
     "model_auto_compact_token_limit=350000",
     "features.shell_tool=false",
     "features.unified_exec=false",
@@ -309,8 +309,6 @@ const CURATED_OPENCODEX_HOME_DIR: &str = "opencodex-app-server-home";
 pub(crate) const CURATED_CODEX_TMP_DIR: &str = "tmp";
 const CURATED_CONFIG_TOML: &str = "\
 project_doc_max_bytes = 0
-model_context_window = 371851
-model_auto_compact_token_limit = 350000
 personality = \"none\"
 sandbox_mode = \"read-only\"
 web_search = \"disabled\"
@@ -1254,7 +1252,8 @@ fn build_curated_codex_home_with_auth_store(
         Err(error) => return Err(CuratedHomeError::Io(error)),
     }
 
-    std::fs::write(curated.join(CODEX_CONFIG_FILE_NAME), CURATED_CONFIG_TOML)
+    let config = format!("model_context_window = 400000\nmodel_auto_compact_token_limit = 350000\n{CURATED_CONFIG_TOML}");
+    std::fs::write(curated.join(CODEX_CONFIG_FILE_NAME), config)
         .map_err(CuratedHomeError::Io)?;
 
     Ok(curated)
@@ -1456,7 +1455,7 @@ mod tests {
             "curated config must pin the sandbox read-only: {cfg}"
         );
         assert!(
-            cfg.contains("model_context_window = 371851")
+            cfg.contains("model_context_window = 400000")
                 && cfg.contains("model_auto_compact_token_limit = 350000"),
             "curated config must pin the full owner-selected Codex context budget: {cfg}"
         );

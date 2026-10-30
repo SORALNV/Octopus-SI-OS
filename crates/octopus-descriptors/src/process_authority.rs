@@ -52,6 +52,8 @@ pub struct ProcessAuthoritySpec {
     #[serde(default)]
     pub executable_root_subpaths: BTreeSet<ProcessRootSubpathSpec>,
     pub executable_commands: BTreeSet<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub read_executable_relative_paths: Vec<ProcessExecutableRelativePathSpec>,
     pub read_env_paths: BTreeSet<String>,
     pub write_env_paths: BTreeSet<String>,
     pub executable_env_paths: BTreeSet<String>,
@@ -119,6 +121,13 @@ pub struct ProcessEnvironmentSubpathSpec {
     pub relative_path: String,
 }
 
+#[derive(Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord, schemars::JsonSchema, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProcessExecutableRelativePathSpec {
+    pub executable: String,
+    pub relative_path: String,
+}
+
 #[derive(
     Clone,
     Debug,
@@ -164,6 +173,8 @@ impl ProcessAuthoritySpec {
             && self.executable_paths.is_subset(&original.executable_paths)
             && self.executable_root_subpaths.is_subset(&original.executable_root_subpaths)
             && self.executable_commands.is_subset(&original.executable_commands)
+            && self.read_executable_relative_paths.iter()
+                .all(|path| original.read_executable_relative_paths.contains(path))
             && self.read_env_paths.is_subset(&original.read_env_paths)
             && self.write_env_paths.is_subset(&original.write_env_paths)
             && self.executable_env_paths.is_subset(&original.executable_env_paths)
@@ -238,6 +249,17 @@ impl ProcessAuthoritySpec {
         }
         for value in &self.executable_commands {
             validate_declared_executable("executable_commands", value)?;
+        }
+        for value in &self.read_executable_relative_paths {
+            if !self.executable_commands.contains(&value.executable) {
+                return Err(format!("process authority read_executable_relative_paths names undeclared executable {:?}", value.executable));
+            }
+            validate_atom("read_executable_relative_paths.relative_path", &value.relative_path)?;
+            if value.relative_path.contains('\0') || Path::new(&value.relative_path).components()
+                .any(|part| !matches!(part, Component::Normal(_) | Component::ParentDir | Component::CurDir))
+            {
+                return Err("process authority read_executable_relative_paths requires a relative path".into());
+            }
         }
         for value in &self.executable_root_subpaths {
             value.validate("executable_root_subpaths")?;
@@ -396,6 +418,26 @@ fn validate_relative_subpath(field: &str, value: &str) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn executable_relative_reads_are_explicit_and_cannot_be_added_by_a_copy() {
+        let original = ProcessAuthoritySpec {
+            executable_commands: BTreeSet::from(["interpreter".into()]),
+            ..Default::default()
+        };
+        let mut declared = original.clone();
+        declared.read_executable_relative_paths.push(ProcessExecutableRelativePathSpec {
+            executable: "interpreter".into(), relative_path: "../lib".into(),
+        });
+        assert!(declared.validate().is_ok());
+        assert!(!declared.narrows(&original));
+        assert!(original.narrows(&declared));
+        declared.read_executable_relative_paths[0].relative_path = "/unrelated".into();
+        assert!(declared.validate().is_err());
+        declared.read_executable_relative_paths[0].relative_path = "../lib".into();
+        declared.executable_commands.clear();
+        assert!(declared.validate().is_err());
+    }
 
     #[test]
     fn legacy_authority_preserves_pinned_canonical_bytes() {

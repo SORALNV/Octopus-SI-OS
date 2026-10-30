@@ -388,11 +388,7 @@ export function AccessSection({ accessProfile }: { accessProfile: OctopusClientA
       <OcGroup title="プライバシー" description="デスクトップの権限と、ローカルに保存されたアプリのデータです。">
         <OcCard>
           <PermissionRows />
-          <OcSettingsRow {...settingsTargetProps("access.recordings")}
-            control={<OcStatus label="成果物の規則に従う" tone="neutral" />}
-            description="音声は許可された成果物ファイルとして扱います。会話記録は実行の証跡として保持され、ローカルの音声入力履歴はプロフィールごとに管理されます。"
-            label="録音と文字起こし"
-          />
+
           <LocalDataRows
             clearState={clearLocalState}
             exportState={exportState}

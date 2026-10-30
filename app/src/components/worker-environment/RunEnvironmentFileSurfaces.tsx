@@ -429,7 +429,7 @@ function ProjectedFilesSurface({ onOpenFile, surface }: {
 }
 
 function FilesRootIdentity({ surface }: { surface: WorkerEnvironmentSurfaceProjection }) {
-  const label = surface.label.trim() || "Files";
+  const label = surface.label.trim() || "ファイル";
   const root = surface.root.trim();
   return (
     <div className="flex min-w-0 items-center gap-1.5 px-1 pb-1.5 text-xs text-token-text-secondary">

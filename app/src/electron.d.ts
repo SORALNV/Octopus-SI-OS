@@ -1,3 +1,4 @@
+import type { ClientBrowserRequest, ClientBrowserState } from "./clientBrowser";
 import type {
   ClientExtensionActionOutcome,
   ClientExtensionActionRequest,
@@ -57,6 +58,7 @@ declare global {
       cancelClientContextMenu(request: { requestId: string }): Promise<{ cancelled: boolean }>;
       windowZoomFactor(): number;
       appInfo(): Promise<OctopusAppInfo>;
+      openProblemReport(): Promise<void>;
       runClientDoctor(): Promise<OctopusClientDoctorReport>;
       copyText(value: string): Promise<{ copied: true }>;
       logClientEvent(request: OctopusClientLogRequest): Promise<{ written: true }>;
@@ -90,6 +92,8 @@ declare global {
       requestMicrophoneAccess(): Promise<OctopusMicrophoneAccess>;
       requestCameraAccess(): Promise<OctopusCameraAccess>;
       cameraAccessStatus(): Promise<OctopusCameraAccess>;
+      saveGestureTrace(text: string): Promise<OctopusGestureTraceSaved>;
+      revealGestureTrace(path: string): Promise<{ revealed: boolean; path: string }>;
       clientWindowBootstrap(): ClientWindowBootstrap | null;
       openClientWindow(request?: ClientWindowOpenRequest): Promise<ClientWindowOpenOutcome>;
       clientWindowReady(request: ClientWindowReadyRequest): Promise<ClientWindowOpenOutcome>;
@@ -167,6 +171,9 @@ declare global {
       mutateScheduledInterface(request: OctopusScheduledMutationRequest): Promise<OctopusScheduledMutationOutcome>;
       mutateApplicationPrivateConfiguration(request: OctopusApplicationPrivateConfigurationMutation): Promise<OctopusApplicationPrivateConfigurationOutcome>;
       mutateOctopusOsWorkspace(request: OctopusOsWorkspaceMutationRequest): Promise<OctopusOsWorkspaceMutationOutcome>;
+      clientBrowser(request: ClientBrowserRequest): Promise<ClientBrowserState | null>;
+      onClientBrowserState(listener: (state: ClientBrowserState) => void): () => void;
+      onClientBrowserOpened(listener: (state: ClientBrowserState) => void): () => void;
       openCdpViewer(request: OctopusCdpViewerOpenRequest): Promise<OctopusCdpViewerState>;
       prepareNativeBrowserViewer(request: OctopusNativeBrowserViewerPrepareRequest): Promise<OctopusNativeBrowserViewerPrepared>;
       acknowledgeNativeBrowserViewer(request: OctopusNativeBrowserViewerSyncRequest): Promise<OctopusNativeBrowserViewerState>;
@@ -220,6 +227,17 @@ declare global {
       submitChatSteer(request: OctopusChatSteerRequest): Promise<OctopusChatSteerResponse>;
       updateChatPins(request: OctopusChatPinsRequest): Promise<OctopusChatPinsResponse>;
       transcribeDictation(request: OctopusDictationRequest): Promise<OctopusDictationResponse>;
+      startDictationStream(request: { attemptId: string; sampleRateHz: number }): Promise<OctopusDictationLocalResult<null>>;
+      appendDictationAudio(attemptId: string, bytes: ArrayBuffer): void;
+      finishDictationStream(attemptId: string): Promise<OctopusDictationResponse>;
+      onDictationStreamEvent(listener: (event: OctopusDictationStreamEvent) => void): () => void;
+      cancelDictation(attemptId: string): Promise<void>;
+      readDictationRecordings(): Promise<OctopusDictationLocalResult<OctopusDictationRecordingState>>;
+      configureDictationRecordings(enabled: boolean): Promise<OctopusDictationLocalResult<OctopusDictationRecordingState>>;
+      saveDictationRecording(request: OctopusDictationRequest): Promise<OctopusDictationLocalResult<OctopusDictationRecording | null>>;
+      readDictationRecording(id: string): Promise<OctopusDictationLocalResult<{ entry: OctopusDictationRecording; bytes: Uint8Array }>>;
+      updateDictationRecording(request: { id: string; text: string; status: "transcribed" | "failed" }): Promise<OctopusDictationLocalResult<OctopusDictationRecording>>;
+      deleteDictationRecording(id: string | null): Promise<OctopusDictationLocalResult<null>>;
       submitInterfaceArtifact(request: OctopusInterfaceArtifactRequest): Promise<OctopusInterfaceArtifactResponse>;
       beginInterfaceArtifactStream(request: OctopusArtifactStreamBeginRequest): Promise<OctopusArtifactStreamHandle>;
       appendInterfaceArtifactStream(request: OctopusArtifactStreamAppendRequest): Promise<OctopusArtifactStreamProgress>;
@@ -1021,6 +1039,7 @@ export type OctopusInterfaceArtifactRequest = {
 };
 
 export type OctopusDictationRequest = {
+  attemptId: string;
   bytes: ArrayBuffer;
   durationMs: number;
   mediaType: "audio/wav";
@@ -1029,10 +1048,33 @@ export type OctopusDictationRequest = {
   timeoutMs?: number;
 };
 
-export type OctopusDictationResponse = {
+export type OctopusDictationResponse = OctopusDictationLocalResult<{
   provider: "codex";
   text: string;
   model: string;
+}>;
+
+export type OctopusDictationStreamEvent = { attemptId: string } & (
+  { type: "transcript"; text: string } | { type: "stop-requested" } | { type: "error"; error: { code: string; message: string } }
+);
+
+export type OctopusDictationLocalResult<T> = { ok: true; value: T } | { ok: false; error: { code: string; message: string } };
+
+export type OctopusDictationRecording = {
+  version: 1;
+  id: string;
+  createdAtMs: number;
+  durationMs: number;
+  byteLength: number;
+  status: "recorded" | "transcribed" | "failed";
+  text: string;
+};
+
+export type OctopusDictationRecordingState = {
+  version: 1;
+  enabled: boolean;
+  recordings: OctopusDictationRecording[];
+  maxRecordings: number;
 };
 
 export type OctopusInterfaceArtifactResponse = {
@@ -1184,6 +1226,12 @@ export type OctopusCameraAccess = {
   status: string;
 };
 
+export type OctopusGestureTraceSaved = {
+  path: string;
+  filename: string;
+  bytes: number;
+};
+
 export type OctopusTransportDefaults = {
   endpoint: string;
   repoRoot?: string | null;
@@ -1210,6 +1258,16 @@ export type OctopusRuntimeStatus = {
   hostError?: string | null;
 };
 
+export type OctopusHomeStorageHealth = {
+  status: "writable" | "blocked" | "unavailable";
+  availableBytes: number | null;
+  minimumBytes: number;
+  code: string | null;
+  message: string | null;
+};
+
+export type OctopusInterfaceFailure = { interfaceId: string; message: string };
+
 export type OctopusRuntimeHostState = {
   phase: string;
   ready: boolean;
@@ -1224,6 +1282,8 @@ export type OctopusRuntimeHostState = {
   launchEnv: Record<string, string>;
   endpoint: string;
   error: string | null;
+  storageHealth: OctopusHomeStorageHealth | null;
+  interfaceFailures: OctopusInterfaceFailure[];
   updatedAtMs: number;
 };
 
@@ -1604,7 +1664,7 @@ export type OctopusOsWorkspaceMutationRequest =
         eeId: string;
         sourceFolders?: string[];
         expectedProjectDigest?: string;
-        name: string;
+        name?: string;
         icon: string;
         color: string;
       }>;

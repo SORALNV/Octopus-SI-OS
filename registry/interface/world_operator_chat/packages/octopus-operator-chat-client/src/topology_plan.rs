@@ -439,9 +439,11 @@ pub(crate) fn plan_operator_chat_topology_files_for_source(
     )?;
     let run_record_content = catalogue.wire(&identity.model_interface_id, run_record_content)?;
     let run_record_content = home_outputs::wire(&identity, &topology, &role_artifacts, &selected_context, run_record_content)?;
-    let (run_record_content, intake) = input_intake::wire(registry_root, &identity, &mut writes, run_record_content)?;
+    let (run_record_content, intake) = input_intake::wire(registry_root, &identity, &mut writes, run_record_content)
+        .map_err(|error| format!("input intake composition: {error}"))?;
     let (run_record_content, mut voice_run_writes) = home_voice::wire(request, &config, &identity, &role_artifacts, &selected_context, run_record_content)?;
-    let run_record_content = context_bindings::configure_tool_context(registry_root, &identity, run_record_content, request.existing_run_record.as_ref())?;
+    let run_record_content = context_bindings::configure_tool_context(registry_root, &identity, run_record_content, request.existing_run_record.as_ref())
+        .map_err(|error| format!("tool context composition: {error}"))?;
     let run_record_content = if request.retain_current_capabilities {
         context_bindings::retain_context_access(run_record_content,
             request.existing_run_record.as_ref().ok_or("retained context access requires its existing record")?, &identity.model_interface_id)?
@@ -482,7 +484,7 @@ pub(crate) fn plan_operator_chat_topology_files_for_source(
     }
     let (run_record_content, mut run_writes) = if preserve_existing_writers {
         writer_runs::wire_preserving_existing(request, &identity, run_record_content)?
-    } else { writer_runs::wire(request, &identity, run_record_content)? };
+    } else { writer_runs::wire(request, &identity, run_record_content).map_err(|e| format!("writer composition: {e}"))? };
     run_writes.append(&mut voice_run_writes);
     run_writes.append(&mut maintenance_runs);
     let retained_paths = planned_retained_registry_paths(registry_root, &identity, &writes);

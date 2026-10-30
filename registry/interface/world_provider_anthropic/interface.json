@@ -54,6 +54,7 @@
       "instruction_artifacts": [],
       "worker_instruction_artifacts": [],
       "model_tool_names": {},
+      "native_thread_sandbox": "danger-full-access",
       "native_mcp_resource_discovery": true,
       "run_affordance_profile": {
         "catalog": {
@@ -3256,7 +3257,7 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
@@ -3307,7 +3308,7 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
@@ -3358,7 +3359,7 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
@@ -3409,7 +3410,7 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
@@ -3460,7 +3461,7 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
@@ -3511,7 +3512,7 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
@@ -3562,7 +3563,7 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
@@ -3613,7 +3614,7 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
@@ -3664,7 +3665,7 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
@@ -3715,7 +3716,7 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],
@@ -3766,7 +3767,7 @@
                 "limit": 10000
               },
               "supports_parallel_tool_calls": false,
-              "context_window": 1000000,
+              "context_window": 700000,
               "max_context_window": 1000000,
               "effective_context_window_percent": 95,
               "experimental_supported_tools": [],

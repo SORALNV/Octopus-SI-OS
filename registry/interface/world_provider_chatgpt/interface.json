@@ -3140,7 +3140,7 @@
         "isolation_overrides": [
           "project_doc_max_bytes=0",
           "suppress_unstable_features_warning=true",
-          "model_context_window=371851",
+          "model_context_window=400000",
           "model_auto_compact_token_limit=350000",
           "features.shell_tool=false",
           "features.unified_exec=false",

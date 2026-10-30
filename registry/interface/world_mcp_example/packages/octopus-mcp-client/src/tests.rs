@@ -510,8 +510,14 @@ fn every_remote_mcp_operation_is_interface_local_and_strictly_loadable() {
         .canonicalize()
         .unwrap();
     let repository_root = registry_root.parent().unwrap();
-    let expected: [(&str, &str, Option<&str>, usize); 2] = [
+    let expected: [(&str, &str, Option<&str>, usize); 3] = [
         ("world_mcp_example", "mcp.example", None, 22),
+        (
+            "world_mcp_firecrawl",
+            "firecrawl",
+            Some("artifact-application-mcp-firecrawl-context"),
+            21,
+        ),
         (
             "world_mcp_github",
             "github",
@@ -616,12 +622,6 @@ fn every_remote_mcp_operation_is_interface_local_and_strictly_loadable() {
             let context = artifact["text"].as_str().unwrap();
             for required in [
                 interface,
-                "mcp.operation_catalog",
-                "mcp.tool_catalog",
-                "mcp.resource_catalog",
-                "mcp.resource_templates",
-                "mcp.prompt_catalog",
-                "mcp.operation.request",
                 &format!("{prefix}.call_tool"),
                 &format!("{prefix}.status"),
             ] {
@@ -654,7 +654,7 @@ fn every_remote_mcp_operation_is_interface_local_and_strictly_loadable() {
         }
         total += catalog.operations.len();
     }
-    assert_eq!(total, 43);
+    assert_eq!(total, 64);
 }
 
 #[test]

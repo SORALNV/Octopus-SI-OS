@@ -21,7 +21,7 @@ export function AccountLogoutDialog({ account, open, busy, onClose, onConfirm }:
       </header>
       <div className="account-logout-description">
         <p>Octopus で ChatGPT を使い続けるには、もう一度ログインする必要があります。</p>
-        <p>次の場所を使うアプリケーションとホームは <code>{account?.credentialHome ?? "このネイティブの認証情報の保存先"}</code> このログインを共有しています。ログアウトすると保存済みのログイン情報が削除され、ChatGPT に新たにリクエストする際に再ログインが必要になります。</p>
+        <p>次の認証情報の保存先を使うアプリケーションとホームは、このログインを共有しています：<code>{account?.credentialHome ?? "このネイティブの認証情報の保存先"}</code>。ログアウトすると保存済みのログイン情報が削除され、ChatGPT に新たにリクエストする際に再ログインが必要になります。</p>
         <p>Octopus のホームとローカルの管理者アクセスは保持されます。</p>
       </div>
       <footer className="account-logout-actions">

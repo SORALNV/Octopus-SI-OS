@@ -764,7 +764,7 @@ function SimpleDonut({ rows, total }: { rows: Array<{ key: string; count: number
     return segment;
   });
   return (
-    <svg className="observability-artifact-donut" viewBox="0 0 96 96" aria-label={`${total} artifacts`} role="img">
+    <svg className="observability-artifact-donut" viewBox="0 0 96 96" aria-label={`${total} 成果物`} role="img">
       <circle className="observability-artifact-track" cx="48" cy="48" r={radius} />
       {segments.map((segment) => (
         <circle

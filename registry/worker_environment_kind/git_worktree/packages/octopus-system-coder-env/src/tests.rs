@@ -600,8 +600,16 @@ async fn direct_workspace_keeps_project_cwd_while_using_an_additional_granted_ro
 }
 
 #[test]
-fn persistent_exec_continuation_and_abandon_share_one_exact_tool_process() {
+fn persistent_coder_operations_keep_kind_owned_command_routing() {
     let tool_root = registry_root().join("tool");
+    let kind_id = WorkerEnvironmentKindId::new("git_worktree");
+    let (kind, _) = octopus_worker_env::WorkerEnvKindRegistry::load_kind_from_dir(
+        &registry_root().join("worker_environment_kind"),
+        &kind_id,
+    )
+    .unwrap()
+    .get(&kind_id)
+    .unwrap();
     let exec = load_tool_descriptor_from_dir(&tool_root, "coder.exec")
         .unwrap()
         .unwrap();
@@ -620,9 +628,6 @@ fn persistent_exec_continuation_and_abandon_share_one_exact_tool_process() {
     let list = load_tool_descriptor_from_dir(&tool_root, "coder.process.list")
         .unwrap()
         .unwrap();
-    for descriptor in [&write, &abandon, &signal, &terminate, &list] {
-        assert_eq!(descriptor.process, exec.process);
-    }
     for (descriptor, expected) in [
         (&exec, super::CoderOperation::StartCommand),
         (&write, super::CoderOperation::WriteStdin),
@@ -631,6 +636,9 @@ fn persistent_exec_continuation_and_abandon_share_one_exact_tool_process() {
         (&terminate, super::CoderOperation::ProcessTerminate),
         (&list, super::CoderOperation::ProcessList),
     ] {
+        super::validate_tool_code_world(descriptor, &kind_id).unwrap();
+        assert_eq!(descriptor.interface, exec.interface);
+        assert!(kind.tool_process_bins.contains(&descriptor.process.bin));
         let config = super::coder_handler_config(&ToolCall {
             tool_id: descriptor.id.as_str().to_string(),
             arguments: json!({}),
@@ -642,8 +650,16 @@ fn persistent_exec_continuation_and_abandon_share_one_exact_tool_process() {
 }
 
 #[test]
-fn direct_workspace_process_lifecycle_shares_one_kind_owned_process() {
+fn direct_workspace_operations_keep_kind_owned_command_routing() {
     let tool_root = registry_root().join("tool");
+    let kind_id = WorkerEnvironmentKindId::new("filesystem_workspace");
+    let (kind, _) = octopus_worker_env::WorkerEnvKindRegistry::load_kind_from_dir(
+        &registry_root().join("worker_environment_kind"),
+        &kind_id,
+    )
+    .unwrap()
+    .get(&kind_id)
+    .unwrap();
     let descriptors = [
         ("workspace.exec", super::CoderOperation::StartCommand),
         ("workspace.write_stdin", super::CoderOperation::WriteStdin),
@@ -666,7 +682,9 @@ fn direct_workspace_process_lifecycle_shares_one_kind_owned_process() {
         )
     });
     for (descriptor, expected) in &descriptors {
-        assert_eq!(descriptor.process, descriptors[0].0.process);
+        super::validate_tool_code_world(descriptor, &kind_id).unwrap();
+        assert_eq!(descriptor.interface, descriptors[0].0.interface);
+        assert!(kind.tool_process_bins.contains(&descriptor.process.bin));
         let config = super::coder_handler_config(&ToolCall {
             tool_id: descriptor.id.as_str().to_string(),
             arguments: json!({}),

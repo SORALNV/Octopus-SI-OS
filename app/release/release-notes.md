@@ -1,30 +1,31 @@
-# Octopus 日本語版 0.1.0 Preview 1
+# Octopus 日本語版 {{version}} Preview 2
 
-[miuuyy/Octopus-SI-OS](https://github.com/miuuyy/Octopus-SI-OS) の非公式日本語版です。初回案内、設定、メニュー、ナビゲーション、操作時の案内を日本語化しています。今回は日本語固定で、日英切り替えにはまだ対応していません。
+[miuuyy/Octopus-SI-OS](https://github.com/miuuyy/Octopus-SI-OS) の非公式日本語版です。上流の `04db3ff` までの49コミットを取り込み、日本語 UI を更新しました。日本語固定で、日英切り替えにはまだ対応していません。
 
-## ダウンロードとインストール
+## 主な更新
 
-**Apple Silicon（M1以降）・macOS 14以降**向けです。Intel Mac には対応していません。
+- 音声入力の開始・停止、失敗時の再試行、最近の録音と文字起こしの操作を更新・日本語化。
+- 新しいジェスチャー案内と、認識結果を調べる記録機能を日本語化。
+- 「ヘルプ」→「不具合を報告」の診断画面を日本語化。内容の確認後に GitHub の下書きを開く方式で、自動送信はしません。
+- セットアップ、ファイル表示、保存失敗時の案内、設定検索の日本語を更新。
+- 上流の復旧処理・プロバイダー・パッケージ更新の修正を取り込み、配布用の依存パッケージを更新。
 
-- `Octopus-{{version}}-macos-{{architecture}}.dmg` をダウンロードし、`Octopus.app` を Applications にコピーします。DMG 上から直接起動しないでください。
-- 別の Mac のコーディングエージェントに `install-prompt-ja.md` の内容を貼れば、取得・検証・インストールを依頼できます。
-- 既存のアプリを更新する場合は、アプリと実行中の処理を終了してから行ってください。Home・会話・設定・認証情報は削除しないでください。
+## インストール
 
-Node・Rust・ソースの Clone は不要です。Command Line Tools for Xcode が必要です。未導入の場合は `xcode-select --install` でインストールします。ChatGPT へのログインや必要な macOS 権限の許可は各 Mac で行ってください。
+**Apple Silicon（M1以降）・macOS 14以降**向けです。Intel Mac 向けの配布はありません。
 
-## 署名と初回起動
+`Octopus-{{version}}-macos-{{architecture}}.dmg` をダウンロードして、`Octopus.app` を Applications にコピーしてください。DMG 上から直接起動しないでください。別 Mac のコーディングエージェントには、添付の `install-prompt-ja.md` を渡してインストールを依頼できます。
 
-このプレビューは ad-hoc 署名で、Apple の公証を受けていません。`checksums.txt` で DMG の SHA-256 を照合し、コピーしたアプリを `codesign --verify --deep --strict` で検証してください。隔離属性の解除が必要な場合は、検証したアプリに限って行います。
+Node・Rust・ソースの Clone は不要です。Command Line Tools for Xcode が必要です。未導入なら `xcode-select --install` で導入してください。
 
-添付の `install.sh` はこの Fork の Preview 1 を取得し、SHA-256・署名・アプリ ID・バージョンを検証してからインストールします。検証済みコピーの隔離属性を解除し、既存アプリはバックアップとして残します。内容を確認してから実行してください。
+更新前に Octopus と実行中の処理を終了してください。添付の `install.sh` はこの版を取得し、チェックサム・署名・アプリ ID・バージョンを検証してからインストールします。既存のアプリは別名で残し、Home・会話・設定・認証情報は削除しません。
 
-## 検証範囲・既知の制限
+## 署名・検証範囲
 
-- 専用テスト用 Home で、パッケージ版の初回案内・Home・設定・日本語検索を確認済みです。DMG 作成時に全ファイルの内容・権限・リンクとコード署名を再検証しています。
-- 別の実機 Mac へのインストール、実アカウントでの新規ログインとモデル応答は未検証です。
-- 利用者のメッセージ、モデル応答、外部サービスの文言は翻訳しません。訳語やレイアウトはプレビューとして改善中です。
-- 日本語化の基準は上流 `c44cede`、アプリのソースは日本語化コミット `2ba67fb` です。その後の上流更新は含みません。
-- 以前からローカルにあった依存パッケージ更新と ES2023 の型検査設定を使って作成しています。公開ソースとの差は `build-info.json` に記載しています。
-- 自動更新はありません。上流への追従は依頼時に行います。
+このプレビューは ad-hoc 署名で、Apple の公証を受けていません。`checksums.txt` で取得ファイルの SHA-256 を照合し、コピーしたアプリを `codesign --verify --deep --strict` で確認してください。インストーラーは、検証したアプリのコピーに限って初回起動用の隔離属性を解除します。
 
-[日本語版の方針](https://github.com/SORALNV/Octopus-SI-OS/blob/main/docs/japanese-fork.md) · [初回設定](https://github.com/SORALNV/Octopus-SI-OS/blob/main/docs/getting-started.md)
+ビルドの基準コミット、依存パッケージ、実施した検証と未確認事項は `build-info.json` に記載しています。実アカウントでの新規ログインやモデル応答、別の実機 Mac での動作は、この配布の検証には含みません。
+
+利用者のメッセージ・モデル応答・外部サービスから届く内容は翻訳しません。自動更新はありません。上流への追従は依頼時に行います。
+
+[日本語版の方針](https://github.com/SORALNV/Octopus-SI-OS/blob/ja-v0.1.1-preview.2/docs/japanese-fork.md)

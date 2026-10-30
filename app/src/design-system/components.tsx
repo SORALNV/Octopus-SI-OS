@@ -346,7 +346,7 @@ export function OcAnimatedActionSlot({ children, className }: OcAnimatedActionSl
 }
 
 type OcIconButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  appearance?: "default" | "sidebar" | "compact" | "rail";
+  appearance?: "default" | "sidebar" | "compact" | "rail" | "dialog-close";
   buttonRef?: Ref<HTMLButtonElement>;
   glyph: GlyphName;
   label: string;
@@ -1579,10 +1579,10 @@ export function OcDialogHeader({
     <header {...props} className={cx("flex shrink-0 items-start gap-4 px-6 pt-6 pb-4", className)}>
       {leading ? <div className="shrink-0">{leading}</div> : null}
       <div className="min-w-0 flex-1">
-        <h2 className="heading-lg m-0 text-token-foreground" id={titleId}>{title}</h2>
+        <h2 className="heading-dialog m-0 font-semibold text-token-foreground" id={titleId}>{title}</h2>
         {description ? <p className="mt-1 text-sm leading-5 text-token-text-secondary">{description}</p> : null}
       </div>
-      {onClose ? <OcIconButton disabled={closeDisabled} glyph="close" label={closeLabel} onClick={onClose} variant="ghost" /> : null}
+      {onClose ? <OcIconButton appearance="dialog-close" disabled={closeDisabled} glyph="close" label={closeLabel} onClick={onClose} variant="ghost" /> : null}
     </header>
   );
 }

@@ -324,14 +324,6 @@ pub(crate) fn retain_context_access(
         };
         template.include_context = prior.include_context;
         template.name = prior.name.clone();
-        let mut ids = prior
-            .static_artifact_bindings
-            .iter()
-            .filter(|id| template.static_artifact_bindings.contains(id))
-            .cloned()
-            .collect::<Vec<_>>();
-        append_static_bindings(&mut ids, &template.static_artifact_bindings);
-        template.static_artifact_bindings = ids;
         let matches = |cp: &&octopus_runtime::run_record::CheckpointRecord| {
             cp.interface_binding.as_ref() == Some(&template.interface_binding)
                 && cp.outbound_interface_bindings == template.outbound_interface_bindings
@@ -354,6 +346,13 @@ pub(crate) fn retain_context_access(
         }
         if let [prior_row] = prior_rows.as_slice() {
             if let [next_row] = next_rows.as_slice() {
+                // Preserve ordering together with its persisted checkpoint. A rearmed
+                // output has no prior row and must keep its newly composed ordering.
+                let mut ids = prior.static_artifact_bindings.iter()
+                    .filter(|id| template.static_artifact_bindings.contains(id))
+                    .cloned().collect::<Vec<_>>();
+                append_static_bindings(&mut ids, &template.static_artifact_bindings);
+                template.static_artifact_bindings = ids;
                 retained.insert(next_row.id.clone(), prior_row.artifact_bindings.clone());
             }
         }

@@ -41,6 +41,7 @@ import "./client-surfaces.css";
 import { homeSurfaceLayoutIdentity } from "./homePresentation";
 import { HOME_SURFACE_FORMING, HOME_SURFACE_LEAVING } from "./homeSurfaceMotion";
 import { placeVoiceWidget, type WidgetRect } from "./voiceWidgetPlacement";
+import scrollbarCss from "../design-system/scrollbars.css?raw";
 
 const VOICE_WIDGET_LAYOUT_RESET_EVENT = "octopus:voice-widget-layout-reset";
 
@@ -128,6 +129,7 @@ export function ClientSurfaceRenderer({ accessProfile, admitted, onAction, onDis
         animate={{ opacity: voiceLeaving ? 0 : 1 }}
         className={`voice-projection-card client-surface-frame ${OCTOPUS_WIDGET_SURFACE_CLASS} is-${document.render.kind}${densityClass}${widgetResize.layoutReady ? " is-layout-ready" : ""}${widgetResize.interacting ? " is-interacting" : ""}`}
         data-content-fit={document.target.layout.content_fit}
+        data-gesture-label={document.title}
         data-surface-document={document.id}
         data-surface-artifact={admitted.sourceArtifactId}
         data-surface-run={admitted.sourceRunId}
@@ -144,6 +146,7 @@ export function ClientSurfaceRenderer({ accessProfile, admitted, onAction, onDis
         <button
           aria-label={`移動 ${document.title}`}
           className="voice-widget-drag-handle"
+          data-gesture-ignore=""
           onLostPointerCapture={widgetResize.onPointerEnd}
           onPointerCancel={widgetResize.onPointerEnd}
           onPointerDown={widgetResize.onDragPointerDown}
@@ -158,7 +161,7 @@ export function ClientSurfaceRenderer({ accessProfile, admitted, onAction, onDis
               <strong>{document.title}</strong>
             </span>
             {onDismiss ? (
-              <button aria-label={`非表示 ${document.title}`} className="client-surface-dismiss" onClick={onDismiss} type="button">
+              <button aria-label={`非表示 ${document.title}`} className="client-surface-dismiss" data-surface-dismiss="" onClick={onDismiss} type="button">
                 <Glyph name="close" size={14} />
               </button>
             ) : null}
@@ -186,6 +189,7 @@ export function ClientSurfaceRenderer({ accessProfile, admitted, onAction, onDis
       <motion.section
         animate={voiceLeaving ? { opacity: 0, scale: 0.985, y: 5 } : { opacity: 1, scale: 1, y: 0 }}
         className={`voice-surface-window client-surface-frame ${OCTOPUS_FLOATING_SURFACE_CLASS} is-${document.render.kind}${densityClass}${widgetResize.layoutReady ? " is-layout-ready" : ""}${widgetResize.interacting ? " is-interacting" : ""}`}
+        data-gesture-label={document.title}
         data-surface-document={document.id}
         data-surface-artifact={admitted.sourceArtifactId}
         data-surface-run={admitted.sourceRunId}
@@ -203,6 +207,7 @@ export function ClientSurfaceRenderer({ accessProfile, admitted, onAction, onDis
         <button
           aria-label={`移動 ${document.title}`}
           className="voice-widget-drag-handle"
+          data-gesture-ignore=""
           onLostPointerCapture={widgetResize.onPointerEnd}
           onPointerCancel={widgetResize.onPointerEnd}
           onPointerDown={widgetResize.onDragPointerDown}
@@ -213,7 +218,7 @@ export function ClientSurfaceRenderer({ accessProfile, admitted, onAction, onDis
         <header>
           <span><strong>{document.title}</strong></span>
           {onDismiss ? (
-            <button aria-label={`非表示 ${document.title}`} onClick={onDismiss} type="button">
+            <button aria-label={`非表示 ${document.title}`} data-surface-dismiss="" onClick={onDismiss} type="button">
               <Glyph className="icon-xs" name="close" size={16} />
             </button>
           ) : null}
@@ -257,7 +262,7 @@ type WidgetInteractionStart = {
   bounds: DOMRect;
   corner?: VoiceSpatialCorner;
   inputId: string;
-  kind: "drag" | "resize";
+  kind: "drag" | "resize" | "transform";
   pointerX: number;
   pointerY: number;
   stageBounds: DOMRect;
@@ -549,7 +554,7 @@ export function useVoiceWidgetResize(
     beginPointerInteraction("resize", corner, event);
   }
 
-  function moveInteractionAt(clientX: number, clientY: number, inputId: string) {
+  function moveInteractionAt(clientX: number, clientY: number, inputId: string, scale = 1) {
     const start = active.current;
     const element = ref.current;
     if (!start || start.inputId !== inputId || !element) return;
@@ -557,6 +562,22 @@ export function useVoiceWidgetResize(
     const deltaY = clientY - start.pointerY;
     const stageWidth = start.stageBounds.width;
     const stageHeight = start.stageBounds.height;
+    if (start.kind === "transform") {
+      const bounds = widgetSizeBounds(sizePolicy, stageWidth, stageHeight, element);
+      const width = clamp(start.bounds.width * scale, bounds.minWidth, bounds.maxWidth);
+      const height = clamp(start.bounds.height * scale, bounds.minHeight, bounds.maxHeight);
+      setGeometry((current) => ({
+        ...current,
+        height,
+        stageHeight,
+        stageWidth,
+        width,
+        x: clamp(start.x + (start.bounds.width - width) / 2 + deltaX, WIDGET_EDGE_GAP, Math.max(WIDGET_EDGE_GAP, stageWidth - width - WIDGET_EDGE_GAP)),
+        y: clamp(start.y + (start.bounds.height - height) / 2 + deltaY, WIDGET_EDGE_GAP, Math.max(WIDGET_EDGE_GAP, stageHeight - height - WIDGET_EDGE_GAP)),
+        z: start.z,
+      }));
+      return;
+    }
     if (start.kind === "drag") {
       setGeometry((current) => ({
         ...current,
@@ -635,7 +656,7 @@ export function useVoiceWidgetResize(
       return;
     }
     if (interaction.phase === "move") {
-      moveInteractionAt(interaction.clientX, interaction.clientY, inputId);
+      moveInteractionAt(interaction.clientX, interaction.clientY, inputId, interaction.scale);
       return;
     }
     endInteraction(inputId);
@@ -1434,7 +1455,12 @@ function sandboxThemeCss(): string {
   const textSmall = token("--text-sm", "12px");
   const textExtraSmall = token("--text-xs", "11px");
   const radius = token("--radius-lg", "10px");
-  return `:root{color-scheme:${colorScheme};--color-background-primary:${backgroundPrimary};--color-background-secondary:${backgroundSecondary};--color-text-primary:${textPrimary};--color-text-secondary:${textSecondary};--color-text-tertiary:${textTertiary};--color-border-primary:${border};--color-accent:${accent};--color-danger:${danger};--font-sans:${fontSans};--font-mono:${fontMono};--text-base:${textBase};--text-sm:${textSmall};--text-xs:${textExtraSmall};--border-radius-md:${radius}}*{box-sizing:border-box}html,body{min-height:100%;margin:0;background:transparent;color:var(--color-text-primary);font-family:var(--font-sans);font-size:var(--text-base);-webkit-font-smoothing:antialiased}`;
+  const scrollbarTokens = ["background", "hover-background", "active-background"]
+    .map((state) => {
+      const name = `--color-token-scrollbar-slider-${state}`;
+      return `${name}:${token(name, border)}`;
+    }).join(";");
+  return `:root{color-scheme:${colorScheme};--color-background-primary:${backgroundPrimary};--color-background-secondary:${backgroundSecondary};--color-text-primary:${textPrimary};--color-text-secondary:${textSecondary};--color-text-tertiary:${textTertiary};--color-border-primary:${border};--color-accent:${accent};--color-danger:${danger};--font-sans:${fontSans};--font-mono:${fontMono};--text-base:${textBase};--text-sm:${textSmall};--text-xs:${textExtraSmall};--border-radius-md:${radius};${scrollbarTokens}}*{box-sizing:border-box}html,body{min-height:100%;margin:0;background:transparent;color:var(--color-text-primary);font-family:var(--font-sans);font-size:var(--text-base);-webkit-font-smoothing:antialiased}${scrollbarCss}`;
 }
 
 function dispatchAction(

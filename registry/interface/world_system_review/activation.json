@@ -123,6 +123,9 @@
           "context_artifact_bindings": [
             {
               "id": "artifact-system-review-role"
+            },
+            {
+              "id": "artifact-system-library"
             }
           ]
         },

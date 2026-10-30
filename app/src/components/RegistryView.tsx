@@ -629,7 +629,7 @@ function RegistryDirectoryColumn({ activePath, frame, index, onFileContextMenu, 
     event.preventDefault();
     focusEntry(target);
   };
-  const title = root ? "Registry" : registryDisplayName(frame.path.split("/").at(-1) ?? frame.path);
+  const title = root ? "レジストリ" : registryDisplayName(frame.path.split("/").at(-1) ?? frame.path);
   const meta = loading
     ? "loading"
     : error

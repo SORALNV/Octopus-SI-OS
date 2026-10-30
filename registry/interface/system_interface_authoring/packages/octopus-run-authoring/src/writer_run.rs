@@ -1220,16 +1220,30 @@ fn history(
     }
     let mut last_start = None;
     let declared = writer(config)?;
+    let mut indexed = reader.indexed_outbound_edges(&[
+        (&declared.source, &declared.door), (&declared.door, &declared.owner),
+    ])?;
     let target_path = ctx
         .root_slot("run_records_root")?
         .canonicalize()
         .map_err(|e| e.to_string())?
         .join(format!("{}.json", config.run));
     loop {
+        if let Some(row) = indexed.as_mut().and_then(|rows| rows.pop_front()) {
+            reader.reader.seek(std::io::SeekFrom::Start(row.start_offset)).map_err(|error| error.to_string())?;
+            reader.next_seq = row.seq;
+        }
         let seq = reader.next_seq;
         let start = reader.reader.stream_position().map_err(|e| e.to_string())?;
         reader.snapshot_bytes = 0;
-        let Some(movement) = reader.movement(seq)? else {
+        let Some(movement) = reader.movement_with_grant_if(seq, |movement| {
+            movement.kind == MovementKind::InterfaceOutbound
+                && movement.runtime().is_some_and(|runtime| runtime.run == binding.run)
+                && ((movement.from == Endpoint::Interface(declared.source.clone())
+                    && movement.to == Endpoint::Interface(declared.door.clone()))
+                    || (movement.from == Endpoint::Interface(declared.door.clone())
+                        && movement.to == Endpoint::Interface(declared.owner.clone())))
+        })? else {
             break;
         };
         last_start = Some(start);

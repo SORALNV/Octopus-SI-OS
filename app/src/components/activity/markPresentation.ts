@@ -25,7 +25,6 @@ const markPresentations: Record<string, ActivityPresentation> = {
   "coder.build.ok": { label: "ビルドの検証に合格", category: "Code", glyph: "code", description: "プロジェクトのビルド検証に合格しました。" },
   "context.recipe.valid": { label: "コンテキストの構成を検証済み", category: "Context", glyph: "layers", description: "実行に渡すコンテキストを構成し、その定義と照合しました。" },
   "email.authorization.requested": { label: "メールへのアクセス許可を要求", category: "Access", glyph: "lock", description: "実行からメールを使うための許可が求められました。" },
-  "hook.gate.passed": { label: "フックのチェックに合格", category: "Checks", glyph: "check", description: "設定されたフックが、このステップの続行を許可しました。" },
   "lifecycle.decision.allowed": { label: "ライフサイクルの操作を許可", category: "Checks", glyph: "check", description: "ライフサイクルの確認により、次のステップを許可しました。" },
   "ocr.text.contains": { label: "画面の文字を照合済み", category: "Computer Use", glyph: "desktop", description: "画面上で期待された文字を認識しました。" },
 };

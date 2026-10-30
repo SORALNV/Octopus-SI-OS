@@ -39,7 +39,6 @@ const stubbed = {
   MessageContent: 'export function MessageContent({ text }) { return createElement("span", { "data-content": "" }, text); }',
   QueuedMessageList: "export function QueuedMessageList() { return null; }",
   OperatorRequestSurface: "export function OperatorRequestSurface() { return null; }",
-  AirHandVoiceController: "export function AirHandVoiceController() { return null; }",
   HomeCallControls: "export function HomeCallControls() { return null; }",
   VoiceOrbScene: "export function VoiceOrbScene() { return null; }",
   OctopusOceanScene: "export function OctopusOceanScene() { return null; }",

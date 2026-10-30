@@ -229,9 +229,9 @@ export function paneWorkerEnvironmentSurfaceLabel(
   const label = surface.label.trim();
   const fileSurfaces = workerEnvironmentProductSurfaces(workerEnvironment.surfaces)
     .filter((candidate) => workerEnvironmentPanelKind(candidate) === "files");
-  if (fileSurfaces.length <= 1) return label || filesystemRootLabel(surface.root) || "Files";
+  if (fileSurfaces.length <= 1) return label || filesystemRootLabel(surface.root) || "ファイル";
   if (label && label.toLowerCase() !== "files") return label;
-  const genericLabel = label || "Files";
+  const genericLabel = label || "ファイル";
   const rootLabel = surfaceSlotLabel(surface.data.slot) || filesystemRootLabel(surface.root);
   return rootLabel && rootLabel.toLowerCase() !== genericLabel.toLowerCase()
     ? `${genericLabel} · ${rootLabel}`

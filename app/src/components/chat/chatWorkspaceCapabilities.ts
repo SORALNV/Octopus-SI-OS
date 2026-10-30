@@ -164,9 +164,11 @@ export function providerForExistingRun(
   run: ChatRun | undefined,
   selection: { runId: string; eeId: string; workerInterfaceId: string },
 ): OctopusProviderInterface | null {
+  const workerChoiceInterfaceId = run?.workerChoiceInterfaceId || run?.workerInterfaceId;
   if (!run || !run.writable || run.archived || !run.providerBoundInterfaceId
     || run.runId !== selection.runId || run.eeId !== selection.eeId
-    || (run.workerChoiceInterfaceId || run.workerInterfaceId) !== selection.workerInterfaceId
+    || !selection.workerInterfaceId
+    || (selection.workerInterfaceId !== workerChoiceInterfaceId && selection.workerInterfaceId !== run.workerInterfaceId)
     || run.providerInterfaceId !== provider.id) return null;
   return provider;
 }
@@ -392,6 +394,10 @@ export function executionContextTaskCapabilities(
   }
   return {
     doorHostSlots,
+    workspaceSelectionError: selectedDrivers.some((driver) => driver.rootSlots.includes("workspace_root")
+      && driver.doorInterfaces.some((door) => !doorHostSlots[door]?.workspace_root && !context?.hostRootRefs.workspace_root))
+      ? "このタスクには作業フォルダーがありません。プロジェクトのフォルダーを選ぶか、タスクのアクセス設定を変更してください。"
+      : "",
     externalInputs,
     externalRelays,
     modelOutputs,

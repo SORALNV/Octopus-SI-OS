@@ -383,6 +383,7 @@ async fn up(restart: Arc<std::sync::atomic::AtomicBool>) -> Result<(), Box<dyn s
     let mut runtime_instance = runtime_instance::RuntimeInstance::acquire(&octopus_home)?;
     survive_terminal_hangup(&octopus_home.join("state").join("runtime-instance").join("output.log"))?;
     let runtime_control = runtime_control::RuntimeControl::bind(&octopus_home)?;
+    let interface_failure_status = runtime_control.interface_failures();
     boot.stage("control", runtime_control.path().display());
     let _runtime_control_task = AbortOnDrop(tokio::spawn(runtime_control.serve(
         octopus_home.clone(),
@@ -609,6 +610,9 @@ async fn up(restart: Arc<std::sync::atomic::AtomicBool>) -> Result<(), Box<dyn s
                 }
             };
             let initial_interface_lives = interface_activation_reconciler.initial_task_count;
+            interface_failure_status
+                .set(interface_activation_reconciler.reconciler.observe_failures())
+                .map_err(|_| "interface failure status was already registered")?;
             let initial_interface_failures = interface_activation_reconciler.initial_failures.len();
             for (interface, error) in &interface_activation_reconciler.initial_failures {
                 eprintln!(

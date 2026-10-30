@@ -1,8 +1,10 @@
 import { useCallback, useSyncExternalStore } from "react";
+import type { GestureInteraction } from "./airHandEngine";
 import { clientCommands, type ClientCommandId } from "./clientActions";
 import type { OctopusClientAccessProfile } from "./electron";
 
-export type AirHandGestureId = "open_palm" | "left_click" | "fist" | "swipe_left" | "swipe_right";
+export type AirHandGestureId = "swipe_left" | "swipe_right" | "fist";
+export type GestureEventSource = "camera" | "test";
 export type GestureCommandId = ClientCommandId | "none";
 export type GestureSensitivity = "responsive" | "balanced" | "deliberate";
 
@@ -17,11 +19,9 @@ export type GestureShortcutPreferences = Readonly<{
 }>;
 
 export const airHandGestures: readonly { id: AirHandGestureId; label: string; detail: string }[] = [
-  { id: "open_palm", label: "手のひらを開く", detail: "手のひらを開いて静止するポーズ" },
-  { id: "left_click", label: "指を曲げる", detail: "他の指を閉じたまま人差し指を曲げるポーズ" },
-  { id: "fist", label: "握りこぶし", detail: "こぶしを握って静止するポーズ" },
-  { id: "swipe_left", label: "左にスワイプ", detail: "手のひらか二本指を素早く左に動かす" },
-  { id: "swipe_right", label: "右にスワイプ", detail: "手のひらか二本指を素早く右に動かす" },
+  { id: "swipe_left", label: "左にスワイプ", detail: "開いた手を左に素早く払います。ボタンを探さずに前の画面へ戻れます。" },
+  { id: "swipe_right", label: "右にスワイプ", detail: "開いた手を右に素早く払います。次の画面へ進めます。" },
+  { id: "fist", label: "手を握って保持", detail: "手を握ってしばらく静止すると、ここで選んだ操作を実行します。" },
 ];
 
 const DEFAULT_PREFERENCES: GestureShortcutPreferences = Object.freeze({
@@ -31,17 +31,17 @@ const DEFAULT_PREFERENCES: GestureShortcutPreferences = Object.freeze({
   sensitivity: "balanced",
   spatialControl: true,
   mappings: Object.freeze({
-    open_palm: "none",
-    left_click: "none",
-    fist: "none",
     swipe_left: "navigate_back",
     swipe_right: "navigate_forward",
+    fist: "none",
   }),
   removedBuiltins: Object.freeze([]),
 });
 
 const STORAGE_KEY = "octopus.gesture-shortcuts.v1";
 const GESTURE_EVENT = "octopus:airhand-gesture";
+const INTERACTION_EVENT = "octopus:airhand-interaction";
+const INTERACTION_TYPES: Readonly<Record<GestureInteraction["type"], true>> = { point: true, navigate: true, press: true, grab: true, release: true, cancel: true, transform: true };
 const stores = new Map<OctopusClientAccessProfile, GestureStore>();
 
 type GestureStore = {
@@ -70,11 +70,28 @@ export function defaultAirHandGestureCommand(gesture: AirHandGestureId): Gesture
   return DEFAULT_PREFERENCES.mappings[gesture];
 }
 
-export function emitAirHandGesture(gesture: AirHandGestureId, source: "camera" | "test"): void {
+export function emitAirHandGesture(gesture: AirHandGestureId, source: GestureEventSource): void {
   window.dispatchEvent(new CustomEvent(GESTURE_EVENT, { detail: { gesture, source } }));
 }
 
-export function subscribeAirHandGestures(listener: (gesture: AirHandGestureId, source: "camera" | "test") => void): () => void {
+export function emitGestureInteraction(interaction: GestureInteraction, source: GestureEventSource): void {
+  window.dispatchEvent(new CustomEvent(INTERACTION_EVENT, { detail: { interaction, source } }));
+}
+
+export function subscribeGestureInteractions(listener: (interaction: GestureInteraction, source: GestureEventSource) => void): () => void {
+  const handle = (event: Event) => {
+    if (!(event instanceof CustomEvent)) return;
+    const interaction = event.detail?.interaction as GestureInteraction | undefined;
+    const source = event.detail?.source;
+    if (!interaction || !Object.prototype.hasOwnProperty.call(INTERACTION_TYPES, interaction.type)) return;
+    if (source !== "camera" && source !== "test") return;
+    listener(interaction, source);
+  };
+  window.addEventListener(INTERACTION_EVENT, handle);
+  return () => window.removeEventListener(INTERACTION_EVENT, handle);
+}
+
+export function subscribeAirHandGestures(listener: (gesture: AirHandGestureId, source: GestureEventSource) => void): () => void {
   const handle = (event: Event) => {
     if (!(event instanceof CustomEvent)) return;
     const gesture = event.detail?.gesture;

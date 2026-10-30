@@ -184,6 +184,7 @@ function operatorOsProjection(store) {
       const template = templates.get(templateName) ?? {};
       return [{
         ee_id: eeId,
+        name: stringValue(environment.name),
         parent_ee_id: stringValue(environment.parent_ee_id),
         template_name: templateName,
         goal: stringValue(environment.goal),

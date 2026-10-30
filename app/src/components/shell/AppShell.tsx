@@ -13,7 +13,6 @@ import type { ChatExecutionContext, ChatRun } from "../../chatRuns";
 import {
   profileStorageKey,
 } from "../../shell/clientWorkspaces";
-import { appToast } from "../../toasts";
 import { Sidebar } from "../Sidebar";
 import { NavigationRail } from "./NavigationRail";
 import { DashboardViewMenu } from "./DashboardViewMenu";
@@ -45,8 +44,9 @@ type Props = {
   settingsSurface?: ReactNode;
   onCloseSettings?: () => void;
   accessProfile: "live" | "lab";
-  clientWindowScope: string;
-  defaultSidebarOpen: boolean;
+  paneStateKey: string;
+  preferredSidebarOpen: boolean;
+  onSidebarOpenChange: (open: boolean) => void;
   sidebarWidth: number;
   surfaces: ClientSurfaceDescriptor[];
   navigationSection: ClientNavigationSection;
@@ -114,8 +114,9 @@ export function AppShell({
   settingsSurface,
   onCloseSettings,
   accessProfile,
-  clientWindowScope,
-  defaultSidebarOpen,
+  paneStateKey,
+  preferredSidebarOpen,
+  onSidebarOpenChange,
   sidebarWidth,
   surfaces,
   navigationSection,
@@ -179,12 +180,7 @@ export function AppShell({
   children,
 }: Props) {
   const viewportWidth = useViewportWidth();
-  const windowStateStorage = clientWindowStateStorage(clientWindowScope);
-  const preferredSidebarOpen = useRef(readSidebarOpen(accessProfile, clientWindowScope, defaultSidebarOpen));
-  const compactAtMount = useRef(window.innerWidth <= SIDEBAR_AUTO_COLLAPSE_WIDTH);
-  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(
-    () => preferredSidebarOpen.current && !compactAtMount.current,
-  );
+  const [compactSidebarState, setCompactSidebarState] = useState({ scope: paneStateKey, open: false });
   const [sidebarResizing, setSidebarResizing] = useState(false);
   const viewportWidthMotion = useMotionValue(viewportWidth);
   const titlebarLeftWidth = useMotionValue(196);
@@ -197,8 +193,10 @@ export function AppShell({
   const sidebarToggleRef = useRef<HTMLButtonElement>(null);
   const lastSidebarFocusRef = useRef<HTMLElement | null>(null);
   const sidebarAvailable = clientNavigationDestinations.some((destination) => destination.id === navigationSection && destination.sidebar);
-  const sidebarOpen = desktopSidebarOpen && sidebarAvailable;
   const compactSidebar = viewportWidth <= SIDEBAR_AUTO_COLLAPSE_WIDTH;
+  const sidebarOpen = sidebarAvailable && (compactSidebar
+    ? compactSidebarState.scope === paneStateKey && compactSidebarState.open
+    : preferredSidebarOpen);
   const sidebarMaximumWidth = Math.max(
     SIDEBAR_MIN_WIDTH,
     Math.min(SIDEBAR_MAX_WIDTH, viewportWidth - NAVIGATION_RAIL_WIDTH - MAIN_CONTENT_MIN_WIDTH),
@@ -237,19 +235,8 @@ export function AppShell({
     if (focusInsideSidebar) {
       lastSidebarFocusRef.current = document.activeElement as HTMLElement;
     }
-    const preferenceChanged = preferredSidebarOpen.current !== open;
-    preferredSidebarOpen.current = open;
-    setDesktopSidebarOpen(open);
-    if (preferenceChanged) {
-      try {
-        windowStateStorage.setItem(
-          clientWindowStateKey(clientWindowScope, profileStorageKey(SIDEBAR_OPEN_STORAGE_KEY, accessProfile)),
-          open ? "true" : "false",
-        );
-      } catch (error) {
-        appToast.danger(`Could not save sidebar state: ${error instanceof Error ? error.message : String(error)}`);
-      }
-    }
+    onSidebarOpenChange(open);
+    setCompactSidebarState({ scope: paneStateKey, open });
     if (focusInsideSidebar) window.requestAnimationFrame(() => sidebarToggleRef.current?.focus());
     if (open && moveFocus) {
       window.requestAnimationFrame(() => {
@@ -258,10 +245,10 @@ export function AppShell({
         else shellRef.current?.querySelector<HTMLElement>(".app-shell-sidebar-slot [data-sidebar-nav-item]")?.focus();
       });
     }
-  }, [accessProfile, clientWindowScope, windowStateStorage]);
+  }, [onSidebarOpenChange, paneStateKey]);
 
   const completeCompactNavigation = () => {
-    if (compactSidebar) setDesktopSidebarOpen(false);
+    if (compactSidebar) setCompactSidebarState({ scope: paneStateKey, open: false });
   };
 
   useEffect(() => subscribeClientCommands((command) => {
@@ -269,11 +256,9 @@ export function AppShell({
     if (sidebarAvailable) setSidebarOpen(!sidebarOpen);
   }), [interactionDisabled, setSidebarOpen, sidebarAvailable, sidebarOpen]);
 
-  useEffect(() => {
-    if (compactAtMount.current === compactSidebar) return;
-    compactAtMount.current = compactSidebar;
-    setDesktopSidebarOpen(compactSidebar ? false : preferredSidebarOpen.current);
-  }, [compactSidebar]);
+  useLayoutEffect(() => {
+    setCompactSidebarState({ scope: paneStateKey, open: false });
+  }, [compactSidebar, paneStateKey]);
 
   const onTitlebarSlotWidthsChange = useCallback((widths: { left: number; right: number }) => {
     titlebarLeftWidth.set(widths.left);
@@ -355,7 +340,6 @@ export function AppShell({
         runtimeHost={runtimeHost}
         onNavigate={(section) => {
           onNavigationChange(section);
-          if (clientNavigationDestinations.some((destination) => destination.id === section && destination.sidebar)) setSidebarOpen(true, false);
         }}
         onOpenSettings={onOpenSettings}
         onLogOut={onLogOut}
@@ -431,10 +415,7 @@ export function AppShell({
                 minimum={SIDEBAR_MIN_WIDTH}
                 value={effectiveSidebarWidth}
                 onChange={onSidebarWidthChange}
-                onCommit={(width) => windowStateStorage.setItem(
-                  clientWindowStateKey(clientWindowScope, profileStorageKey(SIDEBAR_WIDTH_STORAGE_KEY, accessProfile)),
-                  String(width),
-                )}
+                onCommit={onSidebarWidthChange}
                 onOpenChange={setSidebarOpen}
                 onResizingChange={setSidebarResizing}
               />
@@ -444,6 +425,7 @@ export function AppShell({
           <main className="workspace main-surface" inert={compactSidebar && sidebarOpen || undefined}>
             <WindowPaneControlsProvider host={windowPaneControlsHost}>
               <WorkspacePaneManager
+                key={paneStateKey}
                 onPrimaryBlockedChange={handlePrimaryBlockedChange}
                 onOpenChange={onSecondaryPaneOpenChange}
                 resolvedWidthMotion={secondaryPaneWidth}
@@ -497,7 +479,7 @@ function useViewportWidth() {
   return width;
 }
 
-function readSidebarOpen(accessProfile: "live" | "lab", clientWindowScope = "main", defaultOpen = true) {
+export function readSidebarOpen(accessProfile: "live" | "lab", clientWindowScope = "main", defaultOpen = true) {
   const stored = clientWindowStateStorage(clientWindowScope).getItem(
     clientWindowStateKey(clientWindowScope, profileStorageKey(SIDEBAR_OPEN_STORAGE_KEY, accessProfile)),
   );

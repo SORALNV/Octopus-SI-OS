@@ -65,7 +65,9 @@ export function useRuntimeTopology(
   focusedRunIds: readonly string[] = [],
   includeLedger = true,
 ): RuntimeTopologyState {
-  const [snapshot, setSnapshot] = useState<TopologySnapshot>(() => emptySnapshot());
+  const [snapshot, setSnapshot] = useState<TopologySnapshot>(() => emptySnapshot({
+    ...emptyProjection, mode: "connecting", label: "構成図を読み込んでいます", detail: "",
+  }));
   // Every projection change on disk re-projects the world in place: no flash back to a
   // loading state, no stale "live" claim. The first read is the only "connecting" moment.
   const generation = useProjectionGeneration(includeLedger, enabled);
@@ -127,7 +129,7 @@ export function useRuntimeTopology(
     }
     if (!hasProjectionBridge()) {
       failedRef.current = true;
-      setReadState({ loading: false, error: "Projection bridge unavailable" });
+      setReadState({ loading: false, error: "表示用データの接続を利用できません" });
       setSnapshot(emptySnapshot({
         ...emptyProjection,
         endpoint: projectionTargetLabel(),
@@ -144,8 +146,8 @@ export function useRuntimeTopology(
         projection: {
           mode: "connecting",
           endpoint: projectionTargetLabel(),
-          label: "表示用データを読み込んでいます",
-          detail: "レジストリの記述子、紐付け、成果物、検証記録、台帳を読み込んでいます",
+          label: "構成図を読み込んでいます",
+          detail: "",
         },
       }));
     }
@@ -348,8 +350,8 @@ function liveProjectionStatus(payload: RuntimePayload): ProjectionStatus {
   if (!runtimeUp && runtimePhase && !["idle", "stopped", "unmanaged"].includes(runtimePhase)) {
     const phaseLabels: Record<string, string> = {
       preparing_home: "Preparing Octopus Home",
-      starting_runtime: "Starting Octopus",
-      waiting_runtime: "Starting Octopus",
+      starting_runtime: "Octopus を起動しています",
+      waiting_runtime: "Octopus を起動しています",
       registry_install: "Installing capabilities",
       registry_ready: "Registry ready",
       state_ready: "Runtime state ready",
@@ -625,7 +627,7 @@ function projectEnvironment(args: ProjectEnvironmentArgs): EnvironmentNode {
 
   return {
     id: eeId,
-    name: `${templateName}.ee`,
+    name: stringValue(ee?.name) || eeId,
     status,
     statusLabel: statusLabel(status),
     accent,
@@ -641,6 +643,7 @@ function projectEnvironment(args: ProjectEnvironmentArgs): EnvironmentNode {
     description: `実行環境の範囲 ${templateName} には、この目標の範囲にある実行、インターフェースの紐付け、成果物の移動、作業環境、ポリシーの情報が含まれます。`,
     stats: [
       { label: "状態", value: statusLabel(status), tone: statusTone(status) },
+      { label: "権限のテンプレート", value: templateName },
       { label: "子の実行環境", value: String(projectionIndex.childCounts.get(eeId)?.length ?? 0) },
       { label: "実行中のタスク", value: `${activeRuns} / ${eeRuns.length}` },
       { label: "ワーカーの参照", value: compactList(workers) || "none" },
@@ -1283,7 +1286,7 @@ function interfaceArtifactTransferStatus(transfer?: InterfaceArtifactTransferPro
 function interfaceArtifactTransferDescription(transfer?: InterfaceArtifactTransferProjection): string {
   if (!transfer) return "";
   if (transfer.status === "not_declared") return "";
-  if (transfer.status === "ready" && transfer.readyTargets) return `${transfer.readyTargets} active target${transfer.readyTargets === 1 ? "" : "s"}`;
+  if (transfer.status === "ready" && transfer.readyTargets) return `${transfer.readyTargets} active target${transfer.readyTargets === 1 ? "" : " 秒"}`;
   return transfer.reason || interfaceArtifactTransferStatus(transfer);
 }
 
@@ -1367,5 +1370,5 @@ function durationSince(value: string): string {
   if (minutes < 60) return `${minutes}m`;
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
-  return rest ? `${hours}h ${rest}m` : `${hours}h`;
+  return rest ? `${hours} 時間 ${rest}m` : `${hours}h`;
 }

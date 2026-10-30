@@ -307,6 +307,10 @@ impl ProviderOutputHandoff {
                 .enumerate()
                 .find(|(_, admitted)| admitted.is_none())
             {
+                if self.unsubmitted_source_failure_before(&pending, self.source_movement_seq)? {
+                    self.restore_failed_context(&mut state, &[])?;
+                    return Ok((ProviderSourceRecovery::Process, Vec::new()));
+                }
                 return Err(format!(
                     "provider reader advanced to movement {} while terminal pending artifact '{}' from movement {} has no admitted ledger evidence",
                     self.source_movement_seq,

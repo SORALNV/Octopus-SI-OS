@@ -357,7 +357,7 @@ export function OctopusProjectRow({
     <div
       aria-current={active ? "page" : undefined}
       aria-expanded={collapsed == null ? undefined : !collapsed}
-      aria-label={workingTaskCount ? `${label}, ${workingTaskCount} running ${workingTaskCount === 1 ? "task" : "tasks"}` : label}
+      aria-label={workingTaskCount ? `${label}, ${workingTaskCount} 実行中 ${workingTaskCount === 1 ? "task" : "tasks"}` : label}
       aria-busy={workingTaskCount > 0 || undefined}
       className={cx(
         "octopus-nav-row group/folder-row group relative flex h-[var(--height-token-row)] cursor-interaction items-center justify-between overflow-x-hidden sidebar-item text-sm text-token-foreground hover:bg-token-list-hover-background focus-visible:outline focus-visible:outline-offset-2",
@@ -393,7 +393,7 @@ export function OctopusProjectRow({
           <span className="flex min-w-0 flex-1 items-center gap-2 whitespace-nowrap">
             <span className="flex min-w-0 flex-1 items-center gap-0.5">
               <span className={cx("min-w-0 truncate pr-1", active && "font-medium text-token-foreground")}>{label}</span>
-              {workingTaskCount > 0 ? <SidebarWorkingIndicator count={workingTaskCount} label={`${workingTaskCount} running ${workingTaskCount === 1 ? "task" : "tasks"}`} /> : null}
+              {workingTaskCount > 0 ? <SidebarWorkingIndicator count={workingTaskCount} label={`${workingTaskCount} 実行中 ${workingTaskCount === 1 ? "task" : "tasks"}`} /> : null}
             </span>
           </span>
         </div>

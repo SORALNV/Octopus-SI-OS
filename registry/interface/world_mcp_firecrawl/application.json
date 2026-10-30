@@ -1,0 +1,40 @@
+{
+  "schema_version": 3,
+  "id": "world_mcp_firecrawl",
+  "name": "Firecrawl",
+  "description": "Firecrawl's MCP server: search the web, scrape and crawl pages into clean markdown, and extract structured data. Needs a Firecrawl API key.",
+  "category": "plugin",
+  "developer": "Firecrawl",
+  "version": "1.0.0",
+  "icon": "globe",
+  "logo": "application-logo.svg",
+  "interfaces": [
+    "world_mcp_firecrawl"
+  ],
+  "artifact_bindings": [
+    {
+      "artifact_id": "artifact-application-mcp-firecrawl-context",
+      "label": "Firecrawl capability contract"
+    }
+  ],
+  "task_capabilities": {
+    "tools": [
+      {
+        "tool": "artifact.send",
+        "interface": "system_room",
+        "worker_environment_kind": "system_room"
+      }
+    ]
+  },
+  "setup": {
+    "fields": [
+      {
+        "interface": "world_mcp_firecrawl",
+        "pointer": "/interface_driver_config/transport/auth_env_key",
+        "label": "Firecrawl API key",
+        "kind": "secret",
+        "required": true
+      }
+    ]
+  }
+}

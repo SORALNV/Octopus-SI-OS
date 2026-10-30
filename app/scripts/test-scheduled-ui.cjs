@@ -68,13 +68,13 @@ function fixture(rows) {
   global.scheduleFixture = f;
   return f;
 }
-async function mount({ active = true, scope = "Experiment", secondary = false, drafts = [] } = {}) {
+async function mount({ active = true, scope = "Experiment", secondary = false, drafts = [], opened = [] } = {}) {
   const ui = await compiled;
   const Navigation = sidebarChrome(ui);
   const host = document.createElement("div"); document.body.append(host);
   const root = createRoot(host); roots.push(root);
   const render = async (next = scope) => act(async () => root.render(React.createElement(ui.ScheduledWorkspaceProvider, { active, key: next, onCreateTask: (text) => drafts.push(text) },
-    !secondary && React.createElement(Navigation), React.createElement(ui.LiveScheduledView, { navigationInPane: secondary, searchFocusTick: 0 }))));
+    !secondary && React.createElement(Navigation), React.createElement(ui.LiveScheduledView, { navigationInPane: secondary, searchFocusTick: 0, onSelectChat: (id) => opened.push(id) }))));
   await render();
   return { host, render, drafts };
 }
@@ -84,7 +84,12 @@ function rows(host) { return [...host.querySelectorAll('[data-scheduled-sidebar]
 function secondary(row) { return row.querySelector("[data-thread-secondary-title]").textContent; }
 function detail(host) { return host.querySelector("[data-scheduled-detail]"); }
 function dialog() { return document.querySelector('[role="dialog"] form[data-density="form"]'); }
-async function click(element) { assert.ok(element, "button exists"); await act(async () => element.click()); }
+async function click(element) {
+  assert.ok(element, "button exists");
+  await act(async () => element.click());
+  // Let a newly opened dialog take initial focus before the next user action.
+  await act(async () => new Promise((resolve) => window.requestAnimationFrame(resolve)));
+}
 async function input(element, value) {
   const prototype = element instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
   const setter = Object.getOwnPropertyDescriptor(prototype, "value").set;
@@ -92,6 +97,25 @@ async function input(element, value) {
 }
 async function commit(element, value) { await act(async () => element.focus()); await input(element, value); await act(async () => element.blur()); }
 async function choose(menuLabel, option) { await click(button(dialog(), menuLabel)); await click(menuItem(option)); }
+
+test("event triggers show their receiving task without offering cron mutations", async () => {
+  const f = fixture([{
+    interface_id: "world_issue_events", display_name: "Issue events", status: "enabled", valid: true,
+    event_source: { sources: ["issue.opened"], targets: [{ run_id: "review", chat_interface_id: "chat", title: "Review issues" }] },
+  }]);
+  const opened = [];
+  const { host } = await mount({ opened });
+  assert.equal(rows(host).length, 1);
+  assert.equal(secondary(rows(host)[0]), "On event");
+  await click(rows(host)[0]);
+  assert.match(detail(host).textContent, /issue.opened/);
+  assert.match(detail(host).textContent, /No events received yet/);
+  assert.equal(button(detail(host), "Trigger actions"), undefined);
+  assert.equal(button(detail(host), "Edit"), undefined);
+  await click(button(detail(host), "Open task"));
+  assert.deepEqual(opened, ["review"]);
+  assert.deepEqual(f.writes, []);
+});
 
 test("Triggers keeps navigation, selection, search and authoring in one workspace", async () => {
   const f = fixture([...Array.from({ length: 8 }, (_, index) => schedule(index)), schedule(8, "disabled"), schedule(9, "invalid")]);
@@ -195,7 +219,11 @@ test("inactive Scheduled reads nothing and calendar labels respect timezone boun
 });
 
 test("a secondary Triggers pane retains its own list without replacing the primary sidebar", async () => {
-  fixture([schedule(0)]);
+  const title = "Repaired Home voice memory capture and updated the installed configuration. ".repeat(8).trim();
+  fixture([{ ...schedule(0), deliveries: [{ seq: 1, at_ms: Date.now(), run_id: "review", chat_interface_id: "chat", title }] }]);
+  const stylesheet = document.createElement("style");
+  stylesheet.textContent = fs.readFileSync(path.join(appRoot, "src/design-system/oc-dropdown.css"), "utf8");
+  document.body.append(stylesheet);
   const { host } = await mount({ secondary: true });
   assert.equal(host.querySelector("aside"), null);
   await click(button(host, "Triggers"));
@@ -203,6 +231,13 @@ test("a secondary Triggers pane retains its own list without replacing the prima
   await click(document.querySelector('[role="dialog"] [data-scheduled-sidebar] [role=listitem] > [role=button]'));
   assert.equal(detail(host).querySelector("[data-automation-card] .truncate").textContent, "Task 0");
   assert.ok(document.querySelector('[role="dialog"]') === null);
+  await click(button(host, "Triggers"));
+  const navigation = document.querySelector('[role="dialog"][aria-label="Triggers"]');
+  assert.equal(navigation.querySelector('[data-selected-scheduled-task] [data-thread-title]').textContent, "Task 0");
+  assert.ok(navigation.textContent.includes(title), "history keeps the complete title for display and accessibility");
+  assert.equal(getComputedStyle(navigation).width, "340px", "history cannot expand the dropdown through its intrinsic content width");
+  await click(navigation.querySelector('[data-selected-scheduled-task] > [role="button"]'));
+  assert.equal(getComputedStyle(navigation).width, "340px", "collapsing history preserves the same navigation width");
 });
 
 test("one-shot deadlines retain their kind and exact timestamp through editing", async () => {

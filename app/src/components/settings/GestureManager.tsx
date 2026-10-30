@@ -2,7 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { clientCommands, type ClientCommandId } from "../../clientActions";
 import { useCustomGestures, customGestureCommandLabel, type CustomGesture } from "../../customGestures";
 import type { OctopusClientAccessProfile } from "../../electron";
-import type { FingerCurls } from "../../airHandEngine";
+import type { FingerCurls, HandPose } from "../../airHandEngine";
+import { useGestureFocusView, type GestureFocusActivity } from "../../gestureFocus";
+import { cancelGestureTrace, revealGestureTrace, startGestureTrace, useGestureTraceStatus, type GestureTraceStatus } from "../../gestureTraceRecorder";
+import { GESTURE_GUIDE, type GestureGuideId } from "../gestures/gestureGuide";
+import { GestureIllustration } from "../gestures/GestureIllustration";
+import { GestureSimulateButtons } from "../gestures/GestureSimulateButtons";
 import {
   attachGesturePreview,
   currentGestureState,
@@ -10,13 +15,12 @@ import {
   refreshGestureCameras,
   requestCameraPermission,
   startGestureRecognition,
-  subscribeGestureState,
   useGestureDevices,
   useGestureRecognitionCoarseState,
   type CameraPermission,
   type GestureRecognitionPhase,
 } from "../../gestureRecognition";
-import { airHandGestures, defaultAirHandGestureCommand, emitAirHandGesture, subscribeAirHandGestures, useGestureShortcutPreferences, useSetGestureShortcutPreferences, type AirHandGestureId, type GestureCommandId } from "../../gestureShortcuts";
+import { airHandGestures, defaultAirHandGestureCommand, subscribeAirHandGestures, useGestureShortcutPreferences, useSetGestureShortcutPreferences, type AirHandGestureId, type GestureCommandId } from "../../gestureShortcuts";
 import { OcButton, OcCard, OcEmptyState, OcGroup, OcSelect, OcSettingsRow, OcStatus, OcSwitch, OcTextField } from "../../design-system/components";
 import { appToast } from "../../toasts";
 
@@ -28,6 +32,19 @@ const RECORD_SAMPLE_MS = 40;
 const RECORD_MIN_SAMPLES = 6;
 const RECOGNIZED_GESTURE_MS = 2_200;
 const GESTURE_MIN_CAMERA_FPS = 15;
+const SPATIAL_GESTURES: readonly { step: GestureGuideId; action: string; spatial: boolean }[] = [
+  { step: "point", action: "フォーカスを移動します", spatial: false },
+  { step: "pinch", action: "フォーカス中の項目を選択します", spatial: false },
+  { step: "carry", action: "フォーカス中のウィジェットを移動します", spatial: true },
+  { step: "throw", action: "つかんだウィジェットを非表示にします", spatial: true },
+  { step: "resize", action: "フォーカス中のウィジェットのサイズを変更します", spatial: true },
+];
+const TRACE_DURATIONS: readonly { value: string; label: string }[] = [
+  { value: "5000", label: "5秒" },
+  { value: "10000", label: "10秒" },
+  { value: "20000", label: "20秒" },
+  { value: "30000", label: "30秒" },
+];
 const CURL_LABELS: Record<keyof FingerCurls, string> = {
   thumb: "Thumb",
   index: "Index",
@@ -141,14 +158,14 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
 
   return (
     <OcGroup
-      description="手の動きでフォーカスを移動したり、ホームのウィジェットを操作できます。独自のジェスチャーをコマンドに割り当てることもできます。"
+      description="指をさして操作項目やウィジェットにフォーカスを移し、指をつまんで選択します。両手ではホームのウィジェットの移動やサイズ変更ができます。"
       title="ジェスチャー操作"
     >
       <div className="gesture-manager">
         <OcCard>
           <OcSettingsRow
             control={<OcSwitch checked={preferences.enabled} label="ジェスチャー操作を有効にする" onCheckedChange={(enabled) => setPreferences({ enabled })} />}
-            description="ジェスチャーはこのアプリ内で認識し、割り当てられたコマンドだけを実行します。"
+            description="ジェスチャーはこのデバイス上で認識します。フォーカスの移動やアプリの操作に使い、ジェスチャーだけで実行中のタスクに情報を送ることはありません。"
             label="ジェスチャー操作"
           />
           <OcSettingsRow
@@ -190,7 +207,7 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
             {preferences.enabled ? (
               <div className="gesture-preview-inline" ref={previewFrameRef}>
                 <canvas ref={inlineCanvasRef} />
-                <LivePoseBadge cameraLive={cameraLive} idleNote={previewNote(preferences.enabled, granted, devicesView.phase)} mappings={preferences.mappings} />
+                <LiveGestureBadge cameraLive={cameraLive} idleNote={previewNote(preferences.enabled, granted, devicesView.phase)} mappings={preferences.mappings} />
                 {!cameraLive ? (
                   <span className="gesture-preview-note">{previewNote(preferences.enabled, granted, devicesView.phase)}</span>
                 ) : null}
@@ -211,7 +228,7 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
                 value={preferences.sensitivity}
               />
             )}
-            description="ポーズを保つ時間と、スワイプとして認識する距離を調整します。"
+            description="フォーカスを1段階動かす手の移動距離、握った手の保持時間、スワイプに必要な距離を調整します。"
             label="回答"
           />
           <OcSettingsRow
@@ -221,15 +238,32 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
           />
           <OcSettingsRow
             control={<OcSwitch checked={preferences.spatialControl} label="ホームのウィジェットを操作" onCheckedChange={(spatialControl) => setPreferences({ spatialControl })} />}
-            description="ホームのウィジェットを指し、握ってドラッグし、つまんでサイズを変えられます。"
+            description="フォーカス中のホームのウィジェットを、手で移動・サイズ変更したり、投げて非表示にしたりできます。無効にしてもフォーカス移動と選択は使えます。"
             label="手の動きでウィジェットを操作"
           />
         </OcCard>
 
         <OcGroup
+          description="どの画面でも同じ操作を使えます。リングはフォーカス中の項目を示します。"
+          title="フォーカスとウィジェット"
+        >
+          <OcCard>
+            {SPATIAL_GESTURES.map((gesture) => (
+              <OcSettingsRow
+                control={<OcStatus label={gesture.spatial && !preferences.spatialControl ? "オフ" : gesture.action} tone={gesture.spatial && !preferences.spatialControl ? "muted" : "neutral"} />}
+                description={GESTURE_GUIDE[gesture.step].sentence}
+                key={gesture.step}
+                label={GESTURE_GUIDE[gesture.step].title}
+                leading={<GestureIllustration gesture={GESTURE_GUIDE[gesture.step].art} />}
+              />
+            ))}
+          </OcCard>
+        </OcGroup>
+
+        <OcGroup
           actions={<OcButton disabled={!cameraLive || recording} onClick={() => setRecording(true)} size="sm">ジェスチャーを登録</OcButton>}
-          description="各ポーズにコマンドを割り当てます。既定の割り当てを変更・削除したり、独自のポーズを登録できます。"
-          title="ジェスチャー"
+          description="各ジェスチャーにアプリの操作を割り当てます。既定の割り当てを変更・削除したり、独自のポーズを記録したりできます。"
+          title="操作用のジェスチャー"
         >
           <OcCard>
             {recording ? (
@@ -237,7 +271,7 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
                 onCancel={() => setRecording(false)}
                 onMissed={() => {
                   setRecording(false);
-                  appToast.warning("No hand was visible. Keep your hand in the camera preview and record again.");
+                  appToast.warning("手が映っていませんでした。カメラのプレビューに手を映し、もう一度記録してください。");
                 }}
                 onCaptured={(curls) => {
                   setRecording(false);
@@ -265,6 +299,7 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
                 description={gesture.detail}
                 key={gesture.id}
                 label={gesture.label}
+                leading={<GestureIllustration gesture={gesture.id} />}
               />
             ))}
             {custom.gestures.map((gesture) => (
@@ -301,22 +336,19 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
           </OcCard>
         </OcGroup>
 
+        {accessProfile === "live" ? (
+          <OcGroup
+            description="ジェスチャーをうまく認識しないときは、その動きを記録してください。記録を再生して、手の動き・カメラ・照明に合わせて認識を調整できます。"
+            title="ジェスチャーの記録"
+          >
+            <GestureTracePanel cameraLive={cameraLive} />
+          </OcGroup>
+        ) : null}
+
         {accessProfile === "lab" ? (
-          <OcGroup description="カメラを使わず、テスト用のジェスチャーイベントを生成します。" title="シミュレーション">
+          <OcGroup description="カメラを使わず、テスト用のフォーカス移動や操作ジェスチャーを発生させます。" title="シミュレーション">
             <OcCard>
-              <div className="gesture-simulate-row">
-                {airHandGestures.map((gesture) => (
-                  <OcButton
-                    disabled={!preferences.enabled}
-                    key={gesture.id}
-                    onClick={() => emitAirHandGesture(gesture.id, "test")}
-                    size="sm"
-                    variant="secondary"
-                  >
-                    {gesture.label}
-                  </OcButton>
-                ))}
-              </div>
+              <GestureSimulateButtons disabled={!preferences.enabled} />
             </OcCard>
           </OcGroup>
         ) : null}
@@ -325,37 +357,130 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
       {pip && preferences.enabled ? (
         <div className="gesture-preview-pip">
           <canvas ref={pipCanvasRef} />
-          <LivePoseBadge cameraLive={cameraLive} idleNote={previewNote(preferences.enabled, granted, devicesView.phase)} mappings={preferences.mappings} />
+          <LiveGestureBadge cameraLive={cameraLive} idleNote={previewNote(preferences.enabled, granted, devicesView.phase)} mappings={preferences.mappings} />
         </div>
       ) : null}
     </OcGroup>
   );
 }
 
-function LivePoseBadge({ cameraLive, idleNote, mappings }: { cameraLive: boolean; idleNote: string; mappings: Readonly<Record<AirHandGestureId, GestureCommandId>> }) {
+function LiveGestureBadge({ cameraLive, idleNote, mappings }: { cameraLive: boolean; idleNote: string; mappings: Readonly<Record<AirHandGestureId, GestureCommandId>> }) {
   const recognition = useGestureRecognitionCoarseState();
-  const [recognized, setRecognized] = useState<AirHandGestureId | null>(null);
+  const focus = useGestureFocusView();
+  const [command, setCommand] = useState<{ gesture: AirHandGestureId; at: number } | null>(null);
+  const [now, setNow] = useState(0);
+  useEffect(() => subscribeAirHandGestures((gesture) => setCommand({ gesture, at: Date.now() })), []);
+  const latestAt = Math.max(command?.at ?? 0, focus.last?.at ?? 0);
   useEffect(() => {
-    let timer = 0;
-    const unsubscribe = subscribeAirHandGestures((gesture) => {
-      window.clearTimeout(timer);
-      setRecognized(gesture);
-      timer = window.setTimeout(() => setRecognized(null), RECOGNIZED_GESTURE_MS);
-    });
-    return () => {
-      unsubscribe();
-      window.clearTimeout(timer);
-    };
-  }, []);
-  const command = recognized ? mappings[recognized] : "none";
+    if (!latestAt) return;
+    setNow(Date.now());
+    const timer = window.setTimeout(() => setNow(Date.now()), Math.max(0, latestAt + RECOGNIZED_GESTURE_MS - Date.now()));
+    return () => window.clearTimeout(timer);
+  }, [latestAt]);
+  const activity = recentActivity(command, focus.last, mappings, now);
+  const hands = [...recognition.hands].sort((left, right) => (left.side === right.side ? 0 : left.side === "left" ? -1 : 1));
+  const summary = hands.map((hand) => `${hand.side === "left" ? "Left" : "Right"} · ${poseLabel(hand.pose)}`).join("  ·  ");
   return (
-    <div className={`gesture-preview-badge${recognized ? " is-recognized" : ""}`}>
-      <span className={`gesture-preview-dot is-${cameraLive ? "live" : "idle"}`} />
-      {recognized
-        ? `${gestureLabel(recognized)} → ${command === "none" ? "操作なし" : commandLabel(command)} · 設定を閉じると動作します`
-        : cameraLive ? poseLabel(recognition.pose) : idleNote}
-    </div>
+    <>
+      <div className={`gesture-preview-badge${activity ? " is-recognized" : ""}`}>
+        <span className={`gesture-preview-dot is-${cameraLive ? "live" : "idle"}`} />
+        {cameraLive ? summary || "片手または両手を映してください" : idleNote}
+      </div>
+      {cameraLive && (activity || focus.target) ? (
+        <div className="gesture-preview-activity" role="status">
+          {activity ? <span className="gesture-preview-activity__event">{activity}</span> : null}
+          {focus.target ? <span className="gesture-preview-activity__focus">フォーカス · {focus.target}</span> : null}
+        </div>
+      ) : null}
+    </>
   );
+}
+
+function recentActivity(
+  command: { gesture: AirHandGestureId; at: number } | null,
+  focus: GestureFocusActivity | null,
+  mappings: Readonly<Record<AirHandGestureId, GestureCommandId>>,
+  now: number,
+): string {
+  if (command && command.at >= (focus?.at ?? 0)) {
+    if (now - command.at > RECOGNIZED_GESTURE_MS) return "";
+    const mapped = mappings[command.gesture];
+    return `${gestureLabel(command.gesture)} → ${mapped === "none" ? "操作なし" : commandLabel(mapped)} · 設定を閉じると動作します`;
+  }
+  if (!focus || now - focus.at > RECOGNIZED_GESTURE_MS) return "";
+  return `${focus.gesture} → ${focus.outcome}`;
+}
+
+function GestureTracePanel({ cameraLive }: { cameraLive: boolean }) {
+  const status = useGestureTraceStatus();
+  const [duration, setDuration] = useState("10000");
+  const [note, setNote] = useState("");
+  const [now, setNow] = useState(() => Date.now());
+  const active = status.phase === "countdown" || status.phase === "recording" || status.phase === "saving";
+  useEffect(() => {
+    if (status.phase !== "countdown" && status.phase !== "recording") return;
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 250);
+    return () => window.clearInterval(timer);
+  }, [status.phase]);
+  return (
+    <OcCard>
+      <OcSettingsRow
+        control={(
+          <div className="settings-inline-actions">
+            <OcSelect<string> disabled={active} label="記録時間" onChange={setDuration} options={TRACE_DURATIONS} value={duration} />
+            {active ? (
+              <OcButton onClick={cancelGestureTrace} size="sm" variant="secondary">キャンセル</OcButton>
+            ) : (
+              <OcButton disabled={!cameraLive} onClick={() => startGestureTrace(Number(duration), note.trim())} size="sm">ジェスチャーを記録</OcButton>
+            )}
+          </div>
+        )}
+        description="両手の特徴点と認識結果をフレームごとに、このホームのアプリ用フォルダーに保存します。映像は保存しません。3秒後に記録を開始し、設定画面を離れても続けます。"
+        label="ジェスチャーを記録"
+      />
+      <div className="gesture-trace">
+        <OcTextField
+          disabled={active}
+          label="試す操作"
+          onChange={(event) => setNote(event.currentTarget.value)}
+          placeholder="例：サイドバーの項目で5回つまむ操作を行い、2回は認識されなかった"
+          showLabel
+          value={note}
+        />
+        <GestureTraceStatusLine cameraLive={cameraLive} now={now} status={status} />
+      </div>
+    </OcCard>
+  );
+}
+
+function GestureTraceStatusLine({ cameraLive, now, status }: { cameraLive: boolean; now: number; status: GestureTraceStatus }) {
+  if (status.phase === "countdown") {
+    return <span className="gesture-trace-status" role="status">開始まであと {Math.max(1, Math.ceil((status.startsAt - now) / 1000))} 秒。手を準備してください。</span>;
+  }
+  if (status.phase === "recording") {
+    return <span className="gesture-trace-status is-live" role="status">記録中… 残り{Math.max(0, Math.ceil((status.endsAt - now) / 1000))}秒。認識しにくいジェスチャーを試してください。</span>;
+  }
+  if (status.phase === "saving") return <span className="gesture-trace-status" role="status">保存しています…</span>;
+  if (status.phase === "saved") {
+    return (
+      <span className="gesture-trace-status" role="status">
+        保存済み：{status.filename}（{status.frames}フレーム）
+        <OcButton
+          onClick={() => {
+            void revealGestureTrace(status.path).catch((error: unknown) => appToast.warning(error instanceof Error ? error.message : String(error)));
+          }}
+          size="sm"
+          variant="secondary"
+        >
+          Finder で表示
+        </OcButton>
+      </span>
+    );
+  }
+  if (status.phase === "error") return <span className="gesture-trace-status is-error" role="status">{status.message}</span>;
+  if (!cameraLive) return <span className="gesture-trace-status">記録するには、ジェスチャー操作を有効にし、カメラの使用を許可してください。</span>;
+  return null;
 }
 
 function CameraRateNote() {
@@ -363,7 +488,7 @@ function CameraRateNote() {
   if (cameraFps == null || cameraFps >= GESTURE_MIN_CAMERA_FPS) return null;
   return (
     <span className="gesture-camera-rate" role="status">
-      カメラのフレームレート： {cameraFps} fps。スワイプの認識に必要な最小値： {GESTURE_MIN_CAMERA_FPS}。明るさを増すと改善することがあります。スマートフォンをカメラに使う場合は、発熱によって速度が落ちることがあります。
+      カメラのフレームレート： {cameraFps} フレーム/秒です。フォーカス移動、つまむ操作、スワイプの安定した認識に必要な最低値は {GESTURE_MIN_CAMERA_FPS}フレーム/秒です。明るさを増すと改善することがあります。スマートフォンをカメラに使う場合は、発熱によって速度が落ちることがあります。
     </span>
   );
 }
@@ -400,7 +525,7 @@ function GestureRecorder({
       window.clearInterval(ticker);
       setCountdown(0);
       sampler = window.setInterval(() => {
-        const curls = currentGestureState().curls;
+        const curls = currentGestureState().hands[0]?.curls;
         if (curls) samples.push(curls);
       }, RECORD_SAMPLE_MS);
     }, RECORD_COUNTDOWN_STEPS * RECORD_COUNTDOWN_STEP_MS);
@@ -425,7 +550,7 @@ function GestureRecorder({
         <span>{countdown > 0 ? `撮影まで ${countdown}…` : "撮影しています…"}</span>
       </div>
       <div className="gesture-recorder-live">
-        {recognition.curls ? <CurlBars curls={recognition.curls} /> : <span className="gesture-preview-note">カメラに手を見せてください</span>}
+        {recognition.hands[0] ? <CurlBars curls={recognition.hands[0].curls} /> : <span className="gesture-preview-note">片手をカメラに映してください</span>}
       </div>
       <OcButton onClick={onCancel} size="sm" variant="secondary">キャンセル</OcButton>
     </div>
@@ -477,7 +602,7 @@ function CustomGestureRow({
           </div>
           <OcButton
             onClick={() => {
-              const curls = currentGestureState().curls;
+              const curls = currentGestureState().hands[0]?.curls;
               if (curls) onUpdate({ curls });
             }}
             size="sm"
@@ -531,20 +656,19 @@ function previewNote(enabled: boolean, granted: boolean, phase: GestureRecogniti
 }
 
 function recognitionLabel(phase: GestureRecognitionPhase): string {
-  if (phase === "requesting") return "Requesting camera";
-  if (phase === "loading") return "Loading recognition";
+  if (phase === "requesting") return "カメラへのアクセスを要求しています";
+  if (phase === "loading") return "認識機能を読み込んでいます";
   if (phase === "running") return "Camera active";
-  if (phase === "denied") return "Permission denied";
+  if (phase === "denied") return "アクセスが許可されていません";
   if (phase === "error") return "利用できません";
   return "オフ";
 }
 
-function poseLabel(pose: string): string {
-  if (pose === "open_palm") return "手のひらを開く";
-  if (pose === "left_click") return "指を曲げる";
-  if (pose === "mission_control") return "Two fingers";
-  if (pose === "fist") return "握りこぶし";
+function poseLabel(pose: HandPose): string {
+  if (pose === "point") return "Point";
   if (pose === "pinch") return "Pinch";
-  if (pose === "aim") return "Aim";
-  return "No hand";
+  if (pose === "open") return "開いた手";
+  if (pose === "two") return "Two fingers";
+  if (pose === "fist") return "握りこぶし";
+  return "Hand";
 }

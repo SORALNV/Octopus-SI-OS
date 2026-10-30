@@ -1134,7 +1134,7 @@ function DriverLifecycleProgress({ operation }: { operation: DriverLifecycleOper
         ? "Copying"
         : operation.phase === "finalizing" || operation.phase === "complete"
           ? "Finishing"
-          : "Installing"
+          : "インストール中"
     : operation.phase === "preflight" || operation.phase === "verifying"
       ? "Checking"
       : operation.phase === "finalizing" || operation.phase === "complete"
@@ -1370,7 +1370,7 @@ function DriverSetupDialog({
                               className="mb-px"
                               disabled={saving || Boolean(selectingFolder)}
                               glyph="folder"
-                              label={`選択 ${titleCase(slot)} folder`}
+                              label={`選択 ${titleCase(slot)} 内のフォルダー`}
                               onClick={() => onSelectFolder(state.ee_id, slot)}
                               variant="secondary"
                             />
@@ -1469,7 +1469,7 @@ function driverGlyph(driver: DriverRecord): GlyphName {
 function driverSummary(driver: DriverRecord): string {
   if (driver.description?.trim()) return driver.description.trim();
   const capabilities = driver.capabilities.slice(0, 3).map(titleCase).join(" · ");
-  return capabilities || `${driver.tool_ids.length} tool${driver.tool_ids.length === 1 ? "" : "s"}`;
+  return capabilities || `${driver.tool_ids.length} tool${driver.tool_ids.length === 1 ? "" : " 秒"}`;
 }
 
 function driverInstallTitle(driver: DriverRecord, accessProfile: OctopusClientAccessProfile): string {

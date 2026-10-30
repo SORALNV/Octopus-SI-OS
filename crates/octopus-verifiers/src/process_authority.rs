@@ -496,6 +496,11 @@ impl ProcessAuthoritySpecExecution for ProcessAuthoritySpec {
             executable.insert(resolve_executable(command, &repository_root, search_path)?);
             executable_links.extend(search_path_links(command, search_path)?);
         }
+        for binding in &self.read_executable_relative_paths {
+            let command = resolve_executable(&binding.executable, &repository_root, search_path)?;
+            let parent = command.parent().ok_or("resolved executable has no parent directory")?;
+            readable.insert(normalize_existing_path(parent.join(&binding.relative_path))?);
+        }
         let has_argument_paths = !self.read_argument_paths.is_empty()
             || !self.write_argument_paths.is_empty()
             || !self.executable_argument_paths.is_empty();

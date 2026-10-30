@@ -5,7 +5,7 @@ This folder is the first-party UI contract for the Electron/operator app.
 Use these primitives for shared UI anatomy:
 
 - `OcButton` for command buttons with optional icon and meta text.
-- `OcIconButton` for icon-only commands.
+- `OcIconButton` for icon-only commands; dialog headers use its `dialog-close` appearance.
 - `OcSegmented` for two-or-more mutually exclusive view modes.
 - `OcStatus` for compact live/reading/error state.
 - `OcPaneGroup` for main/detail pane layouts.

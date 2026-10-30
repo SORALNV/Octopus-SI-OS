@@ -6,6 +6,7 @@ import { WorldProjection } from "./WorldProjection";
 import { SystemArtifactTransfers, useArtifactTransferFeed } from "./ArtifactTransferAnimation";
 import { DashboardLabel, DashboardTooltip } from "./DashboardLabel";
 import { useAppErrorToast } from "../toasts";
+import { OctopusLoadingState } from "./OctopusLoadingLogo";
 
 // Two scopes, two honest pictures (owner):
 //   System — zone cards, one level at a time (drill into child environments instead of
@@ -458,6 +459,10 @@ export const TopologyStage = memo(function TopologyStage({ snapshot, query, scop
   }, [hasRuntimeRows, scope, snapshot.environments.length, snapshot.summaryStats, viewMode, visibleEnvironments.length, zonedEnvironments.length]);
   const breadcrumb = useMemo(() => breadcrumbChain(levelId, environmentsById), [levelId, environmentsById]);
 
+  if (snapshot.projection.mode === "connecting") {
+    return <OctopusLoadingState className="surface-content-loading-state" label="構成図を読み込んでいます" />;
+  }
+
   if (scope === "World") {
     return (
       <section className="topology-shell is-world-scope" aria-label="外部の構成">
@@ -734,7 +739,7 @@ const EnvironmentCard = memo(function EnvironmentCard({
               onEnterChildren(env.id);
             }}
           >
-            {childCount} 子環境{childCount === 1 ? "" : "s"}
+            {childCount} 子環境{childCount === 1 ? "" : " 秒"}
           </button>
         ) : null}
       </div>

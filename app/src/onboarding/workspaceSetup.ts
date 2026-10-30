@@ -148,7 +148,7 @@ type PresetDefinition = {
 const PRESET_DEFINITIONS: Record<WorkspaceSetupPreset, PresetDefinition> = {
   life: {
     spaceName: "Life",
-    spaceGoal: "Organize personal life",
+    spaceGoal: "日々の暮らしを整理",
     projects: [
       projectSeed("study", null, "Study", "book", "blue"),
       projectSeed("travel", null, "Travel", "globe", "cyan"),
@@ -156,7 +156,7 @@ const PRESET_DEFINITIONS: Record<WorkspaceSetupPreset, PresetDefinition> = {
   },
   work: {
     spaceName: "Work",
-    spaceGoal: "Operate work",
+    spaceGoal: "仕事を管理",
     projects: [
       projectSeed("work-project-1", null, "Project 1", "briefcase", "indigo"),
       projectSeed("work-project-2", null, "Project 2", "folder", "violet"),
@@ -164,7 +164,7 @@ const PRESET_DEFINITIONS: Record<WorkspaceSetupPreset, PresetDefinition> = {
   },
   founder: {
     spaceName: "Founder",
-    spaceGoal: "Operate life and work",
+    spaceGoal: "暮らしと仕事を管理",
     projects: [
       projectSeed("life", null, "Life", "globe", "teal"),
       projectSeed("work", null, "Work", "briefcase", "indigo"),
@@ -174,8 +174,8 @@ const PRESET_DEFINITIONS: Record<WorkspaceSetupPreset, PresetDefinition> = {
     ],
   },
   custom: {
-    spaceName: "My space",
-    spaceGoal: "Organize my work and life",
+    spaceName: "自分のワークスペース",
+    spaceGoal: "仕事と暮らしを整理",
     projects: [
       projectSeed("custom-project-1", null, "Project", "folder", "violet"),
     ],

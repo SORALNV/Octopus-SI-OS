@@ -241,6 +241,22 @@ test("an artifact opens as text up to the 2 MB preview limit and lists its sanit
   }
 });
 
+test("an admitted read opens its exact content in Files instead of the tool envelope", async () => {
+  const { FilesView } = await filesViewModule;
+  filesBridge();
+  const previewText = '{"content":{"text":"Retained instructions · Ω"}}';
+  const target = { kind: "artifact", artifactId: "read:context", runId: "run-1", interfaceId: "provider", label: "self-improvement", previewText };
+  harness.resolveArtifact = async (reference) => {
+    assert.equal(reference.inlinePayload, previewText);
+    return { file: { filename: "self-improvement.json", mediaType: "application/json", bytes: new TextEncoder().encode(reference.inlinePayload) }, model: { kind: "json" } };
+  };
+  await show(React.createElement(FilesView, { accessProfile: "live", active: true, paneKey: "pane-read-context", target }));
+  await settle();
+  assert.equal(harness.editorProps.at(-1).value, previewText);
+  assert.equal(harness.editorProps.at(-1).onChange, undefined);
+  assert.equal(document.querySelector('[role="dialog"]'), null);
+});
+
 test("the renderer root gives the diff worker pool the appearance themes and a Pierre worker", async () => {
   window.octopusTransport = undefined;
   harness.pool = { setRenderOptions: async (options) => { harness.renderOptions.push(options); } };

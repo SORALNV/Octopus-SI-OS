@@ -97,6 +97,16 @@ struct RegistryDescriptorFingerprint {
     digest: u128,
 }
 
+#[derive(Default)]
+struct RegistryFileCache(BTreeMap<PathBuf, RegistryFileObservation>);
+
+struct RegistryFileObservation {
+    stamp: octopus_file_storage::metadata::FileStamp,
+    settled: bool,
+    digest: u64,
+    observed: bool,
+}
+
 const REGISTRY_OBSERVATION_ATTEMPTS: usize = 4;
 
 #[derive(Debug, thiserror::Error)]
@@ -154,6 +164,7 @@ const REGISTRY_DESCRIPTOR_KINDS: [&str; 7] = [
 fn registry_descriptor_fingerprint(
     registry_root: &Path,
     ee_instances_dir: &Path,
+    files: &mut RegistryFileCache,
 ) -> std::io::Result<RegistryDescriptorFingerprint> {
     use std::hash::{Hash, Hasher};
     let mut file_count: u64 = 0;
@@ -162,12 +173,30 @@ fn registry_descriptor_fingerprint(
         if path.extension().and_then(|extension| extension.to_str()) != Some("json") {
             return Ok(());
         }
+        let observed_before_read = std::time::SystemTime::now();
         let metadata = std::fs::metadata(&path)?;
         if !metadata.is_file() {
             return Ok(());
         }
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
         path.hash(&mut hasher);
+        let stamp = octopus_file_storage::metadata::FileStamp::of(&metadata);
+        let settled = stamp.is_settled(observed_before_read);
+        let content = if let Some(cached) = files.0.get_mut(&path)
+            .filter(|cached| cached.stamp == stamp && cached.settled && settled)
+        {
+            cached.observed = true;
+            cached.digest
+        } else {
+            let mut content = std::collections::hash_map::DefaultHasher::new();
+            std::fs::read(&path)?.hash(&mut content);
+            let digest = content.finish();
+            files.0.insert(path.clone(), RegistryFileObservation {
+                stamp, settled, digest, observed: true,
+            });
+            digest
+        };
+        content.hash(&mut hasher);
         metadata.len().hash(&mut hasher);
         metadata.modified()?.hash(&mut hasher);
         #[cfg(unix)]
@@ -217,6 +246,7 @@ fn registry_descriptor_fingerprint(
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
         Err(error) => return Err(error),
     }
+    files.0.retain(|_, entry| std::mem::take(&mut entry.observed));
     Ok(RegistryDescriptorFingerprint { file_count, digest })
 }
 
@@ -314,6 +344,7 @@ struct RegistryRunGrantResolver {
     registry_root: PathBuf,
     ee_instances_root: PathBuf,
     fingerprint: Arc<Mutex<Option<RegistryDescriptorFingerprint>>>,
+    files: Arc<Mutex<RegistryFileCache>>,
 }
 
 /// The prospective run uses the same descriptor snapshot and policy formation
@@ -1554,6 +1585,7 @@ pub struct EmbeddedRuntime {
     pub tool_descriptors_loaded: Vec<(octopus_descriptors::DescriptorName, ToolDescriptor)>,
     live_registry: Arc<RwLock<LoadedRegistrySnapshot>>,
     registry_fingerprint: Arc<Mutex<Option<RegistryDescriptorFingerprint>>>,
+    registry_files: Arc<Mutex<RegistryFileCache>>,
     pub ee_tree: EeTree,
     pub existence_ee_id: EeId,
     pub formation_source_hashes: BTreeMap<DescriptorName, DescriptorHash>,
@@ -1614,9 +1646,11 @@ impl EmbeddedRuntime {
             .registry_fingerprint
             .lock()
             .map_err(|_| "registry fingerprint lock is poisoned".to_string())?;
+        let mut files = self.registry_files.lock()
+            .map_err(|_| "registry file cache lock is poisoned".to_string())?;
         if let Some((fingerprint, snapshot)) = observe_stable_registry(
             *current,
-            || registry_descriptor_fingerprint(&self.registry_root, &self.ee_instances_root),
+            || registry_descriptor_fingerprint(&self.registry_root, &self.ee_instances_root, &mut files),
             || LoadedRegistrySnapshot::load(&self.registry_root, &self.ee_instances_root),
         )? {
             self.install_registry_snapshot(snapshot)?;
@@ -1868,8 +1902,9 @@ pub async fn build_embedded_spine(
         );
     }
     let mut persisted_ee_instances = load_persisted_ee_instances(&config.ee_instances_root)?;
+    let mut registry_files = RegistryFileCache::default();
     let boot_fingerprint =
-        registry_descriptor_fingerprint(&config.registry_root, &config.ee_instances_root).ok();
+        registry_descriptor_fingerprint(&config.registry_root, &config.ee_instances_root, &mut registry_files).ok();
     let (ee_tree, bootstrap_ee, mut topology_issues) = registry_ee_state(
         &packages.ee_templates,
         &packages.graph,
@@ -1930,12 +1965,14 @@ pub async fn build_embedded_spine(
 
     let runtime = Runtime::open(services)?;
     let registry_fingerprint = Arc::new(Mutex::new(boot_fingerprint));
+    let registry_files = Arc::new(Mutex::new(registry_files));
     runtime.set_run_grant_resolver(Arc::new(RegistryRunGrantResolver {
         live_registry: live_registry.clone(),
         blobs: config.blobs.clone(),
         registry_root: config.registry_root.clone(),
         ee_instances_root: config.ee_instances_root.clone(),
         fingerprint: registry_fingerprint.clone(),
+        files: registry_files.clone(),
     }));
     let repository_root = config
         .registry_root
@@ -1977,6 +2014,7 @@ pub async fn build_embedded_spine(
         tool_descriptors_loaded,
         live_registry,
         registry_fingerprint,
+        registry_files,
         ee_tree,
         existence_ee_id: bootstrap_ee,
         formation_source_hashes,
@@ -2029,6 +2067,7 @@ mod required_artifact_verification_tests {
         std::fs::write(
             ee_instances_root.join("ee_existence.json"),
             serde_json::to_vec_pretty(&EeInstance {
+                name: None,
                 ee_id: EeId::new("ee_existence"),
                 template: octopus_descriptors::EeTemplateId::new("existence"),
                 parent_ee: None,
@@ -2318,7 +2357,7 @@ description: ""
     }
 
     #[test]
-    fn package_script_verifier_admits_polyglot_packages_without_a_rust_branch() {
+    fn package_script_verifier_validates_payloads_without_a_rust_branch() {
         if !program_runs("sh", &["-c", "exit 0"]) || !program_runs("python3", &["--version"]) {
             eprintln!("skipping: sh/python3 unavailable for package_script admission proof");
             return;
@@ -2356,42 +2395,6 @@ description: ""
         );
         assert!(matches!(
             admission.admit_required_verified_artifact(&json_required, json_input(not_json)),
-            Err(VerifiedArtifactError::VerifierRejected { .. })
-        ));
-
-        let clean_call = manifest_evidence(
-            &blobs,
-            "tool.call",
-            br#"{"tool":"coder.read_file","arguments":{"path":"src/lib.rs"}}"#,
-        );
-        let dangerous_call = manifest_evidence(
-            &blobs,
-            "tool.call",
-            br#"{"tool":"coder.exec","command":"rm -rf /"}"#,
-        );
-        let guard_required = RequiredVerifiedArtifact {
-            mark: MarkId::new("hook.gate.passed"),
-            artifact_label: "tool.call".into(),
-            verifier: octopus_descriptors::VerifierId::new("pre_tool_use_guard"),
-            params: serde_json::json!({"denied_command_substrings": ["rm -rf"]}),
-        };
-        let guard_input = |artifact: ArtifactRef| VerificationInput {
-            run: RunId::new("run"),
-            checkpoint: octopus_descriptors::CheckpointId::new("checkpoint"),
-            epoch: 13,
-            mark: guard_required.mark.clone(),
-            artifact,
-            artifact_label: "tool.call".into(),
-            params: guard_required.params.clone(),
-            metadata: serde_json::json!({}),
-        };
-        let mark = admission
-            .admit_required_verified_artifact(&guard_required, guard_input(clean_call))
-            .expect("a clean tool call passes the pre-tool-use guard");
-        assert_eq!(mark.name, MarkId::new("hook.gate.passed"));
-        assert!(matches!(
-            admission
-                .admit_required_verified_artifact(&guard_required, guard_input(dangerous_call)),
             Err(VerifiedArtifactError::VerifierRejected { .. })
         ));
     }

@@ -62,10 +62,10 @@ type Props = {
 };
 
 const STEPS: Array<{ id: Exclude<WorkspaceSetupStep, "applying">; tag: string; title: string; body: string }> = [
-  { id: "space", tag: "Your space", title: "Octopus をどのように使いますか？", body: "This only prepares a starting structure. You can change every project later." },
-  { id: "projects", tag: "Projects", title: "分野ごとに名前を付けましょう", body: "Projects keep related tasks together. Nest one only when it really belongs inside another." },
-  { id: "capabilities", tag: "Capabilities", title: "Octopus に使わせる機能を選びましょう", body: "Included components form the working experience. Recommended additions stay optional." },
-  { id: "review", tag: "Review", title: "セットアップの準備ができました", body: "Octopus installs the selected components, creates Home and these projects, then verifies the result." },
+  { id: "space", tag: "Your space", title: "Octopus をどのように使いますか？", body: "まず基本の構成を用意します。各プロジェクトは後から変更できます。" },
+  { id: "projects", tag: "Projects", title: "分野ごとに名前を付けましょう", body: "関連するタスクをプロジェクトにまとめます。別のプロジェクトの一部として扱う場合は、その中に配置してください。" },
+  { id: "capabilities", tag: "Capabilities", title: "Octopus に使わせる機能を選びましょう", body: "含まれる機能で基本の作業環境を構成します。おすすめの追加機能は必要に応じて選べます。" },
+  { id: "review", tag: "Review", title: "セットアップの準備ができました", body: "選んだ機能をインストールし、ホームとプロジェクトを作成して、結果を確認します。" },
 ];
 
 const PRESETS: Array<{
@@ -85,7 +85,7 @@ const KIND_LABELS: Record<WorkspaceSetupCapabilityKind, string> = {
   driver: "Driver",
   artifact: "Context",
   extension: "Extension",
-  pack: "Application Pack",
+  pack: "アプリケーションパック",
 };
 
 export function WorkspaceSetupOverlay({
@@ -150,16 +150,11 @@ export function WorkspaceSetupOverlay({
 
   return (
     <main className="welcome" aria-labelledby="welcome-title">
-      <header className="welcome-top">
-        <div className="welcome-brand">
-          <img className="welcome-brand-mark" src="./octopus-logo.png" alt="" />
-          <span className="welcome-brand-name">Octopus&nbsp;OS</span>
-        </div>
-      </header>
+      <SetupHeader />
 
-      <div className="welcome-stage setup-stage" key={applying ? "applying" : activeStep}>
+      <div className="welcome-stage setup-stage" data-applying={applying || undefined} key={applying ? "applying" : activeStep}>
         {applying ? (
-          <ApplyingStep applyState={applyState} draft={draft} />
+          <ApplyingStep applyState={applyState} />
         ) : (
           <section className="setup-step">
             <span className="welcome-tag">{step.tag}</span>
@@ -502,10 +497,39 @@ function ReviewStep({ catalog, draft, agentPresets }: { catalog: WorkspaceSetupC
   );
 }
 
-function ApplyingStep({ applyState, draft }: { applyState: WorkspaceSetupApplyState; draft: WorkspaceSetupDraft }) {
+export function WorkspaceSetupProgress({ applyState }: { applyState: WorkspaceSetupApplyState }) {
+  return <main className="welcome" aria-labelledby="welcome-title">
+    <SetupHeader />
+    <div className="welcome-stage setup-stage" data-applying><ApplyingStep applyState={applyState} /></div>
+    <footer className="welcome-footer">
+      <div className="welcome-footer-side welcome-footer-left" />
+      <div className="welcome-footer-side welcome-footer-right">
+        <button className="welcome-next" type="button" disabled>処理しています…</button>
+      </div>
+    </footer>
+  </main>;
+}
+
+function SetupHeader() {
+  return <header className="welcome-top">
+    <div className="welcome-brand">
+      <img className="welcome-brand-mark" src="./octopus-logo.png" alt="" />
+      <span className="welcome-brand-name">Octopus&nbsp;OS</span>
+    </div>
+  </header>;
+}
+
+function ApplyingStep({ applyState }: { applyState: WorkspaceSetupApplyState }) {
   const failed = applyState.state === "failed";
   const running = applyState.state === "running";
   const shown = useShownPercent(running, applyState.percent);
+  const [waiting, setWaiting] = useState(false);
+  useEffect(() => {
+    setWaiting(false);
+    if (!running) return;
+    const timer = window.setTimeout(() => setWaiting(true), 45_000);
+    return () => window.clearTimeout(timer);
+  }, [running, applyState.label, applyState.percent]);
   return (
     <section className="welcome-centered">
       {running ? (
@@ -514,7 +538,7 @@ function ApplyingStep({ applyState, draft }: { applyState: WorkspaceSetupApplySt
         <span className="welcome-tag">{failed ? "確認が必要" : "アカウント"}</span>
       )}
       <h1 id="welcome-title" className="welcome-title">
-        {failed ? "セットアップの確認が必要" : applyState.label || `作成中 ${draft.spaceName}`}
+        {failed ? "セットアップの確認が必要" : applyState.label || "ワークスペースを準備しています"}
       </h1>
       <p className="welcome-body" data-tone={failed ? "danger" : undefined}>
         {failed ? applyState.error : applyState.detail || "設定を確認して適用しています。ウィンドウが閉じても、Octopus を開き直せます。"}
@@ -525,6 +549,7 @@ function ApplyingStep({ applyState, draft }: { applyState: WorkspaceSetupApplySt
           <span className="setup-progress-value">{Math.round(shown)}%</span>
         </div>
       ) : null}
+      {waiting && running ? <p className="mt-4 text-sm text-token-description-foreground">このステップの完了を待っています。「ヘルプ」→「不具合を報告」から診断情報を収集できます。</p> : null}
     </section>
   );
 }

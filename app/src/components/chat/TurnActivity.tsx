@@ -35,6 +35,7 @@ type Props = {
   startedAtMs: number;
   toolPresentations: ChatToolPresentationIndex;
   turnInProgress?: boolean;
+  blockingReason?: string;
 };
 
 type ActivityFamily =
@@ -90,7 +91,7 @@ type CompletedGroupSegment = {
   leading: string;
 };
 
-export function TurnActivity({ activityWindow = "all", activities, finalStartedAtMs, presentation, renderActivity, response, statusBoundaryVisible = true, startedAtMs, toolPresentations, turnInProgress }: Props) {
+export function TurnActivity({ activityWindow = "all", activities, finalStartedAtMs, presentation, renderActivity, response, statusBoundaryVisible = true, startedAtMs, toolPresentations, turnInProgress, blockingReason = "" }: Props) {
   const reducedMotion = useShouldReduceMotion();
   const syntheticSubmitting = activities.some((message) => message.eventData?.work_status === "submitting");
   const syntheticWorking = activities.some((message) => message.eventData?.work_status === "working");
@@ -113,14 +114,15 @@ export function TurnActivity({ activityWindow = "all", activities, finalStartedA
   const failed = Boolean(terminalTraceError) && !stopped;
   const turnCompleted = activities.some(turnWasCompleted);
   const turnFinished = finalStarted || failed || stopped || turnCompleted;
-  const working = !finalStarted && !failed && !stopped && !turnCompleted && Boolean(
+  const blocked = Boolean(blockingReason) && !turnFinished;
+  const working = !blocked && !finalStarted && !failed && !stopped && !turnCompleted && Boolean(
     turnInProgress ?? (
       syntheticWorking
       || syntheticSubmitting
       || coalesceActivities(visibleActivity).some((entry) => entry.active)
     )
   );
-  const settled = presentation === "ledger"
+  const settled = blocked || presentation === "ledger"
     ? visibleActivity
     : !working
       ? settleOpenTextStreams(visibleActivity, failed ? "failed" : "completed")
@@ -144,9 +146,11 @@ export function TurnActivity({ activityWindow = "all", activities, finalStartedA
   const hasConversationReasoningWork = presentation === "conversation"
     && visibleActivity.some((message) => activityFamily(message) === "reasoning");
   const thinkingFallbackMessage = presentation === "conversation"
-    ? latestReasoningSummaryHeading(presented) || "考えています"
-    : "考えています";
-  const { activeGroupId, showThinkingFallback } = activityProgressSurface(units, working);
+    ? latestReasoningSummaryHeading(presented) || "Thinking"
+    : "Thinking";
+  const progress = activityProgressSurface(units, working);
+  const activeGroupId = blocked ? null : progress.activeGroupId;
+  const showThinkingFallback = !blocked && progress.showThinkingFallback;
   const [historyDisclosureState, setHistoryDisclosureState] = useState<DisclosureState>("collapsed");
   const [, setClock] = useState(0);
   const historyOpeningFrameRef = useRef<number | null>(null);
@@ -191,6 +195,7 @@ export function TurnActivity({ activityWindow = "all", activities, finalStartedA
 
   const hasWork = units.length > 0;
   const startingTask = syntheticSubmitting
+    && !blocked
     && !hasWork
     && !response
     && !failed
@@ -200,7 +205,7 @@ export function TurnActivity({ activityWindow = "all", activities, finalStartedA
     && !stopped
     && !hasWork
     && hasConversationReasoningWork;
-  const showWorkedForBoundary = statusBoundaryVisible
+  const showWorkedForBoundary = !blocked && statusBoundaryVisible
     && (hasWork || failed || stopped || showStandaloneWorkedBoundary);
   if (startingTask) {
     return (
@@ -215,7 +220,7 @@ export function TurnActivity({ activityWindow = "all", activities, finalStartedA
       </section>
     );
   }
-  if (!hasWork && !working && !failed && !stopped && !showStandaloneWorkedBoundary) return null;
+  if (!hasWork && !working && !failed && !stopped && !blocked && !showStandaloneWorkedBoundary) return null;
 
   const observedStartedAtMs = positiveTimestamp(startedAtMs)
     ?? activityStartedAtMs(activities)
@@ -254,13 +259,14 @@ export function TurnActivity({ activityWindow = "all", activities, finalStartedA
   return (
     <section
       className="octopus-turn-activity flex min-h-0 min-w-0 flex-col text-token-text-secondary"
-      data-state={working ? "working" : stopped ? "stopped" : failed ? "failed" : "complete"}
+      data-state={blocked ? "blocked" : working ? "working" : stopped ? "stopped" : failed ? "failed" : "complete"}
       onClickCapture={(event) => {
         const target = event.target;
         const toggle = target instanceof Element ? target.closest("button[aria-expanded]") : null;
         if (!turnFinished && toggle?.getAttribute("aria-expanded") === "false") setHistoryDisclosureState("expanded");
       }}
     >
+      {blocked ? <div className="composer-storage-warning" role="status">{blockingReason}</div> : null}
       {collapsibleHistory ? (
         <>
           <WorkedForToggle elapsed={elapsed} expanded={historyExpanded} onToggle={toggleHistory} />
@@ -952,7 +958,7 @@ function RetryableErrorActivity({ message }: { message: ChatRenderMessage }) {
   const progress = attempt && maximum ? `${attempt}/${maximum}` : "";
   const label = overloaded
     ? `サーバーが混み合っています。再接続しています${progress ? ` ${progress}` : ""}`
-    : progress ? `再接続中 ${progress}` : message.text || "Reconnecting";
+    : progress ? `再接続中 ${progress}` : message.text || "再接続中";
   const details = text(data.additional_details ?? data.additionalDetails);
   return (
     <ActivityDisclosure
@@ -991,7 +997,7 @@ function WorkedForBoundary({ elapsed, reducedMotion, status }: {
   status: "working" | "worked" | "stopped" | "interrupted";
 }) {
   const label = status === "working"
-    ? elapsed >= 1_000 ? `作業時間： ${formatElapsed(elapsed)}` : "Working"
+    ? elapsed >= 1_000 ? `作業時間： ${formatElapsed(elapsed)}` : "作業中"
     : status === "stopped"
       ? `停止までの作業時間： ${formatElapsed(elapsed)}`
       : status === "interrupted"
@@ -1751,9 +1757,9 @@ function activityLabel(entry: ActivityEntry): string {
       ? `モデルの接続先を変更しました · ${[from, to].filter(Boolean).join(" → ")}`
       : message.eventKind === "model_rerouted" ? "モデルの接続先を変更しました" : "モデルの接続経路を確認しました";
   }
-  if (entry.family === "warning") return text(data.message) || message.text || "Warning";
+  if (entry.family === "warning") return text(data.message) || message.text || "警告";
   if (entry.family === "rate_limits") return "使用上限を更新しました";
-  if (entry.family === "goal") return `目標 · ${text(data.status) || "updated"}`;
+  if (entry.family === "goal") return `目標 · ${text(data.status) || "更新しました"}`;
   if (entry.family === "operator") {
     if (message.eventKind === "approval") return "承認が求められています";
     if (message.eventKind === "operator_request_resolved") return "ユーザーへのリクエストが解決しました";
@@ -1766,7 +1772,7 @@ function activityLabel(entry: ActivityEntry): string {
     if (action === "stop" || action === "interrupt") return status === "acknowledged" ? "やり取りを停止しました" : "停止できませんでした";
     return `${action} · ${status}`;
   }
-  return message.label || message.text || "Activity";
+  return message.label || message.text || "アクティビティ";
 }
 
 function dynamicToolActivityLabel(entry: ActivityEntry, toolPresentations: ChatToolPresentationIndex): string {

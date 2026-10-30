@@ -38,7 +38,7 @@ export async function resolveArtifactPayload(reference: ArtifactReference): Prom
     };
   }
   if (reference.source === "registry") {
-    throw new Error("This registry descriptor has no admitted payload movement to preview.");
+    throw new Error("このレジストリの定義には、プレビューできるデータの受け渡し記録がありません。");
   }
   const response = await readProjection<{ artifacts?: InterfaceArtifactRow[] }>(
     "projection.interface_artifacts.list",

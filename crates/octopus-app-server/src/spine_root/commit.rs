@@ -100,8 +100,11 @@ pub(super) fn acquire(owner: &RegistryRunGrantResolver, record: &octopus_runtime
     if before != Inputs::capture(owner, record, marks)? {
         return Err("admission registry dependency set changed while acquiring ownership".into());
     }
-    let observed = registry_descriptor_fingerprint(&owner.registry_root, &owner.ee_instances_root)
-        .map_err(|error| error.to_string())?;
+    let observed = {
+        let mut files = owner.files.lock().map_err(|_| "registry file cache lock is poisoned")?;
+        registry_descriptor_fingerprint(&owner.registry_root, &owner.ee_instances_root, &mut files)
+            .map_err(|error| error.to_string())?
+    };
     if *owner.fingerprint.lock().map_err(|_| "registry fingerprint lock is poisoned")? != Some(observed) {
         return Err("admission registry snapshot no longer matches its source files".into());
     }

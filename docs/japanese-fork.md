@@ -11,9 +11,9 @@
 
 ## ビルド済みアプリ
 
-[日本語版 Preview 1](https://github.com/SORALNV/Octopus-SI-OS/releases/tag/ja-v0.1.0-preview.1) は Apple Silicon・macOS 14以降向けです。DMG とチェックサム、インストーラー、別の Mac に渡す [インストール用プロンプト](../app/release/install-prompt-ja.md) を配布します。未公証のため、初回起動の準備は Release の説明を確認してください。Node・Rust とソースの取得は不要ですが、Command Line Tools for Xcode が必要です。
+[日本語版 0.1.1 Preview 2](https://github.com/SORALNV/Octopus-SI-OS/releases/tag/ja-v0.1.1-preview.2) は Apple Silicon・macOS 14以降向けです。DMG とチェックサム、インストーラー、別の Mac に渡す [インストール用プロンプト](../app/release/install-prompt-ja.md) を配布します。未公証のため、初回起動の準備は Release の説明を確認してください。Node・Rust とソースの取得は不要ですが、Command Line Tools for Xcode が必要です。
 
-日本語版の配布タグはアプリ本体の数値バージョンとは分け、初回は `ja-v0.1.0-preview.1` とします。上流用の `v*` タグのビルドワークフローは起動せず、確認済みのローカルパッケージから `app/scripts/release-macos.cjs` で DMG を作成します。添付する `install-prompt-ja.md`・`build-info.json` も含めて `checksums.txt` を作成し直し、全添付ファイルを照合します。ビルド情報にはアプリの基準コミットと、作成時に使用したローカル設定・依存パッケージの差を記録します。
+日本語版の配布タグはアプリ本体の数値バージョンとは分け、今回は `ja-v0.1.1-preview.2` とします。上流用の `v*` タグのビルドワークフローは起動せず、確認済みのローカルパッケージから `app/scripts/release-macos.cjs` で DMG を作成します。添付する `install-prompt-ja.md`・`build-info.json` も含めて `checksums.txt` を作成し直し、全添付ファイルを照合します。ビルド情報にはアプリの基準コミットと、作成時に使用したローカル設定・依存パッケージの差を記録します。
 
 ## 独自対応の終了条件
 
@@ -23,8 +23,8 @@
 
 現在の変更は英語の画面文言を日本語に置き換える方式です。上流への貢献として提出する場合は、既存の英語表示を維持できる言語切り替えの仕組みと日本語訳を分けて提案します。Issue・PR の作成は依頼を受けて行います。
 
-## 初回公開時のビルド確認
+## この版のビルド
 
-初回の日本語化は上流コミット `c44cede` を基準にしています。この時点の上流は、ES2021 以降の API を使うコードに対して `app/tsconfig.json` の `lib` が ES2020 のままです。同じローカルの依存パッケージで比較すると、元のコードと日本語化したコードの両方に型エラーが60件発生しました。
+0.1.1 Preview 2 は、上流コミット `04db3ff3a9ad4ebf61fcda790bcce4771af316ea` を基準としています。初回の日本語版から上流の49コミットを取り込み、追加・変更された画面を日本語化しました。
 
-日本語化のローカル検証とアプリの作成では `lib` を ES2023 にした既存のローカル設定を使用しています。日本語化した公開ソースも `--lib DOM,DOM.Iterable,ES2023` を指定した型検査で確認しています。上流由来の設定不足と、既存の依存パッケージ変更は、今回の翻訳差分には含めていません。上流の更新を取り込む際には、この前提が解消されたかも確認します。
+配布用の依存パッケージとロックファイルを更新し、実行環境に合わせて TypeScript の `lib` を ES2023 としています。初回配布で使ったローカルのビルド調整を、この版では公開ソースに含めています。ビルド情報と検証範囲は Release に添付する `build-info.json` に記録します。

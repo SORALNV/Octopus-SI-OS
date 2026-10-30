@@ -76,7 +76,7 @@ function createClientPresentationHost(options) {
       if (typeof addon?.createPiPHost !== "function") throw new Error("Client presentation library lacks its exact main factory");
       current();
       const value = addon.createPiPHost({ placementAssetPath: artifact.placementAssetPath, settingsAssetBundlePath: artifact.settingsAssetBundlePath, onEvent,
-        controlText: { closeTooltip: "Close preview", hide: "Hide", hideForGroup: "Hide for this task", hideForAllGroups: "Hide for all tasks", placementTooltip: "Move preview" } });
+        controlText: { closeTooltip: "プレビューを閉じる", hide: "Hide", hideForGroup: "Hide for this task", hideForAllGroups: "Hide for all tasks", placementTooltip: "Move preview" } });
       try {
         current();
         for (const method of ["registerHost", "removeHost", "setSelection", "upsertBrowserImage", "invalidateBrowserImage", "beginSource", "installSource", "cancelSource", "embedSource", "detachEmbeddedSource", "hideEmbeddedSource", "completeGroup", "clearCompletedGroup", "stop"]) {
