@@ -2,7 +2,9 @@
 >
 > Octopus のデスクトップ UI を日本語化しています。上流の変更は依頼時に取り込み、公式に日本語対応が入ったら独自の翻訳対応を終了します。
 >
-> [日本語版をダウンロード](https://github.com/SORALNV/Octopus-SI-OS/releases/tag/ja-v0.1.1-preview.2) · [日本語版の方針と更新手順](docs/japanese-fork.md) · [上流リポジトリ](https://github.com/miuuyy/Octopus-SI-OS)
+> [公開済みの日本語版](https://github.com/SORALNV/Octopus-SI-OS/releases) · [日本語版の方針と更新手順](docs/japanese-fork.md) · [上流リポジトリ](https://github.com/miuuyy/Octopus-SI-OS)
+>
+> 現在のソースは 0.1.1 です。今回の更新はコードのみの公開で、更新版の Release は未公開です。
 
 <p align="center">
   <img src="assets/octopus-icon.png" width="128" alt="Octopus">

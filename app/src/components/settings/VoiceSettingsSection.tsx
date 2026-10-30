@@ -38,7 +38,7 @@ export function VoiceAudioSection({ accessProfile, recordingId, onShowAllRecordi
       }
       if (!mediaDevices?.enumerateDevices) {
         if (!cancelled) {
-          setDeviceError("Audio device enumeration is unavailable in this client host.");
+          setDeviceError("この環境では音声デバイスの一覧を取得できません。");
           setDeviceLoading(false);
         }
         return;
@@ -46,8 +46,8 @@ export function VoiceAudioSection({ accessProfile, recordingId, onShowAllRecordi
       try {
         const devices = await mediaDevices.enumerateDevices();
         if (cancelled) return;
-        setAudioInputs(settingsAudioDevices(devices.filter((device) => device.kind === "audioinput"), "Microphone"));
-        setAudioOutputs(settingsAudioDevices(devices.filter((device) => device.kind === "audiooutput"), "Speaker"));
+        setAudioInputs(settingsAudioDevices(devices.filter((device) => device.kind === "audioinput"), "マイク"));
+        setAudioOutputs(settingsAudioDevices(devices.filter((device) => device.kind === "audiooutput"), "スピーカー"));
         setDeviceError("");
       } catch (failure) {
         if (!cancelled) setDeviceError(failure instanceof Error ? failure.message : String(failure));
@@ -161,7 +161,7 @@ export function VoiceAudioSection({ accessProfile, recordingId, onShowAllRecordi
             label="文字起こしのプロバイダー"
           />
           <OcSettingsRow {...settingsTargetProps("voice.toggle-dictation")}
-            control={<ShortcutKeys keys={formatKeyboardShortcuts(keyboardShortcuts.start_dictation ?? []) || "Unassigned"} />}
+            control={<ShortcutKeys keys={formatKeyboardShortcuts(keyboardShortcuts.start_dictation ?? []) || "未割り当て"} />}
             description="現在の入力欄で音声入力を開始・停止します。"
             label="音声入力を切り替え"
           />
@@ -176,7 +176,7 @@ export function VoiceAudioSection({ accessProfile, recordingId, onShowAllRecordi
             )}
             description="どこからでも Octopus を手前に表示し、現在のタスクで音声入力を始められます。"
             label="どこからでも音声入力"
-            meta={(keyboardShortcuts.start_dictation ?? []).length ? "Only active while this profile is unlocked." : "Assign Toggle dictation first."}
+            meta={(keyboardShortcuts.start_dictation ?? []).length ? "このプロフィールのロックを解除している間だけ使えます。" : "先に「音声入力を切り替え」のショートカットを設定してください。"}
           />
           <OcSettingsRow {...settingsTargetProps("voice.hold-dictate")}
             control={<OcStatus label="入力欄のマイク" tone="success" />}
@@ -217,7 +217,7 @@ export function VoiceAudioSection({ accessProfile, recordingId, onShowAllRecordi
                       const previous = preferences.dictationDictionary;
                       setClientPreferences({ dictationDictionary: previous.filter((candidate) => candidate.id !== entry.id) });
                       if (dictionaryDraft?.id === entry.id) setDictionaryDraft(null);
-                      appToast.info(`Removed “${entry.phrase}”`, 8, {
+                      appToast.info(`「${entry.phrase}」を削除しました`, 8, {
                         action: { label: "元に戻す", onSelect: () => setClientPreferences({ dictationDictionary: previous }) },
                         dedupeKey: `dictation-dictionary-remove:${entry.id}`,
                       });

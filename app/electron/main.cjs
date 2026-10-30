@@ -4911,7 +4911,12 @@ function setApplicationMenu() {
         { role: "togglefullscreen", label: "フルスクリーンを切り替え" },
       ],
     },
-    { role: "windowMenu" },
+    { role: "windowMenu", label: "ウィンドウ", submenu: [
+      { role: "minimize", label: "しまう" },
+      { role: "zoom", label: "拡大/縮小" },
+      { type: "separator" },
+      { role: "front", label: "すべてを手前に移動" },
+    ] },
     {
       label: "ヘルプ", role: "help",
       submenu: [

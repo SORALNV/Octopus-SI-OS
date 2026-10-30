@@ -428,7 +428,7 @@ test("Help reports work independently of the main renderer and export the review
   const main = await launchMain();
   const [primary] = main.windows();
   const help = main.world.menu.template.find((item) => item.role === "help");
-  const reportItem = help.submenu.find((item) => item.label === "Report a Problem…");
+  const reportItem = help.submenu.find((item) => item.label === "不具合を報告…");
   primary.focus();
   reportItem.click();
   const locked = main.windows().at(-1);
@@ -437,8 +437,8 @@ test("Help reports work independently of the main renderer and export the review
   const basic = await main.invoke("octopus:support-collect", locked, { includeDetails: false });
   assert.equal(basic.access, "locked");
   assert.equal(basic.client_logs, undefined);
-  await assert.rejects(main.invoke("octopus:support-collect", locked, { includeDetails: true }), /Unlock/);
-  await assert.rejects(main.invoke("octopus:support-collect", primary, { includeDetails: false }), /report window/);
+  await assert.rejects(main.invoke("octopus:support-collect", locked, { includeDetails: true }), /管理者として/);
+  await assert.rejects(main.invoke("octopus:support-collect", primary, { includeDetails: false }), /不具合の報告ウインドウ/);
   locked.destroy();
   await main.unlock(primary);
   primary.focus();
@@ -461,7 +461,7 @@ test("Help reports work independently of the main renderer and export the review
   await main.invoke("octopus:support-issue", support, request);
   assert.match(main.eventsOf("external").at(-1)[1], /^https:\/\/github.com\/miuuyy\/Octopus-SI-OS\/issues\/new\?/);
   await main.invoke("octopus:support-collect", support, { includeDetails: false });
-  await assert.rejects(main.invoke("octopus:support-copy", support, request), /Refresh/);
+  await assert.rejects(main.invoke("octopus:support-copy", support, request), /報告内容を更新/);
   assert.equal(main.eventsOf("runtime-start").length, 0);
 });
 const names = (main, wanted) => main.world.events.map(([name]) => name).filter((name) => wanted.includes(name));
@@ -661,7 +661,7 @@ test("logging out locks the session, tells every window of that owner, closes it
 test("File > New Window opens a peer for the focused authenticated window, or reveals the primary when there is none", async () => {
   const main = await launchMain();
   const [primary] = main.windows();
-  const newWindow = () => main.world.menu.template.find((menu) => menu.label === "File").submenu.find((item) => item.label === "New Window");
+  const newWindow = () => main.world.menu.template.find((menu) => menu.label === "ファイル").submenu.find((item) => item.label === "新しいウィンドウ");
   newWindow().click();
   assert.equal(main.windows().length, 1);
   assert.equal(primary.isVisible() && primary.isFocused(), true);

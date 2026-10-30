@@ -1,3 +1,5 @@
+> 配布前の原稿です。`ja-v0.1.1-preview.2` はまだ公開していません。公開までは実行せず、[公開済み 0.1.0 版のプロンプト](https://github.com/SORALNV/Octopus-SI-OS/blob/ja-v0.1.0-preview.1/app/release/install-prompt-ja.md) を使ってください。
+
 この Mac に、私の Fork の Octopus 日本語版をインストールしてください。ソースを Clone したり、Rust・Node を用意してビルドしたりせず、ビルド済み DMG を使ってください。実行できる作業はあなたが進めて、ログインや macOS の許可など本人の操作が必要なところだけ案内してください。
 
 配布元と対象:

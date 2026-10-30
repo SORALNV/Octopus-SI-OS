@@ -153,7 +153,7 @@ setPlist("CFBundleIconFile", "octopus.icns");
 setPlist("CFBundleShortVersionString", packageVersion);
 setPlist("CFBundleVersion", packageVersion);
 setPlist("LSMinimumSystemVersion", minimumSystemVersion);
-setPlist("NSMicrophoneUsageDescription", "エージェントとの音声通話にマイクを使用します。");
+setPlist("NSMicrophoneUsageDescription", "音声入力やエージェントとの音声通話にマイクを使用します。");
 setPlist("NSCameraUsageDescription", "手のジェスチャーを認識するため、カメラをローカルで使用します。映像は録画されず、実行基盤にも送信されません。");
 setPlistBoolean("NSCameraUseContinuityCameraDeviceType", true);
 

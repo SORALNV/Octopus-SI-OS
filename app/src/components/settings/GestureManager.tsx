@@ -46,11 +46,11 @@ const TRACE_DURATIONS: readonly { value: string; label: string }[] = [
   { value: "30000", label: "30秒" },
 ];
 const CURL_LABELS: Record<keyof FingerCurls, string> = {
-  thumb: "Thumb",
-  index: "Index",
-  middle: "Middle",
-  ring: "Ring",
-  little: "Little",
+  thumb: "親指",
+  index: "人さし指",
+  middle: "中指",
+  ring: "薬指",
+  little: "小指",
 };
 
 export function GestureManager({ accessProfile }: { accessProfile: OctopusClientAccessProfile }) {
@@ -95,7 +95,7 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
       removedBuiltins: [...new Set([...current.removedBuiltins, gesture])],
       mappings: { ...current.mappings, [gesture]: "none" },
     }));
-    appToast.info(`Removed ${label}`, 8, {
+    appToast.info(`「${label}」を削除しました`, 8, {
       dedupeKey: `builtin-gesture-remove:${accessProfile}:${gesture}`,
       action: {
         label: "元に戻す",
@@ -229,7 +229,7 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
               />
             )}
             description="フォーカスを1段階動かす手の移動距離、握った手の保持時間、スワイプに必要な距離を調整します。"
-            label="回答"
+            label="反応"
           />
           <OcSettingsRow
             control={<OcSwitch checked={preferences.mirrorX} label="左右の動きを反転" onCheckedChange={(mirrorX) => setPreferences({ mirrorX })} />}
@@ -275,7 +275,7 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
                 }}
                 onCaptured={(curls) => {
                   setRecording(false);
-                  const created = custom.add({ name: `Gesture ${custom.gestures.length + 1}`, definition: "", command: "none", curls });
+                  const created = custom.add({ name: `ジェスチャー ${custom.gestures.length + 1}`, definition: "", command: "none", curls });
                   setEditing(created.id);
                 }}
               />
@@ -285,7 +285,7 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
                 control={(
                   <div className="settings-inline-actions">
                     <OcSelect<GestureCommandId>
-                      label={`${gesture.label} command`}
+                      label={`「${gesture.label}」の操作`}
                       onChange={(command) => setMapping(gesture.id, command)}
                       options={[
                         { value: "none", label: "操作なし" },
@@ -293,7 +293,7 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
                       ]}
                       value={preferences.mappings[gesture.id]}
                     />
-                    <OcButton aria-label={`削除 ${gesture.label}`} onClick={() => removeBuiltin(gesture.id)} size="sm" variant="secondary" tone="danger">削除</OcButton>
+                    <OcButton aria-label={`「${gesture.label}」を削除`} onClick={() => removeBuiltin(gesture.id)} size="sm" variant="secondary" tone="danger">削除</OcButton>
                   </div>
                 )}
                 description={gesture.detail}
@@ -312,7 +312,7 @@ export function GestureManager({ accessProfile }: { accessProfile: OctopusClient
                   if (editing === gesture.id) setEditing(null);
                   const removed = custom.remove(gesture.id);
                   if (!removed) return;
-                  appToast.info(`Removed ${gesture.name}`, 8, {
+                  appToast.info(`「${gesture.name}」を削除しました`, 8, {
                     action: { label: "元に戻す", onSelect: () => custom.restore(removed.gesture, removed.index) },
                     dedupeKey: `custom-gesture-remove:${gesture.id}`,
                   });
@@ -379,7 +379,7 @@ function LiveGestureBadge({ cameraLive, idleNote, mappings }: { cameraLive: bool
   }, [latestAt]);
   const activity = recentActivity(command, focus.last, mappings, now);
   const hands = [...recognition.hands].sort((left, right) => (left.side === right.side ? 0 : left.side === "left" ? -1 : 1));
-  const summary = hands.map((hand) => `${hand.side === "left" ? "Left" : "Right"} · ${poseLabel(hand.pose)}`).join("  ·  ");
+  const summary = hands.map((hand) => `${hand.side === "left" ? "左手" : "右手"} · ${poseLabel(hand.pose)}`).join("  ·  ");
   return (
     <>
       <div className={`gesture-preview-badge${activity ? " is-recognized" : ""}`}>
@@ -644,8 +644,8 @@ function clampUnit(value: number): number {
 
 function permissionLabel(permission: CameraPermission | null): string {
   if (!permission) return "未要求";
-  if (permission.status === "denied") return "Denied";
-  if (permission.status === "restricted") return "Restricted";
+  if (permission.status === "denied") return "未許可";
+  if (permission.status === "restricted") return "制限あり";
   return "未要求";
 }
 
@@ -658,17 +658,17 @@ function previewNote(enabled: boolean, granted: boolean, phase: GestureRecogniti
 function recognitionLabel(phase: GestureRecognitionPhase): string {
   if (phase === "requesting") return "カメラへのアクセスを要求しています";
   if (phase === "loading") return "認識機能を読み込んでいます";
-  if (phase === "running") return "Camera active";
+  if (phase === "running") return "カメラ使用中";
   if (phase === "denied") return "アクセスが許可されていません";
   if (phase === "error") return "利用できません";
   return "オフ";
 }
 
 function poseLabel(pose: HandPose): string {
-  if (pose === "point") return "Point";
-  if (pose === "pinch") return "Pinch";
+  if (pose === "point") return "指さし";
+  if (pose === "pinch") return "つまむ";
   if (pose === "open") return "開いた手";
-  if (pose === "two") return "Two fingers";
+  if (pose === "two") return "2本指";
   if (pose === "fist") return "握りこぶし";
-  return "Hand";
+  return "手";
 }

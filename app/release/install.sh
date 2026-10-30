@@ -1,4 +1,5 @@
 #!/bin/sh
+# Draft for ja-v0.1.1-preview.2; this release is not published yet.
 set -eu
 
 REPOSITORY="${OCTOPUS_REPOSITORY:-SORALNV/Octopus-SI-OS}"

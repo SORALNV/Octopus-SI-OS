@@ -4,6 +4,7 @@ import { OcButton } from "../../design-system/components";
 import { airHandGestures, emitAirHandGesture, emitGestureInteraction } from "../../gestureShortcuts";
 
 const DIRECTIONS: readonly NavigationDirection[] = ["left", "up", "down", "right"];
+const DIRECTION_LABELS: Record<NavigationDirection, string> = { left: "左", up: "上", down: "下", right: "右" };
 
 const SEQUENCES: readonly { label: string; interactions: readonly GestureInteraction[] }[] = [
   {
@@ -55,7 +56,7 @@ export function GestureSimulateButtons({ disabled, leading }: { disabled: boolea
           size="sm"
           variant="secondary"
         >
-          注目 {direction}
+          フォーカスを{DIRECTION_LABELS[direction]}へ
         </OcButton>
       ))}
       {SEQUENCES.map((sequence) => (
