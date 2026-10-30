@@ -18,7 +18,7 @@ function createLabFileStore(options) {
   const workspace = new Map(Object.entries(options.workspaceFiles()).map(([path, text]) => [path, { text, modifiedAt: openedAt }]));
 
   function roots() {
-    return { roots: [{ id: LAB_ROOT_ID, label: "Test Home", path: LAB_ROOT_PATH }] };
+    return { roots: [{ id: LAB_ROOT_ID, label: "テスト用 Home", path: LAB_ROOT_PATH }] };
   }
 
   async function list(request) {

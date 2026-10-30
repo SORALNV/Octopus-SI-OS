@@ -7,7 +7,7 @@ function createClientSupportHost({ app, BrowserWindow, ipcMain, dialog, clipboar
   const windows = new Map();
   function entry(event) {
     const value = windows.get(event.sender.id);
-    if (!value || event.senderFrame !== event.sender.mainFrame) throw new Error("This action belongs to the problem report window.");
+    if (!value || event.senderFrame !== event.sender.mainFrame) throw new Error("この操作は、不具合の報告ウインドウで行ってください。");
     return value;
   }
   function profile(value) {
@@ -15,19 +15,19 @@ function createClientSupportHost({ app, BrowserWindow, ipcMain, dialog, clipboar
     return status.authenticated ? status.profile : null;
   }
   function snapshot(value, request) {
-    if (!value.report || request?.reportId !== value.report.report_id) throw new Error("Refresh the report before continuing.");
-    if (value.report.access !== (profile(value) ?? "locked")) throw new Error("Client access changed. Close this window and reopen Help → Report a Problem.");
-    if (typeof request.description !== "string" || request.description.length > 4000) throw new Error("Describe the problem in 4,000 characters or fewer.");
+    if (!value.report || request?.reportId !== value.report.report_id) throw new Error("報告内容を更新してから続けてください。");
+    if (value.report.access !== (profile(value) ?? "locked")) throw new Error("ログイン状態が変わりました。このウインドウを閉じ、「ヘルプ」→「不具合を報告」を開き直してください。");
+    if (typeof request.description !== "string" || request.description.length > 4000) throw new Error("不具合の内容は4,000文字以内で入力してください。");
     return supportReportText(value.report, request.description);
   }
   ipcMain.handle("octopus:support-collect", async (event, request) => {
     const value = entry(event);
-    if (typeof request?.includeDetails !== "boolean") throw new Error("Choose whether to include error text.");
-    if (request.includeDetails && profile(value) !== "live") throw new Error("Unlock Octopus as Administrator to include error text.");
+    if (typeof request?.includeDetails !== "boolean") throw new Error("エラーの詳細を含めるか選んでください。");
+    if (request.includeDetails && profile(value) !== "live") throw new Error("エラーの詳細を含めるには、管理者として Octopus のロックを解除してください。");
     const generation = ++value.generation;
     const report = await collectSupportReport({ application: application(), clientRoot, runtime: runtime(), progress: progress(), profile: profile(value), includeDetails: request.includeDetails });
-    if (generation !== value.generation) throw new Error("A newer report is being prepared.");
-    if (report.access !== (profile(value) ?? "locked")) throw new Error("Client access changed while collecting the report.");
+    if (generation !== value.generation) throw new Error("新しい報告内容を準備しています。");
+    if (report.access !== (profile(value) ?? "locked")) throw new Error("報告内容を収集している間に、ログイン状態が変わりました。");
     value.report = report;
     return report;
   });
@@ -41,7 +41,7 @@ function createClientSupportHost({ app, BrowserWindow, ipcMain, dialog, clipboar
     const selected = await dialog.showSaveDialog(value.win, {
       title: "不具合の報告を保存",
       defaultPath: `Octopus-report-${value.report.report_id}.txt`,
-      filters: [{ name: "Text report", extensions: ["txt"] }],
+      filters: [{ name: "テキストの報告書", extensions: ["txt"] }],
     });
     if (selected.canceled || !selected.filePath) return { saved: false };
     snapshot(value, request);
@@ -76,7 +76,7 @@ function createClientSupportHost({ app, BrowserWindow, ipcMain, dialog, clipboar
     win.once("ready-to-show", () => { win.show(); win.focus(); });
     const loaded = devUrl ? win.loadURL(new URL("support.html", devUrl).href) : win.loadFile(path.join(__dirname, "..", "dist", "support.html"));
     void loaded.catch(async () => {
-      await dialog.showMessageBox(win, { type: "error", title: "不具合を報告できません", message: "The report window could not load.", detail: "アプリのログは、選択したホームの client/logs フォルダーに保存されています。「ヘルプ」メニューの「トラブルシューティング」を確認してください。" });
+      await dialog.showMessageBox(win, { type: "error", title: "不具合を報告できません", message: "不具合の報告画面を読み込めませんでした。", detail: "アプリのログは、選択したホームの client/logs フォルダーに保存されています。「ヘルプ」メニューの「トラブルシューティング」を確認してください。" });
       win.destroy();
     });
   }
